@@ -478,7 +478,6 @@
     flex-direction: column;
     gap: 0.25rem;
     z-index: 120;
-    transform: skewX(15deg); /* Counter-skew the dropdown menu context so options stay straight */
   }
 
   /* Glowing Square Indicator dot */

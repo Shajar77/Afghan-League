@@ -62,9 +62,11 @@
   color: #000000;
   font-family: var(--font-body);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.88rem; /* Matches hero button size */
   letter-spacing: normal;
-  padding: 0.38rem 0.8rem;
+  padding: 0.38rem 1.25rem;
+  min-height: 44px; /* Matches hero button height */
+  box-sizing: border-box;
   border: none;
   border-radius: 0;
   display: inline-flex;
@@ -73,6 +75,7 @@
   text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%); /* Tech-styled bottom-right corner diagonal cut */
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
@@ -81,6 +84,11 @@
   background: #e2e8f0;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+}
+
+.skew-unskew-text {
+  display: inline-flex;
+  align-items: center;
 }
 
 .btn-login,
@@ -193,7 +201,7 @@
   gap: 0.85rem;
   font-family: var(--font-body);
   font-size: clamp(1.8rem, 5vh, 4rem);
-  font-weight: 500;
+  font-weight: 300;
   letter-spacing: -0.015em;
   color: #e5e5ea;
   text-transform: none;
@@ -280,7 +288,7 @@
 .mobile-submenu-link:active {
   color: var(--brand-gold);
   background-color: rgba(255, 255, 255, 0.02);
-  text-shadow: 0 0 8px rgba(230, 255, 1, 0.35);
+  text-shadow: 0 0 8px rgba(248, 200, 0, 0.35);
 }
 
 /* Mobile Actions Removed - Converted to Navlinks */
@@ -375,10 +383,10 @@
    ========================================================================== */
 @media (min-width: 1200px) {
   .navbar-container {
-    padding: 0.6rem 1.5rem 0.4rem 1.5rem;
+    padding: 0 1.5rem;
     min-height: 80px;
     gap: 1.25rem;
-    align-items: stretch;
+    align-items: stretch; /* Stretch container elements vertically */
   }
 
   .navbar-logo {
@@ -386,7 +394,8 @@
   }
 
   .navbar-brand {
-    align-self: center;
+    display: flex;
+    align-items: center; /* Center logo vertically */
   }
 
   .mobile-controls,
@@ -395,102 +404,148 @@
   }
 
   .desktop-right-column {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex: 1;
-    align-self: stretch;
-    padding: 0.75rem 0 0 0;
-    gap: 0.75rem;
+    display: none;
   }
 
-  /* Desktop Nav Links */
+  /* Desktop Nav Links (Centered & Full Height Stretch) */
   .desktop-nav {
     display: flex;
-    align-items: flex-end;
-    gap: 0.5rem;
+    align-self: stretch;
+    align-items: stretch; /* Stretch links to full navbar height */
+    gap: 0.15rem; /* Reduced gap */
     list-style: none;
-    padding: 0 0 3px 0;
-    margin: 0;
-    justify-content: flex-end;
+    padding: 0;
+    margin: 0 auto 0 4.5rem; /* Shift nav track towards the left of the header */
   }
 
   .desktop-nav-link {
     font-family: var(--font-body);
-    font-size: 0.88rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-size: 0.82rem; /* More smaller nav links */
+    font-weight: 600; /* Bolder nav links (Semi-bold) */
+    letter-spacing: 0.05em;
     color: #ffffff;
     text-transform: uppercase;
     text-decoration: none;
-    padding: 0.42rem 0.75rem;
+    padding: 0 0.95rem; /* Tighter padding */
     display: inline-flex;
-    align-items: center;
+    align-items: center; /* Center text vertically */
     background: none;
     border: none;
     cursor: pointer;
     white-space: nowrap;
     position: relative;
-    transition: color 0.15s ease, background-color 0.15s ease;
+    transform: skewX(-15deg); /* Skew the link wrapper */
+    border-bottom: 3px solid transparent; /* Thinner selected state bar at the bottom */
+    transition: background 0.2s ease, border-bottom-color 0.2s ease, color 0.2s ease;
+  }
+
+  .desktop-nav-link-text {
+    display: inline-block;
+    transform: skewX(15deg); /* Unskew text to keep upright */
   }
 
   .desktop-nav-link:hover {
-    color: #000000;
-    background-color: var(--brand-gold);
+    color: #ffffff;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.08));
+    border-bottom-color: rgba(255, 255, 255, 0.25);
   }
 
   .desktop-nav-link.active {
-    color: #000000;
-    background-color: var(--brand-gold);
+    color: #ffffff;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.15)); /* Lighter gradient on top */
+    border-bottom-color: var(--brand-gold); /* Neon yellow/lime bottom bar flush with navbar edge */
   }
 
-  /* Desktop Right Action Area: REGISTER NOW dropdown */
+  /* More Dropdown Wrapper & Position Context */
+  .more-dropdown-wrapper {
+    position: relative;
+    display: flex;
+    align-self: stretch;
+    align-items: stretch;
+  }
+
+  .more-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--brand-gold);
+    border-top: 3px solid var(--brand-gold);
+    min-width: 170px;
+    padding: 0.5rem;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    z-index: 120;
+    transform: skewX(15deg); /* Counter-skew the dropdown menu context so options stay straight */
+  }
+
+  /* Glowing Square Indicator dot */
+  .nav-link-badge {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background-color: var(--brand-gold);
+    margin-left: 0.5rem;
+    border-radius: 1px;
+    box-shadow: 0 0 8px var(--brand-gold);
+    transform: skewX(15deg); /* Unskew the indicator dot */
+  }
+
+  /* Desktop Right Action Area: Skewed REGISTER NOW button */
   .desktop-actions {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    position: relative;
   }
 
-  .register-dropdown-wrapper {
-    padding-bottom: 0.5rem; /* Hover bridge */
-    margin-bottom: -0.5rem;
+
+
+  .skew-unskew-text {
+    display: inline-flex;
+    align-items: center;
   }
 
-  .register-dropdown-wrapper:hover .btn-register-now {
-    background: #e2e8f0;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
-  }
-
-  /* Desktop Dropdown Adjustments & Animations */
-  .register-dropdown-menu {
-    min-width: 320px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
-  }
-
-  .register-dropdown-wrapper:hover .register-dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  .navbar-register-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--brand-gold);
+    border-top: 3px solid var(--brand-gold);
+    min-width: 220px;
+    padding: 0.5rem;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    z-index: 120;
   }
 
   .register-option-item {
-    align-items: flex-start;
+    align-items: center;
+    color: #ffffff;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 0.6rem 0.85rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
   }
 
   .register-option-item:hover {
-    transform: translateX(4px);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--brand-gold);
   }
 }
 
-/* Bottom Bar Slash Accent */
+/* Bottom Bar Yellow Accent */
 .navbar-bottom-bar {
   height: 2px;
   width: 100%;
-  background: var(--brand-gold);
+  background: var(--brand-gold); /* Yellow accent line below the navbar */
   position: relative;
 }
+

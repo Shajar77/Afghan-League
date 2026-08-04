@@ -1,22 +1,22 @@
 :root {
-  /* Premium Dark Blue Canvas & Elevation Layers */
-  --bg-canvas: #0e1038;
-  --bg-surface: #181b53;
-  --bg-surface-hover: #20246b;
-  --border-subtle: #2a2f86;
+  /* Premium Indigo Blue Canvas & Elevation Layers */
+  --bg-canvas: #24327B;
+  --bg-surface: #2f3fa1;
+  --bg-surface-hover: #3b4eb8;
+  --border-subtle: #3d52c2;
 
   /* Official APL Brand Accent Tokens (Boss Color Palette) */
   --brand-navy: #2c32aa;      /* Base Blue */
   --brand-green: #017a37;     /* Green */
-  --brand-sky: #3ba3de;       /* Secondary Blue */
-  --brand-gold: #e6ff01;      /* Lime Neon Green Accent */
+  --brand-sky: #F8C800;       /* Secondary Color (Vibrant Gold) */
+  --brand-gold: #F8C800;      /* Vibrant Gold Accent (Replaces E6FF01) */
 
   /* Text & Glow Tokens */
   --text-main: #e5e9f0;
   --text-muted: #8c9bb5;
   --text-h: #ffffff;
-  --glow-sky: rgba(59, 163, 222, 0.25);
-  --glow-gold: rgba(230, 255, 1, 0.25);
+  --glow-sky: rgba(248, 200, 0, 0.25);
+  --glow-gold: rgba(248, 200, 0, 0.25);
   --glow-green: rgba(1, 122, 55, 0.25);
 
   /* Typography */

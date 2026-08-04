@@ -69,6 +69,9 @@ const preloadImages = async (urls: string[]) => {
   );
 };
 
+const MASONRY_QUERIES = ['(min-width:1500px)', '(min-width:1000px)', '(min-width:600px)', '(min-width:400px)'];
+const MASONRY_VALUES = [5, 4, 3, 2];
+
 export default function Masonry({
   items,
   ease = 'power3.out',
@@ -81,8 +84,8 @@ export default function Masonry({
   colorShiftOnHover = false
 }: MasonryProps) {
   const columns = useMedia(
-    ['(min-width:1500px)', '(min-width:1000px)', '(min-width:600px)', '(min-width:400px)'],
-    [5, 4, 3, 2],
+    MASONRY_QUERIES,
+    MASONRY_VALUES,
     1
   );
 

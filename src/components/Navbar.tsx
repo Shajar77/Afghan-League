@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { User, Menu, X, ChevronDown, Handshake } from 'lucide-react'
-import aplLogo from '../assets/APL Logo - White.png'
+import { Menu, X, ChevronDown, User, Handshake } from 'lucide-react'
+import aplLogo from '../assets/APL Logo - White.webp'
 import './Navbar.css'
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState('')
+  const [activeTab, setActiveTab] = useState('Home')
+  const [navbarRegisterOpen, setNavbarRegisterOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -19,15 +20,19 @@ export function Navbar() {
     }
   }, [mobileMenuOpen])
 
-  const navItems = [
+  interface NavItem {
+    label: string;
+    href: string;
+    hasBadge?: boolean;
+  }
+
+  const navItems: NavItem[] = [
     { label: 'Home', href: '#home' },
     { label: 'About', href: '#about' },
     { label: 'Fixtures', href: '#fixtures' },
     { label: 'Points Table', href: '#points-table' },
     { label: 'News & Media', href: '#news' },
-    { label: 'Partnerships', href: '#partnerships' },
     { label: 'Gallery', href: '#gallery' },
-    { label: 'Contact Us', href: '#contact-us' },
   ]
 
   return (
@@ -38,6 +43,79 @@ export function Navbar() {
           <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
         </a>
 
+        {/* Desktop Navigation Links (Center) */}
+        <nav className="desktop-nav">
+          {navItems.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className={`desktop-nav-link ${activeTab === item.label ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab(item.label)
+                setMoreOpen(false)
+              }}
+            >
+              <span className="desktop-nav-link-text">{item.label}</span>
+              {item.hasBadge && <span className="nav-link-badge"></span>}
+            </a>
+          ))}
+          {/* More Dropdown Link */}
+          <div className="more-dropdown-wrapper">
+            <button
+              className={`desktop-nav-link ${moreOpen || activeTab === 'Partnerships' || activeTab === 'Contact Us' ? 'active' : ''}`}
+              onClick={() => setMoreOpen(!moreOpen)}
+            >
+              <span className="desktop-nav-link-text">MORE</span>
+              <ChevronDown size={12} className="desktop-nav-link-text" style={{ marginLeft: '4px' }} />
+            </button>
+            {moreOpen && (
+              <div className="register-dropdown-menu more-dropdown-menu">
+                <a href="#partnerships" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Partnerships'); }}>
+                  Partnerships
+                </a>
+                <a href="#contact-us" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Contact Us'); }}>
+                  Contact Us
+                </a>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* Desktop Action Area (Right) */}
+        <div className="desktop-actions">
+          <div className="register-dropdown-wrapper">
+            <button
+              className="btn-register-now"
+              onClick={() => setNavbarRegisterOpen(!navbarRegisterOpen)}
+            >
+              <span className="skew-unskew-text">PLAYER REGISTRATION</span>
+              <ChevronDown size={16} className="skew-unskew-text" />
+            </button>
+            {navbarRegisterOpen && (
+              <div className="register-dropdown-menu navbar-register-dropdown">
+                <a href="#register-player" className="register-option-item" onClick={() => setNavbarRegisterOpen(false)}>
+                  <div className="register-option-icon">
+                    <User size={18} />
+                  </div>
+                  <div className="register-option-text">
+                    <span className="register-option-title">Register as a Player</span>
+                    <span className="register-option-desc">Draft pool entry form</span>
+                  </div>
+                </a>
+                <a href="#register-agent" className="register-option-item" onClick={() => setNavbarRegisterOpen(false)}>
+                  <div className="register-option-icon">
+                    <Handshake size={18} />
+                  </div>
+                  <div className="register-option-text">
+                    <span className="register-option-title">Register as an Agent</span>
+                    <span className="register-option-desc">Official player agent sign up</span>
+                  </div>
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Mobile Controls (Top Right Header) */}
         <div className="mobile-controls">
           <button
@@ -47,57 +125,6 @@ export function Navbar() {
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-        </div>
-
-        {/* Desktop Right Column: Two-row stacked layout */}
-        <div className="desktop-right-column">
-          {/* Row 1 (Top): Buttons */}
-          <div className="desktop-actions">
-            <div className="register-dropdown-wrapper">
-              <button className="btn-register-now">
-                <span>REGISTER NOW</span>
-                <ChevronDown size={18} />
-              </button>
-              <div className="register-dropdown-menu">
-                <a href="#register-player" className="register-option-item">
-                  <div className="register-option-icon">
-                    <User size={20} />
-                  </div>
-                  <div className="register-option-text">
-                    <span className="register-option-title">Register as a Player</span>
-                    <span className="register-option-desc">Register yourself as an active player in the draft pool</span>
-                  </div>
-                </a>
-                <a href="#register-agent" className="register-option-item">
-                  <div className="register-option-icon">
-                    <Handshake size={20} />
-                  </div>
-                  <div className="register-option-text">
-                    <span className="register-option-title">Register as an Agent</span>
-                    <span className="register-option-desc">Register on behalf of a player you represent</span>
-                  </div>
-                </a>
-              </div>
-            </div>
-            <a href="#login" className="btn-login">
-              <span>LOGIN</span>
-              <User size={18} />
-            </a>
-          </div>
-
-          {/* Row 2 (Bottom): Navigation Links */}
-          <nav className="desktop-nav">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className={`desktop-nav-link ${activeTab === item.label ? 'active' : ''}`}
-                onClick={() => setActiveTab(item.label)}
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
         </div>
       </div>
 
@@ -118,56 +145,20 @@ export function Navbar() {
               </a>
             </li>
           ))}
-          <li className="mobile-nav-item">
-            <button
-              className={`mobile-nav-link mobile-submenu-toggle ${mobileSubmenuOpen ? 'submenu-active' : ''}`}
-              onClick={() => setMobileSubmenuOpen(!mobileSubmenuOpen)}
-            >
-              Registration
-              <ChevronDown size={28} className={`submenu-arrow ${mobileSubmenuOpen ? 'rotated' : ''}`} />
-            </button>
-            {mobileSubmenuOpen && (
-              <ul className="mobile-submenu-list">
-                <li className="mobile-submenu-item">
-                  <a
-                    href="#register-player"
-                    className="mobile-submenu-link"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setMobileSubmenuOpen(false);
-                    }}
-                  >
-                    Register as a Player
-                  </a>
-                </li>
-                <li className="mobile-submenu-item">
-                  <a
-                    href="#register-agent"
-                    className="mobile-submenu-link"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setMobileSubmenuOpen(false);
-                    }}
-                  >
-                    Register as an Agent
-                  </a>
-                </li>
-              </ul>
-            )}
-          </li>
+          {/* Mobile Player Registration Quicklink */}
           <li className="mobile-nav-item">
             <a
-              href="#login"
-              className="mobile-nav-link"
+              href="#register-player"
+              className="mobile-nav-link highlight"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Login
+              Register Now
             </a>
           </li>
         </ul>
       </div>
 
-      {/* Bottom Slash Accent Bar */}
+      {/* Bottom Yellow Accent Bar */}
       <div className="navbar-bottom-bar"></div>
     </header>
   )

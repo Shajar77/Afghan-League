@@ -1,6 +1,31 @@
-import { useRef, useState, useLayoutEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useRef, useCallback, useEffect } from 'react'
 import './MatchTicker.css'
+
+const teamColors: { [key: string]: { bg: string, text: string } } = {
+  'Kabul Zwanan': { bg: '#2c32aa', text: '#ffffff' },
+  'Balkh Legends': { bg: '#F8C800', text: '#000000' },
+  'Nangarhar Leopards': { bg: '#017a37', text: '#ffffff' },
+  'Paktia Panthers': { bg: '#e53e3e', text: '#ffffff' },
+  'Kandahar Knights': { bg: '#805ad5', text: '#ffffff' },
+  'Herat Warriors': { bg: '#dd6b20', text: '#ffffff' },
+  'TBD': { bg: '#718096', text: '#ffffff' }
+};
+
+function getTeamMeta(label: string) {
+  const cleanLabel = label.trim();
+  const colors = teamColors[cleanLabel] || { bg: '#718096', text: '#ffffff' };
+  
+  let initials = 'TBD';
+  if (cleanLabel !== 'TBD') {
+    const parts = cleanLabel.split(' ');
+    if (parts.length >= 2) {
+      initials = (parts[0][0] + parts[1][0]).toUpperCase();
+    } else if (parts.length === 1) {
+      initials = parts[0].substring(0, 2).toUpperCase();
+    }
+  }
+  return { ...colors, initials };
+}
 
 interface Team {
   label: string;
@@ -202,6 +227,34 @@ const mockMatches: Match[] = [
   }
 ]
 
+// Render result text with highlighted team name in gold
+function renderResultText(result: string, team1Label: string, team2Label: string) {
+  if (result.startsWith(team1Label)) {
+    const rest = result.slice(team1Label.length);
+    return (
+      <>
+        <span className="mc-result-team">{team1Label}</span>
+        <span className="mc-result-desc">{rest}</span>
+      </>
+    );
+  }
+  if (result.startsWith(team2Label)) {
+    const rest = result.slice(team2Label.length);
+    return (
+      <>
+        <span className="mc-result-team">{team2Label}</span>
+        <span className="mc-result-desc">{rest}</span>
+      </>
+    );
+  }
+  return <span className="mc-result-desc">{result}</span>;
+}
+
+function formatOvers(overs: string) {
+  if (overs === '20') return '20.0';
+  return overs;
+}
+
 // Derive which team won by checking if team label appears in result string before "won"
 function getWinner(match: Match): 'team1' | 'team2' | null {
   if (match.status !== 'FINAL') return null
@@ -215,110 +268,179 @@ function getWinner(match: Match): 'team1' | 'team2' | null {
 export function MatchTicker() {
   const containerRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
-  const [maxDrag, setMaxDrag] = useState(0)
+  // Native drag state
+  const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 })
+  const isHovered = useRef(false)
 
-  const updateConstraints = () => {
-    if (containerRef.current && trackRef.current) {
-      const gap = trackRef.current.scrollWidth - containerRef.current.offsetWidth
-      setMaxDrag(Math.max(0, gap))
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const track = trackRef.current
+    const container = containerRef.current
+    if (!track || !container) return
+    dragState.current = {
+      isDragging: true,
+      startX: e.clientX,
+      scrollLeft: container.scrollLeft,
     }
-  }
+    container.style.cursor = 'grabbing'
+    track.setPointerCapture(e.pointerId)
+  }, [])
 
-  useLayoutEffect(() => {
-    const timer = setTimeout(updateConstraints, 100)
-    
-    let resizeFrameId: number
-    const handleResize = () => {
-      cancelAnimationFrame(resizeFrameId)
-      resizeFrameId = requestAnimationFrame(updateConstraints)
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragState.current.isDragging) return
+    const container = containerRef.current
+    if (!container) return
+    const dx = e.clientX - dragState.current.startX
+    let targetScroll = dragState.current.scrollLeft - dx
+
+    // Infinite loop wrap-around logic during dragging
+    const halfWidth = container.scrollWidth / 2
+    if (targetScroll >= halfWidth) {
+      targetScroll -= halfWidth
+      dragState.current.startX += halfWidth
+      dragState.current.scrollLeft -= halfWidth
+    } else if (targetScroll < 0) {
+      targetScroll += halfWidth
+      dragState.current.startX -= halfWidth
+      dragState.current.scrollLeft += halfWidth
     }
 
-    window.addEventListener('resize', handleResize)
-    return () => {
-      clearTimeout(timer)
-      cancelAnimationFrame(resizeFrameId)
-      window.removeEventListener('resize', handleResize)
+    container.scrollLeft = targetScroll
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    dragState.current.isDragging = false
+    if (containerRef.current) containerRef.current.style.cursor = 'grab'
+  }, [])
+
+  // Auto-scroll loop effect
+  useEffect(() => {
+    let animationFrameId: number
+    let lastTime = performance.now()
+    const speed = 30 // Smooth slow drift speed (pixels per second)
+
+    const scroll = (time: number) => {
+      const container = containerRef.current
+      if (!container) return
+
+      // Pause scroll if dragging or hovered
+      if (dragState.current.isDragging || isHovered.current) {
+        lastTime = time
+        animationFrameId = requestAnimationFrame(scroll)
+        return
+      }
+
+      const delta = (time - lastTime) / 1000
+      lastTime = time
+
+      // Increment scroll
+      container.scrollLeft += speed * delta
+
+      // Wrap around seamlessly
+      const halfWidth = container.scrollWidth / 2
+      if (container.scrollLeft >= halfWidth) {
+        container.scrollLeft -= halfWidth
+      }
+
+      animationFrameId = requestAnimationFrame(scroll)
     }
+
+    animationFrameId = requestAnimationFrame(scroll)
+    return () => cancelAnimationFrame(animationFrameId)
+  }, [])
+
+  // Prevent text selection during drag
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const prevent = (e: Event) => { if (dragState.current.isDragging) e.preventDefault() }
+    el.addEventListener('selectstart', prevent)
+    return () => el.removeEventListener('selectstart', prevent)
   }, [])
 
   return (
     <div className="mc-section">
-      <div className="mc-carousel-wrapper" ref={containerRef}>
-        <motion.div
+      <div
+        className="mc-carousel-wrapper"
+        ref={containerRef}
+        style={{ overflowX: 'auto', cursor: 'grab', scrollBehavior: 'auto' }}
+        onMouseEnter={() => { isHovered.current = true }}
+        onMouseLeave={() => { isHovered.current = false }}
+      >
+        <div
           ref={trackRef}
           className="mc-drag-track"
-          drag="x"
-          dragConstraints={{ right: 0, left: -maxDrag }}
-          dragElastic={0.05}
-          dragMomentum={true}
-          dragTransition={{ bounceStiffness: 400, bounceDamping: 40 }}
-          onPointerDown={updateConstraints}
-          whileTap={{ cursor: 'grabbing' }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
         >
-          {mockMatches.map((match, index) => (
-            <motion.div
-              key={match.id}
-              className="mc-card-stacked"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.04 }}
-            >
-              {/* Top Left Small White Date Header */}
-              <div className="mc-card-top-meta">
-                <span className="mc-top-date">{match.dateStr}</span>
-                {match.status === 'LIVE' && (
-                  <span className="mc-live-badge-sm">LIVE</span>
-                )}
-              </div>
+          {[...mockMatches, ...mockMatches].map((match, index) => {
+            const meta1 = getTeamMeta(match.team1.label)
+            const meta2 = getTeamMeta(match.team2.label)
+            const winner = getWinner(match)
+            const t1Won = winner === 'team1'
+            const t2Won = winner === 'team2'
 
-              {/* Team rows with winner/loser styling */}
-              {(() => {
-                const winner = getWinner(match)
-                const t1Won = winner === 'team1'
-                const t2Won = winner === 'team2'
-                return (
-                  <>
-                    <div className="mc-team-line">
-                      <div className="mc-team-info">
-                        <div className="mc-team-logo" />
-                        <span className={`mc-team-name${t1Won ? ' mc-team-winner' : t2Won ? ' mc-team-loser' : ''}`}>
-                          {match.team1.label.split(' ').map((word, wIdx) => (
-                            <span key={wIdx} className="mc-team-name-word">{word}</span>
-                          ))}
+            return (
+              <div
+                key={`${match.id}-dup-${index}`}
+                className="mc-card-motion-wrapper"
+                style={{ animationDelay: `${index * -0.7}s` }}
+              >
+                <div
+                  className="mc-card-horizontal mc-card-fade-in"
+                  style={{ animationDelay: `${(index % mockMatches.length) * 0.04}s` }}
+                >
+                  {/* Team 1 (Left) */}
+                  <div className="mc-horizontal-team left">
+                    <div className="mc-team-logo-circle">
+                      {meta1.initials}
+                    </div>
+                    <div className="mc-score-overs-block">
+                      <span className={`mc-score-big ${t1Won ? 'mc-winner' : t2Won ? 'mc-loser' : ''}`}>
+                        {match.team1.score || '-'}
+                      </span>
+                      {match.team1.overs && (
+                        <span className="mc-overs-count">
+                          ({formatOvers(match.team1.overs)})
                         </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Center Match Details */}
+                  <div className="mc-horizontal-center">
+                    <div className="mc-center-details">
+                      <div className="mc-details-default">
+                        VS
                       </div>
-                      <div className="mc-team-score-block">
-                        <span className={`mc-score-num${t1Won ? ' mc-score-winner' : t2Won ? ' mc-score-loser' : ''}`}>{match.team1.score}</span>
+                      <div className="mc-details-hover" title={match.result || match.venue}>
+                        {renderResultText(match.result || match.venue.split('·')[0], match.team1.label, match.team2.label)}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="mc-team-line">
-                      <div className="mc-team-info">
-                        <div className="mc-team-logo" />
-                        <span className={`mc-team-name${t2Won ? ' mc-team-winner' : t1Won ? ' mc-team-loser' : ''}`}>
-                          {match.team2.label.split(' ').map((word, wIdx) => (
-                            <span key={wIdx} className="mc-team-name-word">{word}</span>
-                          ))}
+                  {/* Team 2 (Right) */}
+                  <div className="mc-horizontal-team right">
+                    <div className="mc-score-overs-block align-right">
+                      <span className={`mc-score-big ${t2Won ? 'mc-winner' : t1Won ? 'mc-loser' : ''}`}>
+                        {match.team2.score || '-'}
+                      </span>
+                      {match.team2.overs && (
+                        <span className="mc-overs-count">
+                          ({formatOvers(match.team2.overs)})
                         </span>
-                      </div>
-                      <div className="mc-team-score-block">
-                        <span className={`mc-score-num${t2Won ? ' mc-score-winner' : t1Won ? ' mc-score-loser' : ''}`}>{match.team2.score}</span>
-                      </div>
+                      )}
                     </div>
-                  </>
-                )
-              })()}
-
-              {/* Bottom Result Line */}
-              <div className="mc-card-bottom-result">
-                <span className="mc-result-text">{match.result}</span>
-                <span className="mc-venue-text">{match.venue}</span>
-                <button className="mc-watch-btn">WATCH HIGHLIGHTS</button>
-                <button className="mc-buy-tickets-btn">BUY TICKETS</button>
+                    <div className="mc-team-logo-circle">
+                      {meta2.initials}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </motion.div>
-          ))}
-        </motion.div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

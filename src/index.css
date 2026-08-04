@@ -23,6 +23,15 @@
   --font-display: "Big Shoulders Display", "Big Shoulders", sans-serif;
   --font-body: "Archivo", sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+
+  /* Standard Page Side Padding (single source of truth) */
+  --page-padding: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-padding: 2rem;
+  }
 }
 
 * {

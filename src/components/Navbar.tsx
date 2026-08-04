@@ -20,6 +20,29 @@ export function Navbar() {
     }
   }, [mobileMenuOpen])
 
+  useEffect(() => {
+    const syncActiveTab = () => {
+      const hash = window.location.hash
+      if (hash === '#about') {
+        setActiveTab('About')
+      } else if (hash === '#fixtures') {
+        setActiveTab('Fixtures')
+      } else if (hash === '#points-table') {
+        setActiveTab('Points Table')
+      } else if (hash === '#news') {
+        setActiveTab('News & Media')
+      } else if (hash === '#gallery') {
+        setActiveTab('Gallery')
+      } else {
+        setActiveTab('Home')
+      }
+    }
+    // Run initial sync
+    syncActiveTab()
+    window.addEventListener('hashchange', syncActiveTab)
+    return () => window.removeEventListener('hashchange', syncActiveTab)
+  }, [])
+
   interface NavItem {
     label: string;
     href: string;
@@ -145,6 +168,25 @@ export function Navbar() {
               </a>
             </li>
           ))}
+          {/* Partnerships & Contact Us from More dropdown */}
+          <li className="mobile-nav-item">
+            <a
+              href="#partnerships"
+              className={`mobile-nav-link ${activeTab === 'Partnerships' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('Partnerships'); setMobileMenuOpen(false) }}
+            >
+              Partnerships
+            </a>
+          </li>
+          <li className="mobile-nav-item">
+            <a
+              href="#contact-us"
+              className={`mobile-nav-link ${activeTab === 'Contact Us' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('Contact Us'); setMobileMenuOpen(false) }}
+            >
+              Contact Us
+            </a>
+          </li>
           {/* Mobile Player Registration Quicklink */}
           <li className="mobile-nav-item">
             <a

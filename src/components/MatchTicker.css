@@ -259,14 +259,16 @@
   line-height: 1.3;
 }
 
-.mc-card-horizontal:hover .mc-details-default {
-  opacity: 0;
-  transform: translateY(-5px);
-}
+@media (hover: hover) {
+  .mc-card-horizontal:hover .mc-details-default {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
 
-.mc-card-horizontal:hover .mc-details-hover {
-  opacity: 1;
-  transform: translateY(0);
+  .mc-card-horizontal:hover .mc-details-hover {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Winner/Loser effects inside horizontal scorecard */

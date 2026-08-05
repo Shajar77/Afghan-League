@@ -1,0 +1,375 @@
+/* ============================================================
+   APL POINTS TABLE STYLING — STANDINGS PAGE CONTAINER & OVERRIDES
+   ============================================================ */
+
+.points-table-page {
+  width: 100%;
+  min-height: 100vh;
+  padding-bottom: 6rem;
+}
+
+/* ── HERO BANNER ─────────────────────────────────────────── */
+
+.points-hero {
+  position: relative;
+  width: 100%;
+  padding: 3.5rem var(--page-padding) 1.5rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0a1240 0%, #0f1a52 40%, #162060 70%, #1a2666 100%);
+  border-bottom: 1px solid rgba(248, 200, 0, 0.12);
+}
+
+.points-hero-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(248, 200, 0, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0));
+  pointer-events: none;
+}
+
+.points-hero-glow {
+  position: absolute;
+  top: -10%;
+  right: 15%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(248, 200, 0, 0.09) 0%, transparent 70%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.points-hero-top-row {
+  max-width: 1380px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.points-hero-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.points-live-badge {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: var(--brand-gold);
+  text-transform: uppercase;
+}
+
+.points-main-title {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 10vw, 7.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.points-main-title .dot-accent {
+  color: var(--brand-gold);
+}
+
+/* ── MAIN LAYOUT PAGE WRAPPER ──────────────────────────────── */
+
+.points-table-page .points-table-section {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 var(--page-padding);
+  margin-top: 1.5rem; /* Sit flush with margins */
+}
+
+/* ── FORM BADGES & OUTCOME CUSTOM WORK ─────────────────────── */
+
+.pt-form-cell {
+  text-align: left !important;
+  padding-left: 0.5rem !important;
+}
+
+.pt-form-guide-list {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.pt-form-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #ffffff;
+  border-radius: 2px;
+  user-select: none;
+  text-align: center;
+  line-height: 1;
+}
+
+.pt-badge-win {
+  background: var(--brand-green); /* Emerald Green */
+}
+
+.pt-badge-loss {
+  background: #e53e3e; /* Red */
+}
+
+.pt-badge-draw {
+  background: #64748b; /* Slate grey */
+}
+
+/* logo invert override inside table context */
+.pt-team-logo.logo-invert-dark {
+  filter: brightness(0) invert(1);
+}
+
+/* Positive / Negative NRR Text Colors */
+.pt-nrr-positive {
+  color: #4ade80 !important; /* Emerald Green */
+  font-weight: 600 !important;
+}
+
+.pt-nrr-negative {
+  color: #f87171 !important; /* Pastel Red */
+  font-weight: 600 !important;
+}
+
+/* ── POINTS RULES SECTION STYLING ──────────────────────────── */
+
+.points-rules-section {
+  width: 100%;
+  margin-top: 4rem;
+}
+
+.rules-inner {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 var(--page-padding);
+}
+
+.rules-section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem;
+}
+
+.rules-section-title span {
+  color: #ffffff;
+}
+
+.rules-section-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin-bottom: 2rem;
+}
+
+.rules-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  margin-top: 3.5rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 900px) {
+  .rules-grid-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
+
+.rules-grid-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.rules-col-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.rules-col-num {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: var(--brand-gold);
+  line-height: 1;
+}
+
+.rules-col-label {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.rules-col-heading {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin: 0 0 1rem 0;
+  letter-spacing: -0.01em;
+}
+
+.rules-paragraph {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: #cbd5e1;
+  margin: 0 0 1.25rem 0;
+}
+
+.rules-paragraph strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Playoff Badges Styling */
+.rules-playoff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.playoff-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+}
+
+.playoff-step-badge {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: var(--brand-gold);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 900;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.playoff-step-info {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.42;
+  color: #cbd5e1;
+}
+
+.playoff-step-info strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* NRR Formula Box Styling */
+.rules-nrr-formula-box {
+  background: #090d29; /* Extra dark formula block */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.nrr-formula-title {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.nrr-formula-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  word-break: break-all;
+  line-height: 1.45;
+}
+
+.stat-value-unit {
+  font-size: 0.28em !important;
+  font-weight: 900;
+  color: var(--brand-gold) !important;
+  margin-left: -0.65rem !important;
+  letter-spacing: -0.02em;
+  vertical-align: baseline !important;
+}
+
+.points-rules-section .stat-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.points-rules-section .stat-label {
+  font-family: var(--font-display) !important;
+  font-size: 1.35rem !important;
+  font-weight: 500 !important;
+  color: #ffffff !important;
+  letter-spacing: 0.06em !important;
+  margin-top: 0 !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+}
+
+.points-rules-section .stat-divider {
+  margin: 0.6rem auto 0.75rem !important;
+}
+
+@media (max-width: 767px) {
+  .points-rules-section .stat-card {
+    flex: 1;
+    min-width: 0;
+  }
+  .points-rules-section .stat-value {
+    font-size: clamp(2rem, 6vw, 3.2rem) !important;
+  }
+  .stat-value-unit {
+    font-size: 0.35em !important;
+    margin-left: -0.15rem !important;
+  }
+  .points-rules-section .stat-label {
+    font-size: clamp(0.7rem, 2.2vw, 0.85rem) !important;
+    letter-spacing: 0.04em !important;
+  }
+  .points-rules-section .stat-divider {
+    margin: 0.4rem auto !important;
+    width: 14px !important;
+  }
+}
+

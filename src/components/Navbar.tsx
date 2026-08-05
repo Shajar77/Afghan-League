@@ -1,23 +1,28 @@
-import { useState, useEffect } from 'react'
-import { Menu, X, ChevronDown, User, Handshake } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Menu, X, ChevronDown } from 'lucide-react'
 import aplLogo from '../assets/APL Logo - White.webp'
+import londonSpiritLogo from '../assets/london-spirit-white.svg'
+import birminghamPhoenixLogo from '../assets/birmingham-phoenix.svg'
+import manchesterSuperGiantsLogo from '../assets/manchester-super-giants.svg'
+import sunrisersLeedsLogo from '../assets/sunrisers-leeds.svg'
+import welshFireLogo from '../assets/welsh-fire-white.svg'
+import southernBraveLogo from '../assets/southern-brave-alt.svg'
 import './Navbar.css'
+
+interface NavItem {
+  label: string;
+  href: string;
+}
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('Home')
-  const [navbarRegisterOpen, setNavbarRegisterOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
   }, [mobileMenuOpen])
 
   useEffect(() => {
@@ -25,29 +30,35 @@ export function Navbar() {
       const hash = window.location.hash
       if (hash === '#about') {
         setActiveTab('About')
+      } else if (hash === '#news') {
+        setActiveTab('News & Media')
       } else if (hash === '#fixtures') {
         setActiveTab('Fixtures')
       } else if (hash === '#points-table') {
         setActiveTab('Points Table')
-      } else if (hash === '#news') {
-        setActiveTab('News & Media')
       } else if (hash === '#gallery') {
         setActiveTab('Gallery')
+      } else if (hash === '#partnerships') {
+        setActiveTab('Partnerships')
       } else {
         setActiveTab('Home')
       }
     }
-    // Run initial sync
     syncActiveTab()
     window.addEventListener('hashchange', syncActiveTab)
     return () => window.removeEventListener('hashchange', syncActiveTab)
   }, [])
 
-  interface NavItem {
-    label: string;
-    href: string;
-    hasBadge?: boolean;
-  }
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setMoreOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const navItems: NavItem[] = [
     { label: 'Home', href: '#home' },
@@ -58,101 +69,113 @@ export function Navbar() {
     { label: 'Gallery', href: '#gallery' },
   ]
 
+  const teamLogos = [
+    { src: londonSpiritLogo, alt: 'London Spirit' },
+    { src: birminghamPhoenixLogo, alt: 'Birmingham Phoenix' },
+    { src: manchesterSuperGiantsLogo, alt: 'Manchester Super Giants' },
+    { src: sunrisersLeedsLogo, alt: 'Sunrisers Leeds' },
+    { src: welshFireLogo, alt: 'Welsh Fire' },
+    { src: southernBraveLogo, alt: 'Southern Brave' },
+  ]
+
   return (
     <header className="navbar-header">
-      <div className="navbar-container">
-        {/* Brand Logo */}
-        <a href="#" className="navbar-brand">
-          <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
-        </a>
 
-        {/* Desktop Navigation Links (Center) */}
-        <nav className="desktop-nav">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={`desktop-nav-link ${activeTab === item.label ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab(item.label)
-                setMoreOpen(false)
-              }}
-            >
-              <span className="desktop-nav-link-text">{item.label}</span>
-              {item.hasBadge && <span className="nav-link-badge"></span>}
-            </a>
-          ))}
-          {/* More Dropdown Link */}
-          <div className="more-dropdown-wrapper">
-            <button
-              className={`desktop-nav-link ${moreOpen || activeTab === 'Partnerships' || activeTab === 'Contact Us' ? 'active' : ''}`}
-              onClick={() => setMoreOpen(!moreOpen)}
-            >
-              <span className="desktop-nav-link-text">MORE</span>
-              <ChevronDown size={12} className="desktop-nav-link-text" style={{ marginLeft: '4px' }} />
-            </button>
-            {moreOpen && (
-              <div className="register-dropdown-menu more-dropdown-menu">
-                <a href="#partnerships" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Partnerships'); }}>
-                  Partnerships
-                </a>
-                <a href="#contact-us" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Contact Us'); }}>
-                  Contact Us
-                </a>
-              </div>
-            )}
+      {/* ── TOP ROW: Logo | Team Logos | Register ── */}
+      <div className="navbar-top-row">
+        <div className="navbar-top-inner">
+
+          {/* Left: APL Brand Logo */}
+          <a href="#home" className="navbar-brand" onClick={() => setActiveTab('Home')}>
+            <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
+          </a>
+
+          {/* Center: Team Logos Strip */}
+          <div className="navbar-teams-strip">
+            <div className="navbar-teams-divider-left" />
+            {teamLogos.map((team) => (
+              <a key={team.alt} href="#home" className="navbar-team-logo-wrap" title={team.alt}>
+                <img src={team.src} alt={team.alt} className="navbar-team-logo" />
+              </a>
+            ))}
+            <div className="navbar-teams-divider-right" />
           </div>
-        </nav>
 
-        {/* Desktop Action Area (Right) */}
-        <div className="desktop-actions">
-          <div className="register-dropdown-wrapper">
-            <button
-              className="btn-register-now"
-              onClick={() => setNavbarRegisterOpen(!navbarRegisterOpen)}
-            >
+          {/* Right: Register Button */}
+          <div className="navbar-top-right">
+            <a href="#register-player" className="btn-register-now desktop-register">
               <span className="skew-unskew-text">PLAYER REGISTRATION</span>
-              <ChevronDown size={16} className="skew-unskew-text" />
-            </button>
-            {navbarRegisterOpen && (
-              <div className="register-dropdown-menu navbar-register-dropdown">
-                <a href="#register-player" className="register-option-item" onClick={() => setNavbarRegisterOpen(false)}>
-                  <div className="register-option-icon">
-                    <User size={18} />
-                  </div>
-                  <div className="register-option-text">
-                    <span className="register-option-title">Register as a Player</span>
-                    <span className="register-option-desc">Draft pool entry form</span>
-                  </div>
-                </a>
-                <a href="#register-agent" className="register-option-item" onClick={() => setNavbarRegisterOpen(false)}>
-                  <div className="register-option-icon">
-                    <Handshake size={18} />
-                  </div>
-                  <div className="register-option-text">
-                    <span className="register-option-title">Register as an Agent</span>
-                    <span className="register-option-desc">Official player agent sign up</span>
-                  </div>
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
+            </a>
 
-        {/* Mobile Controls (Top Right Header) */}
-        <div className="mobile-controls">
-          <button
-            className="menu-toggle-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+            {/* Mobile Hamburger */}
+            <button
+              className="menu-toggle-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* ── BOTTOM ROW: Nav Links (Desktop only) ── */}
+      <div className="navbar-bottom-row">
+        <div className="navbar-bottom-inner">
+          <nav className="desktop-nav">
+            {navItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className={`desktop-nav-link ${activeTab === item.label ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab(item.label)
+                  setMoreOpen(false)
+                }}
+              >
+                <span className="desktop-nav-link-text">{item.label}</span>
+              </a>
+            ))}
+
+            {/* More Dropdown */}
+            <div className="more-dropdown-wrapper" ref={dropdownRef}>
+              <button
+                className={`desktop-nav-link ${moreOpen || activeTab === 'Partnerships' || activeTab === 'Contact Us' ? 'active' : ''}`}
+                onClick={() => setMoreOpen(!moreOpen)}
+              >
+                <span className="desktop-nav-link-text">MORE</span>
+                <ChevronDown size={11} className="desktop-nav-link-text" style={{ marginLeft: '3px' }} />
+              </button>
+              {moreOpen && (
+                <div className="register-dropdown-menu more-dropdown-menu">
+                  <a href="#partnerships" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Partnerships'); }}>
+                    Partnerships
+                  </a>
+                  <a href="#contact-us" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Contact Us'); }}>
+                    Contact Us
+                  </a>
+                </div>
+              )}
+            </div>
+          </nav>
+        </div>
+      </div>
+
+      {/* ── MOBILE DRAWER ── */}
       <div className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className="mobile-drawer-header">
+          <a href="#home" className="navbar-brand" onClick={() => { setActiveTab('Home'); setMobileMenuOpen(false); }}>
+            <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
+          </a>
+          <button
+            className="menu-toggle-btn"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={22} />
+          </button>
+        </div>
+
         <ul className="mobile-nav-list">
           {navItems.map((item) => (
             <li key={item.label} className="mobile-nav-item">
@@ -168,7 +191,6 @@ export function Navbar() {
               </a>
             </li>
           ))}
-          {/* Partnerships & Contact Us from More dropdown */}
           <li className="mobile-nav-item">
             <a
               href="#partnerships"
@@ -187,7 +209,6 @@ export function Navbar() {
               Contact Us
             </a>
           </li>
-          {/* Mobile Player Registration Quicklink */}
           <li className="mobile-nav-item">
             <a
               href="#register-player"
@@ -200,8 +221,6 @@ export function Navbar() {
         </ul>
       </div>
 
-      {/* Bottom Yellow Accent Bar */}
-      <div className="navbar-bottom-bar"></div>
     </header>
   )
 }

@@ -17,63 +17,6 @@
   overflow-x: hidden;
 }
 
-.app-header {
-  border-bottom: 1px solid var(--border-subtle);
-  background: rgba(18, 18, 24, 0.8);
-  backdrop-filter: blur(12px);
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.brand-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.header-logo {
-  height: 38px;
-  width: auto;
-  object-fit: contain;
-}
-
-.badge-gold {
-  background: var(--brand-gold);
-  color: #060608;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.85rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.badge-live {
-  background: rgba(1, 122, 55, 0.15);
-  color: #2bd966;
-  border: 1px solid rgba(1, 122, 55, 0.4);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.dot-live {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #2bd966;
-  box-shadow: 0 0 8px #2bd966;
-}
 
 .app-main {
   flex: 1;
@@ -301,12 +244,6 @@
   background: linear-gradient(90deg, var(--brand-gold), var(--brand-sky));
   border-radius: 2px;
   margin-bottom: 1rem;
-}
-
-/* Matches Section */
-.matches-section {
-  margin-top: 5rem;
-  width: 100%;
 }
 
 /* FIND OUT MORE Grid Section */
@@ -829,9 +766,9 @@
 /* Stats row — Clean, transparent cards styled like hero stats */
 .acb-stats-row {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-top: 3.5rem;
+  grid-template-columns: repeat(3, 1fr); /* Horizontal always */
+  gap: 0.5rem;
+  margin-top: 2rem;
   width: 100%;
 }
 
@@ -1083,7 +1020,7 @@
 .points-table thead th {
   font-family: var(--font-display);
   font-size: clamp(0.7rem, 1.5vw, 0.9rem);
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.75);
   text-transform: uppercase;
@@ -1242,11 +1179,12 @@
   border-left: 3px solid rgba(77, 124, 255, 0.4);
 }
 
-/* Hide NR, NRR, and TIED columns on mobile screens to fit page width */
-@media (max-width: 500px) {
+@media (max-width: 767px) {
+  .pt-col-won,
+  .pt-col-lost,
+  .pt-col-tied,
   .pt-col-nr,
-  .pt-col-nrr,
-  .pt-col-tied {
+  .pt-col-nrr {
     display: none !important;
   }
 }
@@ -1432,10 +1370,6 @@
 
 /* Responsive grid scaling for tablets/desktops */
 @media (min-width: 768px) {
-  .matches-section {
-    margin-top: 8rem;
-  }
-
   .find-out-more-section {
     margin-top: 8rem;
   }
@@ -1778,7 +1712,7 @@
 .app-footer {
   background-color: var(--bg-canvas);
   border-top: 2px solid var(--brand-gold);
-  margin-top: 6rem;
+  margin-top: 0;
   width: 100%;
 }
 
@@ -2162,8 +2096,9 @@
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  flex-direction: row; /* Horizontal layout always */
+  justify-content: space-around;
+  gap: 1rem;
 }
 
 .stat-card {
@@ -2180,7 +2115,7 @@
 
 .stat-value {
   font-family: var(--font-display);
-  font-size: clamp(4.2rem, 9vw, 6.2rem); /* Significantly increased stats value size */
+  font-size: clamp(2.5rem, 7vw, 6.2rem); /* Scaled down base clamp size to fit mobile nicely */
   font-weight: 900;
   color: #ffffff;
   line-height: 1;
@@ -2195,7 +2130,7 @@
 
 .stat-label {
   font-family: var(--font-body);
-  font-size: 0.8rem; /* Increased size for cleaner readability */
+  font-size: clamp(0.7rem, 1.5vw, 0.8rem);
   font-weight: 700;
   color: var(--brand-gold); /* Yellow color matching the image labels */
   letter-spacing: 0.12em;
@@ -2217,12 +2152,51 @@
   background-color: var(--brand-gold);
 }
 
-@media (min-width: 768px) {
-  .stats-container {
-    flex-direction: row;
-    justify-content: space-around;
-    gap: 1rem;
+@media (max-width: 767px) {
+  .stats-section {
+    padding: 2.2rem 0.5rem;
   }
+  .stats-container {
+    gap: 0.25rem;
+  }
+  .stat-card {
+    flex: 1;
+    min-width: 0;
+  }
+  .stat-value {
+    font-size: clamp(1.5rem, 5.5vw, 2.5rem);
+  }
+  .stat-label {
+    font-size: clamp(0.48rem, 1.6vw, 0.62rem);
+    letter-spacing: 0.04em;
+    margin-top: 0.4rem;
+  }
+  .stat-divider {
+    margin-top: 0.4rem;
+    width: 12px;
+  }
+
+  /* ACB Stats row on mobile */
+  .acb-stat-item {
+    padding: 0.5rem 0.25rem;
+    flex: 1;
+    min-width: 0;
+  }
+  .acb-stat-num {
+    font-size: clamp(1.5rem, 5.5vw, 2.5rem);
+  }
+  .acb-stat-label {
+    font-size: clamp(0.48rem, 1.6vw, 0.62rem);
+    letter-spacing: 0.04em;
+    margin-top: 0.4rem;
+  }
+  .acb-stat-divider {
+    margin-top: 0.4rem;
+    width: 12px;
+  }
+}
+
+@media (min-width: 768px) {
   .stats-section {
     padding: 4rem 2rem;
   }

@@ -3,22 +3,18 @@ import { Navbar } from './components/Navbar'
 import { MatchTicker } from './components/MatchTicker'
 import { About } from './components/About'
 import { Moments } from './components/Moments'
-import { Ticket, ChevronDown, User, Handshake, VolumeX } from 'lucide-react'
+import { News } from './components/News'
+import { GalleryPage } from './components/GalleryPage'
+import { FixturesPage } from './components/FixturesPage'
+import { PointsTable } from './components/PointsTable'
+import { PartnershipsPage } from './components/PartnershipsPage'
+import { Ticket, VolumeX } from 'lucide-react'
 import aboutVideoWebm from './assets/about-video (1).webm'
 import aboutVideo from './assets/about-video (1).mp4'
 import aplLogo from './assets/APL Logo - White.webp'
 import acbLogo from './assets/ACBlogo.webp'
 import chairmanImg from './assets/333452.webp'
 import aplMainLogo from './assets/logo.webp'
-import Masonry from './components/Masonry'
-import gallery1 from './assets/gallery-1.webp'
-import gallery2 from './assets/gallery-2.webp'
-import gallery3 from './assets/gallery-3.webp'
-import gallery4 from './assets/gallery-4.webp'
-import gallery5 from './assets/gallery-5.webp'
-import gallery6 from './assets/gallery-6.webp'
-import gallery7 from './assets/gallery-7.webp'
-import gallery8 from './assets/gallery-8.webp'
 import londonSpiritLogo from './assets/london-spirit-white.svg'
 import birminghamPhoenixLogo from './assets/birmingham-phoenix.svg'
 import manchesterSuperGiantsLogo from './assets/manchester-super-giants.svg'
@@ -35,60 +31,38 @@ import fomImg7 from './assets/GettyImages-2163231267.webp'
 import { gsap } from 'gsap'
 import './App.css'
 
-const galleryItems = [
-  {
-    id: '1',
-    img: gallery1,
-    url: '#gallery',
-    height: 600
-  },
-  {
-    id: '2',
-    img: gallery2,
-    url: '#gallery',
-    height: 750
-  },
-  {
-    id: '3',
-    img: gallery3,
-    url: '#gallery',
-    height: 550
-  },
-  {
-    id: '4',
-    img: gallery4,
-    url: '#gallery',
-    height: 800
-  },
-  {
-    id: '5',
-    img: gallery5,
-    url: '#gallery',
-    height: 700
-  },
-  {
-    id: '6',
-    img: gallery6,
-    url: '#gallery',
-    height: 650
-  },
-  {
-    id: '7',
-    img: gallery7,
-    url: '#gallery',
-    height: 600
-  },
-  {
-    id: '8',
-    img: gallery8,
-    url: '#gallery',
-    height: 750
-  }
-];
+/** Shared GSAP bouncing cricket ball animation attached to a ref */
+function useCricketBallAnimation(ref: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    if (!ref.current) return
+    const ball = ref.current
+    const sphere = ball.querySelector('.seam-ball-sphere')
+    const tl = gsap.timeline({ repeat: -1 })
+    let trackWidth = window.innerWidth + 80
+    tl.set(ball, { x: -60, y: 0, scaleY: 1, scaleX: 1 })
+    tl.set(sphere, { rotation: 0 })
+    tl.to(ball, { x: trackWidth, duration: 3.8, ease: 'none' }, 0)
+    tl.to(sphere, { rotation: 1440, duration: 3.8, ease: 'none' }, 0)
+    tl.to(ball, { y: -34, scaleY: 1.06, scaleX: 0.94, duration: 0.4, ease: 'power1.out' }, 0)
+      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.4, ease: 'power1.in' }, 0.4)
+      .to(ball, { y: 0, scaleY: 0.76, scaleX: 1.24, duration: 0.08, ease: 'power1.out' }, 0.8)
+      .to(ball, { y: -12, scaleY: 1.03, scaleX: 0.97, duration: 0.24, ease: 'power1.out' }, 0.88)
+      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.24, ease: 'power1.in' }, 1.12)
+      .to(ball, { y: 0, scaleY: 0.86, scaleX: 1.14, duration: 0.08, ease: 'power1.out' }, 1.36)
+      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.08, ease: 'power1.out' }, 1.44)
+    const handleResize = () => {
+      trackWidth = window.innerWidth + 80
+      const xTween = tl.getChildren(false, true, false).find(t => t.vars && t.vars.x !== undefined)
+      if (xTween) xTween.vars.x = trackWidth
+      tl.invalidate().restart()
+    }
+    window.addEventListener('resize', handleResize)
+    return () => { tl.kill(); window.removeEventListener('resize', handleResize) }
+  }, [])
+}
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home')
-  const [heroRegisterOpen, setHeroRegisterOpen] = useState(false)
   const [launchMuted, setLaunchMuted] = useState(true)
   const [side1Muted, setSide1Muted] = useState(true)
   const [side2Muted, setSide2Muted] = useState(true)
@@ -96,12 +70,30 @@ function App() {
   const ballRef = useRef<HTMLDivElement>(null)
   const ballRef2 = useRef<HTMLDivElement>(null)
 
+  useCricketBallAnimation(ballRef)
+  useCricketBallAnimation(ballRef2)
+
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash
       if (hash === '#about') {
         setCurrentPage('about')
-        window.scrollTo(0, 0) // Scroll to top for About page
+        window.scrollTo(0, 0)
+      } else if (hash === '#news') {
+        setCurrentPage('news')
+        window.scrollTo(0, 0)
+      } else if (hash === '#gallery') {
+        setCurrentPage('gallery')
+        window.scrollTo(0, 0)
+      } else if (hash === '#fixtures') {
+        setCurrentPage('fixtures')
+        window.scrollTo(0, 0)
+      } else if (hash === '#points-table') {
+        setCurrentPage('points-table')
+        window.scrollTo(0, 0)
+      } else if (hash === '#partnerships') {
+        setCurrentPage('partnerships')
+        window.scrollTo(0, 0)
       } else {
         setCurrentPage('home')
       }
@@ -111,128 +103,11 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  useEffect(() => {
-    if (!ballRef.current) return
-
-    const ball = ballRef.current
-    const sphere = ball.querySelector('.seam-ball-sphere')
-
-    // Create a single unified timeline to sync horizontal and vertical progress perfectly
-    const tl = gsap.timeline({ repeat: -1 })
-
-    const getTrackWidth = () => window.innerWidth + 80
-    let trackWidth = getTrackWidth()
-
-    // 1. Initial State Setup
-    tl.set(ball, { x: -60, y: 0, scaleY: 1, scaleX: 1 })
-    tl.set(sphere, { rotation: 0 })
-
-    // 2. Horizontal Translation (linear across 3.8s)
-    tl.to(ball, { x: trackWidth, duration: 3.8, ease: 'none' }, 0)
-
-    // 3. Rotation (linear match to roll across 3.8s)
-    tl.to(sphere, { rotation: 1440, duration: 3.8, ease: 'none' }, 0)
-
-    // 4. Bouncing & Squishing Timeline Phases:
-    // Bounce 1 (High): Rise to -34px peak (t = 0.0s to 0.4s)
-    tl.to(ball, { y: -34, scaleY: 1.06, scaleX: 0.94, duration: 0.4, ease: 'power1.out' }, 0)
-      // Bounce 1 (High): Fall back to ground (t = 0.4s to 0.8s)
-      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.4, ease: 'power1.in' }, 0.4)
-      // Bounce 1 (High): Impact impact squish (t = 0.8s to 0.88s)
-      .to(ball, { y: 0, scaleY: 0.76, scaleX: 1.24, duration: 0.08, ease: 'power1.out' }, 0.8)
-
-      // Bounce 2 (Low): Rise to -12px peak (t = 0.88s to 1.12s)
-      .to(ball, { y: -12, scaleY: 1.03, scaleX: 0.97, duration: 0.24, ease: 'power1.out' }, 0.88)
-      // Bounce 2 (Low): Fall back to ground (t = 1.12s to 1.36s)
-      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.24, ease: 'power1.in' }, 1.12)
-      // Bounce 2 (Low): Impact impact squish (t = 1.36s to 1.44s)
-      .to(ball, { y: 0, scaleY: 0.86, scaleX: 1.14, duration: 0.08, ease: 'power1.out' }, 1.36)
-
-      // Roll Phase: Restore standard proportions and roll flat (t = 1.44s to 1.52s)
-      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.08, ease: 'power1.out' }, 1.44)
-    // Remains rolling flat on track (y: 0, scale: 1) until offscreen right boundary (t = 1.52s to 3.8s)
-
-    // Handle responsive window resize updates
-    const handleResize = () => {
-      trackWidth = window.innerWidth + 80
-      // Update destination X variable of translation tween
-      const tweens = tl.getChildren(false, true, false)
-      const xTween = tweens.find(t => t.vars && t.vars.x !== undefined)
-      if (xTween) {
-        xTween.vars.x = trackWidth
-      }
-      tl.invalidate().restart()
-    }
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      tl.kill()
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
-  // Second animated ball — gallery separator
-  useEffect(() => {
-    if (!ballRef2.current) return
-    const ball = ballRef2.current
-    const sphere = ball.querySelector('.seam-ball-sphere')
-    const tl = gsap.timeline({ repeat: -1 })
-    const getTrackWidth = () => window.innerWidth + 80
-    let trackWidth = getTrackWidth()
-    tl.set(ball, { x: -60, y: 0, scaleY: 1, scaleX: 1 })
-    tl.set(sphere, { rotation: 0 })
-    tl.to(ball, { x: trackWidth, duration: 3.8, ease: 'none' }, 0)
-    tl.to(sphere, { rotation: 1440, duration: 3.8, ease: 'none' }, 0)
-    tl.to(ball, { y: -34, scaleY: 1.06, scaleX: 0.94, duration: 0.4, ease: 'power1.out' }, 0)
-      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.4, ease: 'power1.in' }, 0.4)
-      .to(ball, { y: 0, scaleY: 0.76, scaleX: 1.24, duration: 0.08, ease: 'power1.out' }, 0.8)
-      .to(ball, { y: -12, scaleY: 1.03, scaleX: 0.97, duration: 0.24, ease: 'power1.out' }, 0.88)
-      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.24, ease: 'power1.in' }, 1.12)
-      .to(ball, { y: 0, scaleY: 0.86, scaleX: 1.14, duration: 0.08, ease: 'power1.out' }, 1.36)
-      .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.08, ease: 'power1.out' }, 1.44)
-    const handleResize = () => {
-      trackWidth = window.innerWidth + 80
-      const tweens = tl.getChildren(false, true, false)
-      const xTween = tweens.find(t => t.vars && t.vars.x !== undefined)
-      if (xTween) xTween.vars.x = trackWidth
-      tl.invalidate().restart()
-    }
-    window.addEventListener('resize', handleResize)
-    return () => { tl.kill(); window.removeEventListener('resize', handleResize) }
-  }, [])
-
-  const handleUnmuteLaunch = () => {
-    setLaunchMuted(false)
-    const iframe = document.getElementById('launch-video-iframe') as HTMLIFrameElement
-    if (iframe && iframe.contentWindow) {
-      // Send unMute and play commands via postMessage (YouTube IFrame API)
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*')
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*')
-    }
-  }
-
-  const handleUnmuteSide1 = () => {
-    setSide1Muted(false)
-    const iframe = document.getElementById('side-video-1') as HTMLIFrameElement
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*')
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*')
-    }
-  }
-
-  const handleUnmuteSide2 = () => {
-    setSide2Muted(false)
-    const iframe = document.getElementById('side-video-2') as HTMLIFrameElement
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*')
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*')
-    }
-  }
-
-  const handleUnmuteSide3 = () => {
-    setSide3Muted(false)
-    const iframe = document.getElementById('side-video-3') as HTMLIFrameElement
-    if (iframe && iframe.contentWindow) {
+  /** Unmutes a YouTube iframe and triggers playback */
+  const handleUnmute = (iframeId: string, setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setter(false)
+    const iframe = document.getElementById(iframeId) as HTMLIFrameElement
+    if (iframe?.contentWindow) {
       iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*')
       iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*')
     }
@@ -268,37 +143,9 @@ function App() {
               <h1 className="hero-title">A Legacy<br />in the Making!</h1>
               <p className="hero-status-subtitle">REGISTRATIONS ARE OPEN</p>
               <div className="hero-actions">
-                <div className="register-dropdown-wrapper">
-                  <button
-                    className="btn-register-now hero-btn"
-                    onClick={() => setHeroRegisterOpen(!heroRegisterOpen)}
-                  >
-                    <span className="skew-unskew-text">PLAYER REGISTRATION</span>
-                    <ChevronDown size={16} className="skew-unskew-text" />
-                  </button>
-                  {heroRegisterOpen && (
-                    <div className="register-dropdown-menu hero-register-dropdown">
-                      <a href="#register-player" className="register-option-item" onClick={() => setHeroRegisterOpen(false)}>
-                        <div className="register-option-icon">
-                          <User size={18} />
-                        </div>
-                        <div className="register-option-text">
-                          <span className="register-option-title">Register as a Player</span>
-                          <span className="register-option-desc">Draft pool entry form</span>
-                        </div>
-                      </a>
-                      <a href="#register-agent" className="register-option-item" onClick={() => setHeroRegisterOpen(false)}>
-                        <div className="register-option-icon">
-                          <Handshake size={18} />
-                        </div>
-                        <div className="register-option-text">
-                          <span className="register-option-title">Register as an Agent</span>
-                          <span className="register-option-desc">Official player agent sign up</span>
-                        </div>
-                      </a>
-                    </div>
-                  )}
-                </div>
+                <a href="#register-player" className="btn-register-now hero-btn">
+                  <span className="skew-unskew-text">PLAYER REGISTRATION</span>
+                </a>
 
                 <a href="#buy-tickets" className="btn-contact hero-btn">
                   <span>BUY TICKETS</span>
@@ -333,8 +180,8 @@ function App() {
                 <div className="stat-divider"></div>
               </div>
               <div className="stat-card">
-                <div className="stat-value">150M+</div>
-                <div className="stat-label">Global Reach</div>
+                <div className="stat-value">10M+</div>
+                <div className="stat-label">Fans</div>
                 <div className="stat-divider"></div>
               </div>
             </div>
@@ -423,9 +270,9 @@ function App() {
                     <tr>
                       <th className="pt-rank">POS</th>
                       <th className="pt-club">TEAM</th>
-                      <th title="Matches Played">PLD</th>
-                      <th title="Won">WON</th>
-                      <th title="Lost">LOST</th>
+                      <th className="pt-col-pld" title="Matches Played">PLD</th>
+                      <th className="pt-col-won" title="Won">WON</th>
+                      <th className="pt-col-lost" title="Lost">LOST</th>
                       <th className="pt-col-tied" title="Tied">TIED</th>
                       <th className="pt-col-nr" title="No Result">N/R</th>
                       <th className="pt-col-nrr" title="Net Run Rate">NRR</th>
@@ -447,9 +294,9 @@ function App() {
                           <img src={team.logo} alt={`${team.name} Logo`} className="pt-team-logo" />
                           <span className="pt-team-name">{team.name}</span>
                         </td>
-                        <td className="pt-stat">{team.m}</td>
-                        <td className="pt-stat pt-stat-w">{team.w}</td>
-                        <td className="pt-stat pt-stat-l">{team.l}</td>
+                        <td className="pt-stat pt-col-pld">{team.m}</td>
+                        <td className="pt-stat pt-stat-w pt-col-won">{team.w}</td>
+                        <td className="pt-stat pt-stat-l pt-col-lost">{team.l}</td>
                         <td className="pt-stat pt-col-tied">{team.t}</td>
                         <td className="pt-stat pt-col-nr">{team.nr}</td>
                         <td className="pt-stat pt-nrr pt-col-nrr">{team.nrr}</td>
@@ -489,7 +336,7 @@ function App() {
                         loading="lazy"
                       ></iframe>
                       {launchMuted && (
-                        <div className="launch-video-overlay" onClick={handleUnmuteLaunch}>
+                        <div className="launch-video-overlay" onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}>
                           <div className="launch-unmute-button-container">
                             <div className="launch-unmute-icon-ring">
                               <VolumeX size={44} className="launch-unmute-icon" />
@@ -516,7 +363,7 @@ function App() {
                       loading="lazy"
                     ></iframe>
                     {side1Muted && (
-                      <div className="side-video-overlay" onClick={handleUnmuteSide1}>
+                      <div className="side-video-overlay" onClick={() => handleUnmute('side-video-1', setSide1Muted)}>
                         <div className="side-unmute-button-container">
                           <div className="side-unmute-icon-ring">
                             <VolumeX size={24} className="side-unmute-icon" />
@@ -538,7 +385,7 @@ function App() {
                       loading="lazy"
                     ></iframe>
                     {side2Muted && (
-                      <div className="side-video-overlay" onClick={handleUnmuteSide2}>
+                      <div className="side-video-overlay" onClick={() => handleUnmute('side-video-2', setSide2Muted)}>
                         <div className="side-unmute-button-container">
                           <div className="side-unmute-icon-ring">
                             <VolumeX size={24} className="side-unmute-icon" />
@@ -560,7 +407,7 @@ function App() {
                       loading="lazy"
                     ></iframe>
                     {side3Muted && (
-                      <div className="side-video-overlay" onClick={handleUnmuteSide3}>
+                      <div className="side-video-overlay" onClick={() => handleUnmute('side-video-3', setSide3Muted)}>
                         <div className="side-unmute-button-container">
                           <div className="side-unmute-icon-ring">
                             <VolumeX size={24} className="side-unmute-icon" />
@@ -639,24 +486,6 @@ function App() {
 
             <div className="section-divider-line" />
 
-            <section className="gallery-section" id="gallery">
-              <h2 className="section-heading">The <span>Gallery</span></h2>
-              <p className="section-description">A visual journey through the most iconic moments and highlights of the APL.</p>
-              <div className="gallery-container">
-                <Masonry
-                  items={galleryItems}
-                  ease="power3.out"
-                  duration={0.6}
-                  stagger={0.05}
-                  animateFrom="bottom"
-                  scaleOnHover={true}
-                  hoverScale={0.95}
-                  blurToFocus={true}
-                  colorShiftOnHover={false}
-                />
-              </div>
-            </section>
-
             {/* Cricket Ball Seam Separator — below Gallery */}
             <div className="cricket-seam-separator">
               <div className="cricket-seam-track">
@@ -728,6 +557,16 @@ function App() {
             </section>
           </main>
         </>
+      ) : currentPage === 'news' ? (
+        <News />
+      ) : currentPage === 'gallery' ? (
+        <GalleryPage />
+      ) : currentPage === 'fixtures' ? (
+        <FixturesPage />
+      ) : currentPage === 'points-table' ? (
+        <PointsTable />
+      ) : currentPage === 'partnerships' ? (
+        <PartnershipsPage />
       ) : (
         <About />
       )}

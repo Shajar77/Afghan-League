@@ -89,6 +89,22 @@ h6,
   margin: 0;
 }
 
+h1 span,
+h2 span,
+h3 span,
+h4 span,
+h5 span,
+h6 span,
+.hero-title span,
+.section-title span,
+.card-heading span,
+.card-title span,
+.display-title span,
+.big-shoulders span {
+  font-family: inherit;
+}
+
+
 /* Body elements & forms */
 p,
 span,

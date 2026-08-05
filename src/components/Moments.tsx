@@ -155,81 +155,48 @@ const highlightsData: ReelItem[] = [
   },
 ];
 
+/** Custom hook that adds mouse-drag scrolling to a container ref */
+function useDragScroll() {
+  const ref = useRef<HTMLDivElement>(null)
+  const isDown = useRef(false)
+  const startX = useRef(0)
+  const scrollLeft = useRef(0)
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (!ref.current) return
+    isDown.current = true
+    ref.current.classList.add('active')
+    startX.current = e.pageX - ref.current.offsetLeft
+    scrollLeft.current = ref.current.scrollLeft
+  }
+
+  const onMouseLeave = () => {
+    isDown.current = false
+    ref.current?.classList.remove('active')
+  }
+
+  const onMouseUp = () => {
+    isDown.current = false
+    ref.current?.classList.remove('active')
+  }
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDown.current || !ref.current) return
+    e.preventDefault()
+    const x = e.pageX - ref.current.offsetLeft
+    const walk = (x - startX.current) * 1.5
+    ref.current.scrollLeft = scrollLeft.current - walk
+  }
+
+  return { ref, onMouseDown, onMouseLeave, onMouseUp, onMouseMove }
+}
+
 export function Moments() {
-  const [activeReel, setActiveReel] = useState<ReelItem | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
+  const [activeReel, setActiveReel] = useState<ReelItem | null>(null)
+  const [isMuted, setIsMuted] = useState(false)
 
-  // Drag scroll support for track 1 (Reels)
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isDown = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollContainerRef.current) return;
-    isDown.current = true;
-    scrollContainerRef.current.classList.add('active');
-    startX.current = e.pageX - scrollContainerRef.current.offsetLeft;
-    scrollLeft.current = scrollContainerRef.current.scrollLeft;
-  };
-
-  const handleMouseLeave = () => {
-    isDown.current = false;
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.classList.remove('active');
-    }
-  };
-
-  const handleMouseUp = () => {
-    isDown.current = false;
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.classList.remove('active');
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDown.current || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
-    scrollContainerRef.current.scrollLeft = scrollLeft.current - walk;
-  };
-
-  // Drag scroll support for track 2 (Highlights)
-  const scrollContainerRef2 = useRef<HTMLDivElement>(null);
-  const isDown2 = useRef(false);
-  const startX2 = useRef(0);
-  const scrollLeft2 = useRef(0);
-
-  const handleMouseDown2 = (e: React.MouseEvent) => {
-    if (!scrollContainerRef2.current) return;
-    isDown2.current = true;
-    scrollContainerRef2.current.classList.add('active');
-    startX2.current = e.pageX - scrollContainerRef2.current.offsetLeft;
-    scrollLeft2.current = scrollContainerRef2.current.scrollLeft;
-  };
-
-  const handleMouseLeave2 = () => {
-    isDown2.current = false;
-    if (scrollContainerRef2.current) {
-      scrollContainerRef2.current.classList.remove('active');
-    }
-  };
-
-  const handleMouseUp2 = () => {
-    isDown2.current = false;
-    if (scrollContainerRef2.current) {
-      scrollContainerRef2.current.classList.remove('active');
-    }
-  };
-
-  const handleMouseMove2 = (e: React.MouseEvent) => {
-    if (!isDown2.current || !scrollContainerRef2.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef2.current.offsetLeft;
-    const walk = (x - startX2.current) * 1.5;
-    scrollContainerRef2.current.scrollLeft = scrollLeft2.current - walk;
-  };
+  const reelScroll = useDragScroll()
+  const highlightScroll = useDragScroll()
 
   return (
     <section className="moments-section">
@@ -242,11 +209,11 @@ export function Moments() {
 
       <div
         className="reels-scroll-container"
-        ref={scrollContainerRef}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeave}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
+        ref={reelScroll.ref}
+        onMouseDown={reelScroll.onMouseDown}
+        onMouseLeave={reelScroll.onMouseLeave}
+        onMouseUp={reelScroll.onMouseUp}
+        onMouseMove={reelScroll.onMouseMove}
       >
         <div className="reels-track">
           {reelsData.map((reel) => (
@@ -292,11 +259,11 @@ export function Moments() {
 
       <div
         className="reels-scroll-container highlight-scroll-container"
-        ref={scrollContainerRef2}
-        onMouseDown={handleMouseDown2}
-        onMouseLeave={handleMouseLeave2}
-        onMouseUp={handleMouseUp2}
-        onMouseMove={handleMouseMove2}
+        ref={highlightScroll.ref}
+        onMouseDown={highlightScroll.onMouseDown}
+        onMouseLeave={highlightScroll.onMouseLeave}
+        onMouseUp={highlightScroll.onMouseUp}
+        onMouseMove={highlightScroll.onMouseMove}
       >
         <div className="reels-track highlight-track">
           {highlightsData.map((hl) => (
@@ -408,7 +375,7 @@ export function Moments() {
                 </div>
                 <div className="comment-item">
                   <span className="comment-user">apl_insider</span>
-                  <span className="comment-text">Can’t wait for the live matches to begin! Standings are getting intense.</span>
+                  <span className="comment-text">Can't wait for the live matches to begin! Standings are getting intense.</span>
                 </div>
                 <div className="comment-item">
                   <span className="comment-user">sports_lover</span>
@@ -441,5 +408,5 @@ export function Moments() {
         </div>
       )}
     </section>
-  );
+  )
 }

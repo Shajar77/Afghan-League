@@ -28,9 +28,9 @@ export function About() {
             <span className="about-intro-label">THE LEAGUE</span>
             <h2 className="about-intro-heading">Six provinces. One historic champion.</h2>
             <div className="about-intro-divider"></div>
-            
+
             <p className="about-intro-text">
-              From 15 to 30 October 2026, six province-based franchises will contest fourteen nights of elite T20 cricket at the iconic Kabul International Cricket Stadium. The Afghanistan Premier League (APL) pairs the theatre of world-class cricket with the legendary hospitality of Afghanistan — a celebration of the sport built for families, passionate communities, and travelling fans alike.
+              Six province-based franchises will contest fourteen nights of elite T20 cricket at the iconic Kabul International Cricket Stadium. The Afghanistan Premier League (APL) pairs the theatre of world-class cricket with the legendary hospitality of Afghanistan — a celebration of the sport built for families, passionate communities, and travelling fans alike.
             </p>
             <p className="about-intro-text">
               The inaugural season is only the beginning. Iconic owners and world-class squad selections will be revealed ahead of the draft, with fan zones lighting up provincial capitals across the nation throughout the tournament fortnight.
@@ -54,14 +54,14 @@ export function About() {
       {/* APL Vision 2036 Section */}
       <section className="about-vision-section">
         <div className="about-vision-container">
-          
+
           {/* Top part: 2036 Split */}
           <div className="vision-top-row">
             <div className="vision-year-column">
               <div className="vision-year-number">2036</div>
               <div className="vision-year-label">VISION 2036</div>
             </div>
-            
+
             <div className="vision-desc-column">
               <h2 className="vision-desc-heading">Built for the next <span>10 editions</span></h2>
               <div className="about-intro-divider"></div>
@@ -74,7 +74,7 @@ export function About() {
           {/* Bottom part: What We Stand For */}
           <div className="vision-bottom-row">
             <span className="vision-pillars-label">WHAT WE STAND FOR</span>
-            
+
             <div className="vision-pillars-grid">
               {/* Pillar 01 */}
               <div className="vision-pillar-item">

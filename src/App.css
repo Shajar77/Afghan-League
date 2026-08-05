@@ -2219,11 +2219,11 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #ff4d5a 0%, #d31a26 40%, #8a0c14 75%, #4a0307 100%); /* Multi-stop realistic 3D leather sphere */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6), inset -3px -3px 6px rgba(0, 0, 0, 0.8), inset 2px 2px 4px rgba(255, 255, 255, 0.2);
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f1f5f9 45%, #cbd5e1 75%, #94a3b8 100%); /* Real-looking 3D white cricket ball */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset -3px -3px 6px rgba(0, 0, 0, 0.3), inset 2px 2px 4px rgba(255, 255, 255, 0.6);
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 /* Stitched Seams on Bouncing Ball (Two parallel stitching tracks) */
@@ -2236,8 +2236,8 @@
     to bottom,
     transparent,
     transparent 2px,
-    var(--brand-gold) 2px,
-    var(--brand-gold) 4px
+    #0f172a 2px, /* Charcoal/Black seam thread */
+    #0f172a 4px
   );
   opacity: 0.95;
 }
@@ -2257,7 +2257,7 @@
   left: 15px;
   width: 2px;
   height: 100%;
-  background: #4a0307; /* Darker red leather color of the ball */
+  background: #334155; /* Slate/Dark charcoal split indentation */
   opacity: 0.85;
 }
 

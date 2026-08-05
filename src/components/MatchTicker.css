@@ -28,7 +28,7 @@
 .mc-drag-track {
   display: flex;
   width: max-content;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
 }
 
 /* Card entry animation (replaces framer-motion initial/animate) */
@@ -50,8 +50,8 @@
 }
 
 @keyframes mc-card-float {
-  0% { transform: translateY(3px); }
-  100% { transform: translateY(-5px); }
+  0% { transform: translateY(0); }
+  100% { transform: translateY(5px); }
 }
 
 /* Card Item Horizontal Style (Clean Glassmorphic Layout matching screenshot) */

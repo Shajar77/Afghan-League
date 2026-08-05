@@ -267,8 +267,10 @@ export function MatchTicker() {
   // Native drag state
   const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 })
   const isHovered = useRef(false)
+  const isTouching = useRef(false)
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'touch') return // Let mobile browser handle native swipe scrolling
     const track = trackRef.current
     const container = containerRef.current
     if (!track || !container) return
@@ -318,8 +320,8 @@ export function MatchTicker() {
       const container = containerRef.current
       if (!container) return
 
-      // Pause scroll if dragging or hovered
-      if (dragState.current.isDragging || isHovered.current) {
+      // Pause scroll if dragging, hovered, or actively swiping
+      if (dragState.current.isDragging || isHovered.current || isTouching.current) {
         lastTime = time
         animationFrameId = requestAnimationFrame(scroll)
         return
@@ -361,6 +363,9 @@ export function MatchTicker() {
         style={{ overflowX: 'auto', cursor: 'grab', scrollBehavior: 'auto' }}
         onMouseEnter={() => { isHovered.current = true }}
         onMouseLeave={() => { isHovered.current = false }}
+        onTouchStart={() => { isTouching.current = true }}
+        onTouchEnd={() => { isTouching.current = false }}
+        onTouchCancel={() => { isTouching.current = false }}
       >
         <div
           ref={trackRef}

@@ -10,6 +10,8 @@ import { PointsTable } from './components/PointsTable'
 import { PartnershipsPage } from './components/PartnershipsPage'
 import { Ticket, VolumeX } from 'lucide-react'
 import { useAppStore } from './store/useAppStore'
+import Lenis from 'lenis'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import aboutVideoWebm from './assets/about-video (1).webm'
 import aboutVideo from './assets/about-video (1).mp4'
 import aplLogo from './assets/APL Logo - White.webp'
@@ -30,10 +32,11 @@ import fomImg5 from './assets/AD1_0256-2130422.webp'
 import fomImg6 from './assets/GettyImages-1335413950.webp'
 import fomImg7 from './assets/GettyImages-2163231267.webp'
 import { gsap } from 'gsap'
+gsap.registerPlugin(ScrollTrigger)
 import './App.css'
 
 /** Shared GSAP bouncing cricket ball animation attached to a ref */
-function useCricketBallAnimation(ref: React.RefObject<HTMLDivElement | null>) {
+function useCricketBallAnimation(ref: React.RefObject<HTMLDivElement | null>, currentPage: string) {
   useEffect(() => {
     if (!ref.current) return
     const ball = ref.current
@@ -59,7 +62,7 @@ function useCricketBallAnimation(ref: React.RefObject<HTMLDivElement | null>) {
     }
     window.addEventListener('resize', handleResize)
     return () => { tl.kill(); window.removeEventListener('resize', handleResize) }
-  }, [ref])
+  }, [ref, currentPage])
 }
 
 function App() {
@@ -78,30 +81,68 @@ function App() {
   const ballRef = useRef<HTMLDivElement>(null)
   const ballRef2 = useRef<HTMLDivElement>(null)
 
-  useCricketBallAnimation(ballRef)
-  useCricketBallAnimation(ballRef2)
+  // Initialize Lenis smooth scroll
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+    })
+
+    // Synchronize ScrollTrigger with Lenis updates
+    lenis.on('scroll', ScrollTrigger.update)
+
+    // Run Lenis in the GSAP ticker loop
+    const updateTicker = (time: number) => {
+      lenis.raf(time * 1000)
+    }
+    gsap.ticker.add(updateTicker)
+    gsap.ticker.lagSmoothing(0)
+
+    // Store lenis reference on window object for router navigation scrolling
+    ;(window as any).lenis = lenis
+
+    return () => {
+      lenis.destroy()
+      gsap.ticker.remove(updateTicker)
+      delete (window as any).lenis
+    }
+  }, [])
+
+  const scrollToTop = () => {
+    if ((window as any).lenis) {
+      ;(window as any).lenis.scrollTo(0, { immediate: true })
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }
+
+  useCricketBallAnimation(ballRef, currentPage)
+  useCricketBallAnimation(ballRef2, currentPage)
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash
       if (hash === '#about') {
         setCurrentPage('about')
-        window.scrollTo(0, 0)
+        scrollToTop()
       } else if (hash === '#news') {
         setCurrentPage('news')
-        window.scrollTo(0, 0)
+        scrollToTop()
       } else if (hash === '#gallery') {
         setCurrentPage('gallery')
-        window.scrollTo(0, 0)
+        scrollToTop()
       } else if (hash === '#fixtures') {
         setCurrentPage('fixtures')
-        window.scrollTo(0, 0)
+        scrollToTop()
       } else if (hash === '#points-table') {
         setCurrentPage('points-table')
-        window.scrollTo(0, 0)
+        scrollToTop()
       } else if (hash === '#partnerships') {
         setCurrentPage('partnerships')
-        window.scrollTo(0, 0)
+        scrollToTop()
       } else {
         setCurrentPage('home')
       }

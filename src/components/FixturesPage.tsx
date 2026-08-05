@@ -476,8 +476,8 @@ export function FixturesPage() {
                   {/* RIGHT: Stacked Matches in this day box */}
                   <div className="fixture-matches-container">
                     {day.matches.map((match) => {
-                      const t1 = teamsMeta[match.team1] || { name: match.team1, logo: '', color: '#3b4eb8' }
-                      const t2 = teamsMeta[match.team2] || { name: match.team2, logo: '', color: '#3b4eb8' }
+                      const t1: TeamMeta = teamsMeta[match.team1] || { name: match.team1, shortName: 'TBD', logo: '', color: '#3b4eb8', invertLogo: false }
+                      const t2: TeamMeta = teamsMeta[match.team2] || { name: match.team2, shortName: 'TBD', logo: '', color: '#3b4eb8', invertLogo: false }
 
                       return (
                         <div key={match.id} className="fixture-match-row">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Navbar } from './components/Navbar'
 import { MatchTicker } from './components/MatchTicker'
 import { About } from './components/About'
@@ -9,6 +9,7 @@ import { FixturesPage } from './components/FixturesPage'
 import { PointsTable } from './components/PointsTable'
 import { PartnershipsPage } from './components/PartnershipsPage'
 import { Ticket, VolumeX } from 'lucide-react'
+import { useAppStore } from './store/useAppStore'
 import aboutVideoWebm from './assets/about-video (1).webm'
 import aboutVideo from './assets/about-video (1).mp4'
 import aplLogo from './assets/APL Logo - White.webp'
@@ -58,15 +59,22 @@ function useCricketBallAnimation(ref: React.RefObject<HTMLDivElement | null>) {
     }
     window.addEventListener('resize', handleResize)
     return () => { tl.kill(); window.removeEventListener('resize', handleResize) }
-  }, [])
+  }, [ref])
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home')
-  const [launchMuted, setLaunchMuted] = useState(true)
-  const [side1Muted, setSide1Muted] = useState(true)
-  const [side2Muted, setSide2Muted] = useState(true)
-  const [side3Muted, setSide3Muted] = useState(true)
+  const {
+    currentPage,
+    setCurrentPage,
+    launchMuted,
+    setLaunchMuted,
+    side1Muted,
+    setSide1Muted,
+    side2Muted,
+    setSide2Muted,
+    side3Muted,
+    setSide3Muted,
+  } = useAppStore()
   const ballRef = useRef<HTMLDivElement>(null)
   const ballRef2 = useRef<HTMLDivElement>(null)
 
@@ -101,10 +109,10 @@ function App() {
     handleHashChange()
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [])
+  }, [setCurrentPage])
 
   /** Unmutes a YouTube iframe and triggers playback */
-  const handleUnmute = (iframeId: string, setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+  const handleUnmute = (iframeId: string, setter: (muted: boolean) => void) => {
     setter(false)
     const iframe = document.getElementById(iframeId) as HTMLIFrameElement
     if (iframe?.contentWindow) {

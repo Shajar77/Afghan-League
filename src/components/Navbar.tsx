@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Menu, X, ChevronDown } from 'lucide-react'
+import { useAppStore } from '../store/useAppStore'
 import aplLogo from '../assets/APL Logo - White.webp'
 import londonSpiritLogo from '../assets/london-spirit-white.svg'
 import birminghamPhoenixLogo from '../assets/birmingham-phoenix.svg'
@@ -15,7 +16,7 @@ interface NavItem {
 }
 
 export function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { mobileMenuOpen, setMobileMenuOpen } = useAppStore()
   const [activeTab, setActiveTab] = useState('Home')
   const [moreOpen, setMoreOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)

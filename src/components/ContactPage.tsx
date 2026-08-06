@@ -36,41 +36,35 @@ export function ContactPage() {
           <div className="contact-details-panel">
             <div className="contact-details-grid">
               <div className="contact-detail-card">
-                <h4>Call Center</h4>
-                <p>+93 78 888 8888</p>
-                <p>+93 20 220 1881</p>
-              </div>
-              <div className="contact-detail-card">
                 <h4>Our Location</h4>
                 <p>Kabul International Stadium,</p>
                 <p>Khan Abdul Ghaffar Khan Rd, Kabul</p>
               </div>
               <div className="contact-detail-card">
                 <h4>Email</h4>
-                <p><a href="mailto:info@apl.af">info@apl.af</a></p>
-                <p><a href="mailto:media@apl.af">media@apl.af</a></p>
+                <p><a href="mailto:Contact@apl-t20.com">Contact@apl-t20.com</a></p>
               </div>
               <div className="contact-detail-card">
                 <h4>Social network</h4>
                 <div className="contact-social-icons">
-                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                  <a href="https://www.facebook.com/APLT20Cricket/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
                   </a>
-                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X">
+                  <a href="https://x.com/theaplt20" target="_blank" rel="noopener noreferrer" aria-label="X">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
                   </a>
-                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                  <a href="https://www.instagram.com/theaplt20/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                       <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                     </svg>
                   </a>
-                  <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                  <a href="https://www.youtube.com/@ACBofficial" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                       <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" />
                       <polygon points="9.545 15.568 15.818 12 9.545 8.432" fill="#000000" />
@@ -107,7 +101,7 @@ export function ContactPage() {
               </div>
 
               <button type="submit" className="contact-submit-btn">
-                <span className="btn-arrow">›</span> Send a message
+                Send Message
               </button>
             </form>
           </div>

@@ -306,26 +306,25 @@
 }
 
 .contact-submit-btn {
-  background: linear-gradient(135deg, #0a1240 0%, #0f1a52 40%, #162060 70%, #1a2666 100%);
-  background-size: 200% 200%;
-  animation: launchSectionBgGradient 8s ease infinite;
-  color: #ffffff;
+  background: #1F2E7A;
+  color: #c8cbd9;
   font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 400;
+  font-size: 1rem;
+  font-weight: 500;
   border: none;
   border-radius: 0;
-  letter-spacing: -0.02em;
-  padding: 0.6rem 1.5rem;
+  letter-spacing: -0.01em;
+  padding: 0.75rem 2rem;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  min-height: 48px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: flex-start;
-  width: auto;
-  margin-top: 0.5rem;
+  align-self: center;
+  width: 100%;
+  margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(13, 18, 64, 0.15);
 }
 
 .contact-submit-btn .btn-arrow {

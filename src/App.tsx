@@ -186,7 +186,7 @@ function App() {
                 loop
                 muted
                 playsInline
-                preload="metadata"
+                preload="auto"
               >
                 <source src={aboutVideoWebm} type="video/webm" />
                 <source src={aboutVideo} type="video/mp4" />
@@ -394,7 +394,7 @@ function App() {
                         title="The APL Grand Launch Event"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
-                        loading="eager"
+                        loading="lazy"
                       ></iframe>
                       {launchMuted && (
                         <div className="launch-video-overlay" onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}>
@@ -421,7 +421,7 @@ function App() {
                       title="APL Launch Highlights 1"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
-                      loading="eager"
+                      loading="lazy"
                     ></iframe>
                     {side1Muted && (
                       <div className="side-video-overlay" onClick={() => handleUnmute('side-video-1', setSide1Muted)}>
@@ -443,7 +443,7 @@ function App() {
                       title="APL Launch Highlights 2"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
-                      loading="eager"
+                      loading="lazy"
                     ></iframe>
                     {side2Muted && (
                       <div className="side-video-overlay" onClick={() => handleUnmute('side-video-2', setSide2Muted)}>
@@ -465,7 +465,7 @@ function App() {
                       title="APL Launch Highlights 3"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
-                      loading="eager"
+                      loading="lazy"
                     ></iframe>
                     {side3Muted && (
                       <div className="side-video-overlay" onClick={() => handleUnmute('side-video-3', setSide3Muted)}>
@@ -493,7 +493,7 @@ function App() {
                 {/* Left Column: Text + Logo */}
                 <div className="acb-left-panel">
                   <div className="acb-brand-header">
-                    <img src={aplMainLogo} alt="APL Logo" className="acb-brand-logo-apl" loading="lazy" />
+                    <img src={aplMainLogo} alt="APL Logo" className="acb-brand-logo-apl" loading="lazy" decoding="async" />
                   </div>
 
                   <p className="acb-simple-paragraph">
@@ -514,7 +514,7 @@ function App() {
                   <div className="acb-chairman-card-modern">
                     <div className="acb-card-frame-accent top-right"></div>
                     <div className="acb-card-frame-accent bottom-left"></div>
-                    <img src={chairmanImg} alt="Mirwais Ashraf – Chairman, Afghan Cricket Board" className="acb-chairman-img" loading="lazy" />
+                    <img src={chairmanImg} alt="Mirwais Ashraf – Chairman, Afghan Cricket Board" className="acb-chairman-img" loading="lazy" decoding="async" />
                     <div className="acb-chairman-overlay-modern"></div>
                     <div className="acb-chairman-info-modern">
                       <div className="acb-chairman-badge">ACB Leadership</div>
@@ -731,24 +731,24 @@ function App() {
             </p>
             <div className="footer-bottom-right-wrap">
               <div className="footer-social-list bottom-socials">
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-circle facebook" aria-label="Facebook">
+                 <a href="https://www.facebook.com/APLT20Cricket/" target="_blank" rel="noopener noreferrer" className="social-circle facebook" aria-label="Facebook">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-circle instagram" aria-label="Instagram">
+                <a href="https://www.instagram.com/theaplt20/" target="_blank" rel="noopener noreferrer" className="social-circle instagram" aria-label="Instagram">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                   </svg>
                 </a>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-circle twitter" aria-label="Twitter">
+                <a href="https://x.com/theaplt20" target="_blank" rel="noopener noreferrer" className="social-circle twitter" aria-label="Twitter">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
                 </a>
-                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="social-circle youtube" aria-label="YouTube">
+                <a href="https://www.youtube.com/@ACBofficial" target="_blank" rel="noopener noreferrer" className="social-circle youtube" aria-label="YouTube">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
                     <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" />
                     <polygon points="9.545 15.568 15.818 12 9.545 8.432" fill="#000000" />

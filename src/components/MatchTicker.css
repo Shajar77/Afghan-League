@@ -41,17 +41,10 @@
   animation: mc-fade-in 0.3s ease forwards;
 }
 
-/* Floating bobbing motion wrappers for natural drift */
 .mc-card-motion-wrapper {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  animation: mc-card-float 5s ease-in-out infinite alternate;
-}
-
-@keyframes mc-card-float {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(5px); }
 }
 
 /* Card Item Horizontal Style (Clean Glassmorphic Layout matching screenshot) */

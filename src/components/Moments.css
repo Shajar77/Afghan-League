@@ -45,11 +45,17 @@
 .reels-scroll-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 9999px;
+  background-clip: padding-box;
+  border-left: 20vw solid transparent;
+  border-right: 20vw solid transparent;
 }
 
 .reels-scroll-container::-webkit-scrollbar-thumb {
   background: rgba(248, 200, 0, 0.2);
   border-radius: 9999px;
+  background-clip: padding-box;
+  border-left: 20vw solid transparent;
+  border-right: 20vw solid transparent;
   transition: background 0.3s;
 }
 

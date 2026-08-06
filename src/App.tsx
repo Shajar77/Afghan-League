@@ -1,13 +1,15 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, Suspense, lazy } from 'react'
 import { Navbar } from './components/Navbar'
 import { MatchTicker } from './components/MatchTicker'
-import { About } from './components/About'
-import { Moments } from './components/Moments'
-import { News } from './components/News'
-import { GalleryPage } from './components/GalleryPage'
-import { FixturesPage } from './components/FixturesPage'
-import { PointsTable } from './components/PointsTable'
-import { PartnershipsPage } from './components/PartnershipsPage'
+
+const About = lazy(() => import('./components/About').then(m => ({ default: m.About })))
+const Moments = lazy(() => import('./components/Moments').then(m => ({ default: m.Moments })))
+const News = lazy(() => import('./components/News').then(m => ({ default: m.News })))
+const GalleryPage = lazy(() => import('./components/GalleryPage').then(m => ({ default: m.GalleryPage })))
+const FixturesPage = lazy(() => import('./components/FixturesPage').then(m => ({ default: m.FixturesPage })))
+const PointsTable = lazy(() => import('./components/PointsTable').then(m => ({ default: m.PointsTable })))
+const PartnershipsPage = lazy(() => import('./components/PartnershipsPage').then(m => ({ default: m.PartnershipsPage })))
+const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ default: m.ContactPage })))
 import { Ticket, VolumeX } from 'lucide-react'
 import { useAppStore } from './store/useAppStore'
 import Lenis from 'lenis'
@@ -54,8 +56,12 @@ function useCricketBallAnimation(ref: React.RefObject<HTMLDivElement | null>, cu
       .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.24, ease: 'power1.in' }, 1.12)
       .to(ball, { y: 0, scaleY: 0.86, scaleX: 1.14, duration: 0.08, ease: 'power1.out' }, 1.36)
       .to(ball, { y: 0, scaleY: 1.0, scaleX: 1.0, duration: 0.08, ease: 'power1.out' }, 1.44)
+    let lastWidth = window.innerWidth
     const handleResize = () => {
-      trackWidth = window.innerWidth + 80
+      const currentWidth = window.innerWidth
+      if (currentWidth === lastWidth) return // Ignore address-bar resize triggers on mobile browsers
+      lastWidth = currentWidth
+      trackWidth = currentWidth + 80
       const xTween = tl.getChildren(false, true, false).find(t => t.vars && t.vars.x !== undefined)
       if (xTween) xTween.vars.x = trackWidth
       tl.invalidate().restart()
@@ -64,6 +70,7 @@ function useCricketBallAnimation(ref: React.RefObject<HTMLDivElement | null>, cu
     return () => { tl.kill(); window.removeEventListener('resize', handleResize) }
   }, [ref, currentPage])
 }
+
 
 function App() {
   const {
@@ -142,6 +149,9 @@ function App() {
         scrollToTop()
       } else if (hash === '#partnerships') {
         setCurrentPage('partnerships')
+        scrollToTop()
+      } else if (hash === '#contact-us' || hash === '#contact') {
+        setCurrentPage('contact')
         scrollToTop()
       } else {
         setCurrentPage('home')
@@ -362,7 +372,9 @@ function App() {
 
             <div className="section-divider-line" />
 
-            <Moments />
+            <Suspense fallback={<div className="skeleton-placeholder" style={{ minHeight: '300px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', margin: '2rem 0' }} />}>
+              <Moments />
+            </Suspense>
 
             <div className="section-divider-line" />
 
@@ -382,7 +394,7 @@ function App() {
                         title="The APL Grand Launch Event"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowFullScreen
-                        loading="lazy"
+                        loading="eager"
                       ></iframe>
                       {launchMuted && (
                         <div className="launch-video-overlay" onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}>
@@ -409,7 +421,7 @@ function App() {
                       title="APL Launch Highlights 1"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
-                      loading="lazy"
+                      loading="eager"
                     ></iframe>
                     {side1Muted && (
                       <div className="side-video-overlay" onClick={() => handleUnmute('side-video-1', setSide1Muted)}>
@@ -431,7 +443,7 @@ function App() {
                       title="APL Launch Highlights 2"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
-                      loading="lazy"
+                      loading="eager"
                     ></iframe>
                     {side2Muted && (
                       <div className="side-video-overlay" onClick={() => handleUnmute('side-video-2', setSide2Muted)}>
@@ -453,7 +465,7 @@ function App() {
                       title="APL Launch Highlights 3"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
-                      loading="lazy"
+                      loading="eager"
                     ></iframe>
                     {side3Muted && (
                       <div className="side-video-overlay" onClick={() => handleUnmute('side-video-3', setSide3Muted)}>
@@ -606,18 +618,50 @@ function App() {
             </section>
           </main>
         </>
-      ) : currentPage === 'news' ? (
-        <News />
-      ) : currentPage === 'gallery' ? (
-        <GalleryPage />
-      ) : currentPage === 'fixtures' ? (
-        <FixturesPage />
-      ) : currentPage === 'points-table' ? (
-        <PointsTable />
-      ) : currentPage === 'partnerships' ? (
-        <PartnershipsPage />
       ) : (
-        <About />
+        <Suspense fallback={
+          <div style={{
+            minHeight: '60vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: '1rem',
+            fontFamily: 'var(--font-display)',
+            color: 'var(--brand-gold)'
+          }}>
+            <div className="page-loading-spinner" style={{
+              width: '40px',
+              height: '40px',
+              border: '3px solid rgba(255, 255, 255, 0.1)',
+              borderTopColor: 'var(--brand-gold)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <style>{`
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
+            <span style={{ fontSize: '1.5rem', letterSpacing: '0.1em' }}>LOADING...</span>
+          </div>
+        }>
+          {currentPage === 'news' ? (
+            <News />
+          ) : currentPage === 'gallery' ? (
+            <GalleryPage />
+          ) : currentPage === 'fixtures' ? (
+            <FixturesPage />
+          ) : currentPage === 'points-table' ? (
+            <PointsTable />
+          ) : currentPage === 'partnerships' ? (
+            <PartnershipsPage />
+          ) : currentPage === 'contact' ? (
+            <ContactPage />
+          ) : (
+            <About />
+          )}
+        </Suspense>
       )}
 
       <footer className="app-footer">
@@ -656,51 +700,66 @@ function App() {
               </ul>
             </div>
 
-            {/* Column 4: Connect & Socials */}
-            <div className="footer-col socials-col">
-              <h4 className="footer-col-title">Follow the Action</h4>
-              <div className="footer-social-list">
+            {/* Column 4: Franchises Links */}
+            <div className="footer-col links-col">
+              <h4 className="footer-col-title">Franchises</h4>
+              <ul className="footer-links-list">
+                <li><a href="#teams">Kabul Knights</a></li>
+                <li><a href="#teams">Kandahar Kings</a></li>
+                <li><a href="#teams">Balkh Legends</a></li>
+                <li><a href="#teams">Amo Sharks</a></li>
+              </ul>
+            </div>
+
+            {/* Column 5: Resource Document Links */}
+            <div className="footer-col links-col">
+              <h4 className="footer-col-title">Resources</h4>
+              <ul className="footer-links-list">
+                <li><a href="#register-player">Player Register</a></li>
+                <li><a href="#partnerships">Partnerships</a></li>
+                <li><a href="#faq">League FAQ</a></li>
+                <li><a href="#media">Media Kit</a></li>
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Bottom Bar: Copyright */}
+          <div className="footer-bottom-bar">
+            <p className="copyright-text">
+              © {new Date().getFullYear()} Afghanistan Premier League. All Rights Reserved. Governed under the ACB.
+            </p>
+            <div className="footer-bottom-right-wrap">
+              <div className="footer-social-list bottom-socials">
                 <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-circle facebook" aria-label="Facebook">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#ffffff">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </a>
                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-circle instagram" aria-label="Instagram">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                   </svg>
                 </a>
                 <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-circle twitter" aria-label="Twitter">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="#ffffff">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff">
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
                 </a>
                 <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="social-circle youtube" aria-label="YouTube">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="#ffffff">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
                     <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" />
                     <polygon points="9.545 15.568 15.818 12 9.545 8.432" fill="#000000" />
                   </svg>
                 </a>
                 <button className="chat-bubble-round" aria-label="Chat Support">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 </button>
               </div>
-            </div>
-
-          </div>
-
-          {/* Bottom Bar: Copyright & Legal Disclaimer */}
-          <div className="footer-bottom-bar">
-            <p className="copyright-text">
-              © {new Date().getFullYear()} Afghanistan Premier League. All Rights Reserved. Governed under the ACB.
-            </p>
-            <div className="footer-legal-links">
-              <a href="#privacy">Privacy Policy</a>
-              <a href="#terms">Terms of Service</a>
             </div>
           </div>
         </div>

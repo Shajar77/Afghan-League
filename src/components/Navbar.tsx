@@ -41,6 +41,8 @@ export function Navbar() {
         setActiveTab('Gallery')
       } else if (hash === '#partnerships') {
         setActiveTab('Partnerships')
+      } else if (hash === '#contact-us' || hash === '#contact') {
+        setActiveTab('Contact Us')
       } else {
         setActiveTab('Home')
       }

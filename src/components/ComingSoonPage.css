@@ -1,0 +1,108 @@
+/* ============================================================
+   APL COMING SOON PAGE STYLING (Fixtures Page Hero Replicated)
+   ============================================================ */
+
+.coming-soon-page-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-canvas, #060b26);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HERO BANNER (Fixtures Hero Copy) ── */
+
+.coming-soon-hero {
+  position: relative;
+  width: 100%;
+  padding: 3.5rem var(--page-padding, 2rem) 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0a1240 0%, #0f1a52 40%, #162060 70%, #1a2666 100%);
+  border-bottom: 1px solid rgba(248, 200, 0, 0.12);
+}
+
+.coming-soon-hero-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(248, 200, 0, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.coming-soon-hero-glow {
+  position: absolute;
+  top: -80px;
+  left: -80px;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(248, 200, 0, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.coming-soon-hero-top-row {
+  max-width: 1380px;
+  margin: 0 auto 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+.coming-soon-hero-title-wrap {
+  text-align: left;
+}
+
+.coming-soon-live-badge {
+  display: inline-block;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--brand-gold, #faa718);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.coming-soon-main-title {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: clamp(2.4rem, 8vw, 6rem);
+  font-weight: 900;
+  line-height: 0.88;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.coming-soon-main-title .dot-accent {
+  color: var(--brand-gold, #faa718);
+}
+
+/* ── CONTENT SECTION ── */
+
+.coming-soon-content-section {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem var(--page-padding, 2rem);
+}
+
+.coming-soon-big-heading {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-align: center;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* Responsive adjustments */
+
+@media (max-width: 480px) {
+  .coming-soon-big-heading {
+    font-size: clamp(2.5rem, 14vw, 3.5rem);
+  }
+}

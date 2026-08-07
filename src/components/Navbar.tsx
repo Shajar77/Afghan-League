@@ -31,6 +31,8 @@ export function Navbar() {
       const hash = window.location.hash
       if (hash === '#about') {
         setActiveTab('About')
+      } else if (hash === '#teams') {
+        setActiveTab('Teams')
       } else if (hash === '#news') {
         setActiveTab('News & Media')
       } else if (hash === '#fixtures') {
@@ -66,6 +68,7 @@ export function Navbar() {
   const navItems: NavItem[] = [
     { label: 'Home', href: '#home' },
     { label: 'About', href: '#about' },
+    { label: 'Teams', href: '#teams' },
     { label: 'Fixtures', href: '#fixtures' },
     { label: 'Points Table', href: '#points-table' },
     { label: 'News & Media', href: '#news' },

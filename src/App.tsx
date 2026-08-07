@@ -10,6 +10,8 @@ const FixturesPage = lazy(() => import('./components/FixturesPage').then(m => ({
 const PointsTable = lazy(() => import('./components/PointsTable').then(m => ({ default: m.PointsTable })))
 const PartnershipsPage = lazy(() => import('./components/PartnershipsPage').then(m => ({ default: m.PartnershipsPage })))
 const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ default: m.ContactPage })))
+const TeamsPage = lazy(() => import('./components/TeamsPage').then(m => ({ default: m.TeamsPage })))
+import { ComingSoonPage } from './components/ComingSoonPage'
 import { Ticket, VolumeX } from 'lucide-react'
 import { useAppStore } from './store/useAppStore'
 import Lenis from 'lenis'
@@ -137,6 +139,9 @@ function App() {
         scrollToTop()
       } else if (hash === '#news') {
         setCurrentPage('news')
+        scrollToTop()
+      } else if (hash === '#teams') {
+        setCurrentPage('teams')
         scrollToTop()
       } else if (hash === '#gallery') {
         setCurrentPage('gallery')
@@ -648,6 +653,8 @@ function App() {
         }>
           {currentPage === 'news' ? (
             <News />
+          ) : currentPage === 'teams' ? (
+            <TeamsPage />
           ) : currentPage === 'gallery' ? (
             <GalleryPage />
           ) : currentPage === 'fixtures' ? (
@@ -658,6 +665,14 @@ function App() {
             <PartnershipsPage />
           ) : currentPage === 'contact' ? (
             <ContactPage />
+          ) : currentPage === 'acb-governance' ? (
+            <ComingSoonPage title="ACB GOVERNANCE" />
+          ) : currentPage === 'player-register' ? (
+            <ComingSoonPage title="PLAYER REGISTER" />
+          ) : currentPage === 'league-faq' ? (
+            <ComingSoonPage title="LEAGUE FAQ" />
+          ) : currentPage === 'media-kit' ? (
+            <ComingSoonPage title="MEDIA KIT" />
           ) : (
             <About />
           )}
@@ -682,21 +697,21 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Navigation</h4>
               <ul className="footer-links-list">
-                <li><a href="#hero">Home</a></li>
-                <li><a href="#teams">Teams</a></li>
-                <li><a href="#launch">Launch</a></li>
-                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Home</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('fixtures'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Fixtures & Results</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('points-table'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Points Table</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('news'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Latest News</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('gallery'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Media Gallery</a></li>
               </ul>
             </div>
 
             {/* Column 3: Info & Support Links */}
             <div className="footer-col links-col">
-              <h4 className="footer-col-title">Information</h4>
+              <h4 className="footer-col-title">Info & Support</h4>
               <ul className="footer-links-list">
-                <li><a href="#about">About APL</a></li>
-                <li><a href="#tickets">Buy Tickets</a></li>
-                <li><a href="#acb">ACB Governance</a></li>
-                <li><a href="#contact">Contact Us</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>About APL</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('partnerships'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Partnerships</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Contact Us</a></li>
               </ul>
             </div>
 
@@ -704,10 +719,12 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Franchises</h4>
               <ul className="footer-links-list">
-                <li><a href="#teams">Kabul Knights</a></li>
-                <li><a href="#teams">Kandahar Kings</a></li>
-                <li><a href="#teams">Balkh Legends</a></li>
-                <li><a href="#teams">Amo Sharks</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Kabul Knights</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Kandahar Kings</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Balkh Legends</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Paktia Panthers</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Amo Sharks</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Band-e-Amir Dragons</a></li>
               </ul>
             </div>
 
@@ -715,10 +732,10 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Resources</h4>
               <ul className="footer-links-list">
-                <li><a href="#register-player">Player Register</a></li>
-                <li><a href="#partnerships">Partnerships</a></li>
-                <li><a href="#faq">League FAQ</a></li>
-                <li><a href="#media">Media Kit</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('acb-governance'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>ACB Governance</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('player-register'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Player Register</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('league-faq'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>League FAQ</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('media-kit'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Media Kit</a></li>
               </ul>
             </div>
 

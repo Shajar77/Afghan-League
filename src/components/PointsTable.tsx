@@ -100,9 +100,7 @@ export function PointsTable() {
                     <td className="pt-stat pt-stat-l pt-col-lost">{row.lost}</td>
                     <td className="pt-stat pt-col-tied">{row.tied}</td>
                     <td className="pt-stat pt-col-nr">{row.noResult}</td>
-                    <td className={`pt-stat pt-nrr pt-col-nrr ${
-                      row.nrr.startsWith('+') ? 'pt-nrr-positive' : 'pt-nrr-negative'
-                    }`}>
+                    <td className="pt-stat pt-nrr pt-col-nrr">
                       {row.nrr}
                     </td>
                     <td className="pt-pts-cell">{row.pts}</td>

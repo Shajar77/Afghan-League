@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Menu, X, ChevronDown } from 'lucide-react'
+import { Menu, X, ChevronDown, UserPlus, ClipboardList } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
 import aplLogo from '../assets/APL Logo - White.webp'
 import londonSpiritLogo from '../assets/london-spirit-white.svg'
@@ -19,7 +19,10 @@ export function Navbar() {
   const { mobileMenuOpen, setMobileMenuOpen } = useAppStore()
   const [activeTab, setActiveTab] = useState('Home')
   const [moreOpen, setMoreOpen] = useState(false)
+  const [registerDropdownOpen, setRegisterDropdownOpen] = useState(false)
+  const [mobileRegisterOpen, setMobileRegisterOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const registerDropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : ''
@@ -45,6 +48,10 @@ export function Navbar() {
         setActiveTab('Partnerships')
       } else if (hash === '#contact-us' || hash === '#contact') {
         setActiveTab('Contact Us')
+      } else if (hash === '#register-player' || hash === '#register') {
+        setActiveTab('Register')
+      } else if (hash === '#register-status' || hash === '#status') {
+        setActiveTab('Register Status')
       } else {
         setActiveTab('Home')
       }
@@ -59,6 +66,9 @@ export function Navbar() {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setMoreOpen(false)
+      }
+      if (registerDropdownRef.current && !registerDropdownRef.current.contains(e.target as Node)) {
+        setRegisterDropdownOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -109,9 +119,51 @@ export function Navbar() {
 
           {/* Right: Register Button */}
           <div className="navbar-top-right">
-            <a href="#register-player" className="btn-register-now desktop-register">
-              <span className="skew-unskew-text">PLAYER REGISTRATION</span>
-            </a>
+            <div 
+              className="register-dropdown-wrapper desktop-register" 
+              ref={registerDropdownRef}
+            >
+              <button 
+                className="btn-register-now"
+                onClick={() => setRegisterDropdownOpen(prev => !prev)}
+              >
+                <span className="skew-unskew-text">PLAYER REGISTRATION</span>
+                <ChevronDown size={14} className={`dropdown-arrow-icon ${registerDropdownOpen ? 'open' : ''}`} />
+              </button>
+              
+              {registerDropdownOpen && (
+                <div className="register-dropdown-menu">
+                  <a 
+                    href="#register-player" 
+                    className={`dropdown-item ${activeTab === 'Register' ? 'active' : ''}`}
+                    onClick={() => {
+                      setRegisterDropdownOpen(false)
+                      setActiveTab('Register')
+                    }}
+                  >
+                    <UserPlus size={16} strokeWidth={2.5} className="dropdown-item-icon" />
+                    <div className="dropdown-item-text-wrap">
+                      <span className="dropdown-item-title">Player Registration</span>
+                      <span className="dropdown-item-desc">Submit draft form</span>
+                    </div>
+                  </a>
+                  <a 
+                    href="#register-status" 
+                    className={`dropdown-item ${activeTab === 'Register Status' ? 'active' : ''}`}
+                    onClick={() => {
+                      setRegisterDropdownOpen(false)
+                      setActiveTab('Register Status')
+                    }}
+                  >
+                    <ClipboardList size={16} strokeWidth={2.5} className="dropdown-item-icon" />
+                    <div className="dropdown-item-text-wrap">
+                      <span className="dropdown-item-title">Registration Status</span>
+                      <span className="dropdown-item-desc">Track review progress</span>
+                    </div>
+                  </a>
+                </div>
+              )}
+            </div>
 
             {/* Mobile Hamburger */}
             <button
@@ -216,13 +268,61 @@ export function Navbar() {
             </a>
           </li>
           <li className="mobile-nav-item">
-            <a
-              href="#register-player"
-              className="mobile-nav-link highlight"
-              onClick={() => setMobileMenuOpen(false)}
+            <button
+              className={`mobile-nav-link ${activeTab === 'Register' || activeTab === 'Register Status' ? 'active' : ''}`}
+              onClick={() => setMobileRegisterOpen(!mobileRegisterOpen)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', outline: 'none', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
-              Register Now
-            </a>
+              <span>Player Registration</span>
+              <ChevronDown 
+                size={18} 
+                style={{ 
+                  transform: mobileRegisterOpen ? 'rotate(180deg)' : 'none', 
+                  transition: 'transform 0.2s ease', 
+                  marginLeft: '0.5rem',
+                  opacity: 0.6 
+                }} 
+              />
+            </button>
+            
+            {mobileRegisterOpen && (
+              <ul className="mobile-submenu animate-fade-in" style={{ padding: '0 0 0.5rem 0', listStyle: 'none', backgroundColor: 'rgba(0, 0, 0, 0.12)' }}>
+                <li style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
+                  <a
+                    href="#register-player"
+                    className={`mobile-nav-link ${activeTab === 'Register' ? 'active' : ''}`}
+                    style={{
+                      fontSize: '1.25rem',
+                      padding: '0.75rem 2rem'
+                    }}
+                    onClick={() => {
+                      setActiveTab('Register')
+                      setMobileMenuOpen(false)
+                      setMobileRegisterOpen(false)
+                    }}
+                  >
+                    Player Registration
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#register-status"
+                    className={`mobile-nav-link ${activeTab === 'Register Status' ? 'active' : ''}`}
+                    style={{
+                      fontSize: '1.25rem',
+                      padding: '0.75rem 2rem'
+                    }}
+                    onClick={() => {
+                      setActiveTab('Register Status')
+                      setMobileMenuOpen(false)
+                      setMobileRegisterOpen(false)
+                    }}
+                  >
+                    Registration Status
+                  </a>
+                </li>
+              </ul>
+            )}
           </li>
         </ul>
       </div>

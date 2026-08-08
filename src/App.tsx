@@ -11,8 +11,10 @@ const PointsTable = lazy(() => import('./components/PointsTable').then(m => ({ d
 const PartnershipsPage = lazy(() => import('./components/PartnershipsPage').then(m => ({ default: m.PartnershipsPage })))
 const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ default: m.ContactPage })))
 const TeamsPage = lazy(() => import('./components/TeamsPage').then(m => ({ default: m.TeamsPage })))
-import { ComingSoonPage } from './components/ComingSoonPage'
-import { Ticket, VolumeX } from 'lucide-react'
+const ComingSoonPage = lazy(() => import('./components/ComingSoonPage').then(m => ({ default: m.ComingSoonPage })))
+const RegisterPage = lazy(() => import('./components/RegisterPage').then(m => ({ default: m.RegisterPage })))
+const RegisterStatusPage = lazy(() => import('./components/RegisterStatusPage').then(m => ({ default: m.RegisterStatusPage })))
+import { VolumeX } from 'lucide-react'
 import { useAppStore } from './store/useAppStore'
 import Lenis from 'lenis'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -158,6 +160,12 @@ function App() {
       } else if (hash === '#contact-us' || hash === '#contact') {
         setCurrentPage('contact')
         scrollToTop()
+      } else if (hash === '#register-player' || hash === '#register') {
+        setCurrentPage('player-register')
+        scrollToTop()
+      } else if (hash === '#register-status' || hash === '#status') {
+        setCurrentPage('register-status')
+        scrollToTop()
       } else {
         setCurrentPage('home')
       }
@@ -211,9 +219,8 @@ function App() {
                   <span className="skew-unskew-text">PLAYER REGISTRATION</span>
                 </a>
 
-                <a href="#buy-tickets" className="btn-contact hero-btn">
-                  <span>BUY TICKETS</span>
-                  <Ticket size={16} />
+                <a href="#register-status" className="btn-contact hero-btn">
+                  <span>REGISTRATION STATUS</span>
                 </a>
               </div>
             </div>
@@ -668,7 +675,9 @@ function App() {
           ) : currentPage === 'acb-governance' ? (
             <ComingSoonPage title="ACB GOVERNANCE" />
           ) : currentPage === 'player-register' ? (
-            <ComingSoonPage title="PLAYER REGISTER" />
+            <RegisterPage />
+          ) : currentPage === 'register-status' ? (
+            <RegisterStatusPage />
           ) : currentPage === 'league-faq' ? (
             <ComingSoonPage title="LEAGUE FAQ" />
           ) : currentPage === 'media-kit' ? (

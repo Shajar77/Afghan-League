@@ -110,7 +110,7 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
-@media (min-width: 600px) {
+@media (min-width: 992px) {
   .team-profile-card {
     flex-direction: row;
     align-items: stretch;
@@ -138,7 +138,7 @@
   padding: 0.5rem;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 992px) {
   .team-card-left {
     width: 38%;
     flex-shrink: 0;
@@ -155,7 +155,7 @@
   flex-shrink: 0;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 992px) {
   .team-logo-wrap {
     width: 120px;
     height: 120px;
@@ -201,7 +201,7 @@
   z-index: 1;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 992px) {
   .team-card-divider {
     width: 1px;
     height: auto;
@@ -234,7 +234,7 @@
   padding-top: 1.25rem;
 }
 
-@media (min-width: 600px) {
+@media (min-width: 992px) {
   .team-card-body {
     border-top: none;
     padding-top: 0;
@@ -330,6 +330,7 @@ body.modal-open-blur {
 .squad-modal-card {
   width: 100%;
   max-width: 680px;
+  max-height: 90vh;
   color: #0c1033;
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 24px 50px rgba(0, 0, 0, 0.3);
@@ -422,6 +423,8 @@ body.modal-open-blur {
 
 .squad-modal-body {
   padding: 1rem 1.25rem 1.25rem 1.25rem;
+  overflow-y: auto;
+  flex-grow: 1;
 }
 
 @media (min-width: 480px) {

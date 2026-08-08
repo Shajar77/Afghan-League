@@ -11,9 +11,15 @@ export function RegisterStatusPage() {
     if (!appId.trim()) return
 
     setSearched(true)
-    const formattedId = appId.trim().toUpperCase()
+    let formattedId = appId.trim().toUpperCase().replace(/\s+/g, '')
 
-    // Match patterns starting with APL-
+    // Normalize flexible user inputs like "64297" or "2026-64297" into "APL-2026-64297"
+    if (/^\d{5}$/.test(formattedId)) {
+      formattedId = `APL-2026-${formattedId}`
+    } else if (/^2026-\d{5}$/.test(formattedId)) {
+      formattedId = `APL-${formattedId}`
+    }
+
     if (formattedId.startsWith('APL-')) {
       setStatusResult({
         id: formattedId,

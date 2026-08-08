@@ -212,6 +212,15 @@ export function RegisterPage() {
         const today = new Date()
         if (birthDate >= today) {
           newErrors.dob = 'Date of Birth must be in the past'
+        } else {
+          let age = today.getFullYear() - birthDate.getFullYear()
+          const monthDiff = today.getMonth() - birthDate.getMonth()
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--
+          }
+          if (age < 15) {
+            newErrors.dob = 'Player must be at least 15 years old to register'
+          }
         }
       }
       if (!formData.nationality.trim()) newErrors.nationality = 'Nationality is required'
@@ -991,8 +1000,9 @@ export function RegisterPage() {
                     <div
                       className={`type-card ${formData.acceptRelegation === 'yes' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
                       onClick={() => {
-                        handleSelectOption('acceptRelegation', 'yes')
-                        handleSelectOption('relegationLimit', '') // reset limit
+                        if (formData.acceptRelegation !== 'yes') {
+                          handleSelectOption('acceptRelegation', 'yes')
+                        }
                       }}
                     >
                       <span className="type-card-title">Yes</span>
@@ -1000,8 +1010,7 @@ export function RegisterPage() {
                     <div
                       className={`type-card ${formData.acceptRelegation === 'no' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
                       onClick={() => {
-                        handleSelectOption('acceptRelegation', 'no')
-                        handleSelectOption('relegationLimit', '') // reset limit
+                        handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
                       }}
                     >
                       <span className="type-card-title">No</span>
@@ -1009,8 +1018,7 @@ export function RegisterPage() {
                     <div
                       className={`type-card ${formData.acceptRelegation === 'emerging' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
                       onClick={() => {
-                        handleSelectOption('acceptRelegation', 'emerging')
-                        handleSelectOption('relegationLimit', '') // reset limit
+                        handleSelectOption('acceptRelegation', 'emerging', { relegationLimit: '' })
                       }}
                     >
                       <span className="type-card-title">Emerging (Does not Apply)</span>
@@ -1387,16 +1395,14 @@ export function RegisterPage() {
               </div>
             ) : (
               <div className="buttons-row">
-                {currentStep > 1 ? (
+                {currentStep > 1 && (
                   <button type="button" className="btn-secondary" onClick={handlePrev}>
                     Back
                   </button>
-                ) : (
-                  <button type="button" className="btn-secondary" onClick={handleSaveDraft}>
-                    Save as Draft
-                  </button>
                 )}
-
+                <button type="button" className="btn-secondary" onClick={handleSaveDraft}>
+                  Save as Draft
+                </button>
                 <button
                   type="button"
                   className="btn-primary"

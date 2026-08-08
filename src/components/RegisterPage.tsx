@@ -104,6 +104,7 @@ export function RegisterPage() {
   const [refCode, setRefCode] = useState<string>('')
   const [draftSaved, setDraftSaved] = useState<boolean>(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLoaded, setIsLoaded] = useState<boolean>(false)
 
   // Step 5 Consents
   const [consent1, setConsent1] = useState<boolean>(false)
@@ -118,7 +119,7 @@ export function RegisterPage() {
     // Instantly scroll to top of page on mount
     const timer = setTimeout(() => {
       if ((window as any).lenis) {
-        ;(window as any).lenis.scrollTo(0, { immediate: true })
+        ; (window as any).lenis.scrollTo(0, { immediate: true })
       } else {
         window.scrollTo(0, 0)
       }
@@ -155,23 +156,27 @@ export function RegisterPage() {
       }
     }
 
+    setIsLoaded(true)
+
     return () => clearTimeout(timer)
   }, [])
 
   // Auto-save form data draft to localStorage on any input change
   useEffect(() => {
+    if (!isLoaded) return // Skip auto-saving on initial render/mount to avoid race conditions
     const { passportPhoto: _pPhoto, passportScan: _pScan, nocDoc: _nocDoc, actionShot: _aShot, ...serializable } = formData
     if (!isSubmitted) {
       localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializable))
     }
-  }, [formData, isSubmitted])
+  }, [formData, isSubmitted, isLoaded])
 
   // Auto-save current step to localStorage
   useEffect(() => {
+    if (!isLoaded) return // Skip auto-saving on initial render/mount to avoid race conditions
     if (!isSubmitted) {
       localStorage.setItem('apl_player_registration_step', String(currentStep))
     }
-  }, [currentStep, isSubmitted])
+  }, [currentStep, isSubmitted, isLoaded])
 
   const steps = [
     { id: 1, label: 'PERSONAL', icon: User },
@@ -278,7 +283,7 @@ export function RegisterPage() {
           }
           const currentRank = ranks[formData.category] ?? 0
           const limitRank = limitRanks[formData.relegationLimit] ?? 0
-          
+
           if (limitRank >= currentRank) {
             newErrors.relegationLimit = `Relegation limit must be lower than your selected category (${formData.category}).`
           }
@@ -288,7 +293,7 @@ export function RegisterPage() {
 
     if (step === 4) {
       if (!formData.passportPhoto) newErrors.passportPhoto = 'Player Profile Photo is required'
-      if (!formData.passportScan) newErrors.passportScan = 'Passport Copy is required'
+      if (!formData.passportScan) newErrors.passportScan = 'Passport Image is required'
     }
 
     setErrors(newErrors)
@@ -391,7 +396,7 @@ export function RegisterPage() {
     const el = document.querySelector('.register-content-section')
     if (el) {
       if ((window as any).lenis) {
-        ;(window as any).lenis.scrollTo(el, { immediate: true, offset: -90 })
+        ; (window as any).lenis.scrollTo(el, { immediate: true, offset: -90 })
       } else {
         const yOffset = -90 // clearance for sticky navbar
         const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset
@@ -399,7 +404,7 @@ export function RegisterPage() {
       }
     } else {
       if ((window as any).lenis) {
-        ;(window as any).lenis.scrollTo(0, { immediate: true })
+        ; (window as any).lenis.scrollTo(0, { immediate: true })
       } else {
         window.scrollTo(0, 0)
       }
@@ -418,7 +423,7 @@ export function RegisterPage() {
         setRefCode(`APL-2026-${Math.floor(Math.random() * 90000) + 10000}`)
         setIsSubmitted(true)
         if ((window as any).lenis) {
-          ;(window as any).lenis.scrollTo(0, { immediate: true })
+          ; (window as any).lenis.scrollTo(0, { immediate: true })
         } else {
           window.scrollTo(0, 0)
         }
@@ -552,6 +557,7 @@ export function RegisterPage() {
             {/* Draft Saved Toast */}
             {draftSaved && (
               <div className="draft-saved-toast">
+                <span style={{ marginRight: '8px', color: 'var(--brand-gold, #faa718)' }}>✓</span>
                 Draft successfully saved at {new Date().toLocaleTimeString()}!
               </div>
             )}
@@ -980,9 +986,9 @@ export function RegisterPage() {
                 <div className="form-section">
                   <h3 className="section-title">Accept Relegation <span className="required">*</span></h3>
                   <p className="section-subtitle">If you are not selected in your preferred category, do you accept being considered for lower categories?</p>
-                  
+
                   <div className="relegation-cards-grid">
-                    <div 
+                    <div
                       className={`type-card ${formData.acceptRelegation === 'yes' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
                       onClick={() => {
                         handleSelectOption('acceptRelegation', 'yes')
@@ -991,7 +997,7 @@ export function RegisterPage() {
                     >
                       <span className="type-card-title">Yes</span>
                     </div>
-                    <div 
+                    <div
                       className={`type-card ${formData.acceptRelegation === 'no' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
                       onClick={() => {
                         handleSelectOption('acceptRelegation', 'no')
@@ -1000,7 +1006,7 @@ export function RegisterPage() {
                     >
                       <span className="type-card-title">No</span>
                     </div>
-                    <div 
+                    <div
                       className={`type-card ${formData.acceptRelegation === 'emerging' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
                       onClick={() => {
                         handleSelectOption('acceptRelegation', 'emerging')
@@ -1017,21 +1023,21 @@ export function RegisterPage() {
                   <div className="form-section animate-fade-in">
                     <h3 className="section-title">Relegation accepted till: <span className="required">*</span></h3>
                     <p className="section-subtitle">Select the lowest category you accept being relegated to.</p>
-                    
+
                     <div className="relegation-cards-grid">
-                      <div 
+                      <div
                         className={`type-card ${formData.relegationLimit === 'Diamond' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
                         onClick={() => handleSelectOption('relegationLimit', 'Diamond')}
                       >
                         <span className="type-card-title">Diamond</span>
                       </div>
-                      <div 
+                      <div
                         className={`type-card ${formData.relegationLimit === 'Gold' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
                         onClick={() => handleSelectOption('relegationLimit', 'Gold')}
                       >
                         <span className="type-card-title">Gold</span>
                       </div>
-                      <div 
+                      <div
                         className={`type-card ${formData.relegationLimit === 'Silver' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
                         onClick={() => handleSelectOption('relegationLimit', 'Silver')}
                       >
@@ -1086,7 +1092,7 @@ export function RegisterPage() {
 
                   {/* Passport Copy */}
                   <div className="form-group" style={{ marginBottom: '2rem' }}>
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Passport Copy <span className="required">*</span></label>
+                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Passport Image<span className="required">*</span></label>
 
                     <div
                       className={`upload-dropzone ${formData.passportScan ? 'has-file' : ''} ${errors.passportScan ? 'dropzone-error' : ''}`}
@@ -1283,9 +1289,9 @@ export function RegisterPage() {
                           <span className="review-line-label">Accepts Relegation</span>
                           <span className="review-line-val">
                             {formData.acceptRelegation === 'yes' ? 'Yes' :
-                             formData.acceptRelegation === 'no' ? 'No' :
-                             formData.acceptRelegation === 'emerging' ? 'Emerging (Does not Apply)' :
-                             '—'}
+                              formData.acceptRelegation === 'no' ? 'No' :
+                                formData.acceptRelegation === 'emerging' ? 'Emerging (Does not Apply)' :
+                                  '—'}
                           </span>
                         </div>
                         <div className="review-line-item">
@@ -1306,7 +1312,7 @@ export function RegisterPage() {
                           <span className="review-line-val">{formData.passportPhoto ? formData.passportPhoto.name : '—'}</span>
                         </div>
                         <div className="review-line-item">
-                          <span className="review-line-label">Passport Copy</span>
+                          <span className="review-line-label">Passport Image</span>
                           <span className="review-line-val">{formData.passportScan ? formData.passportScan.name : '—'}</span>
                         </div>
                         <div className="review-line-item">

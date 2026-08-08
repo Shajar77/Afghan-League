@@ -17,7 +17,7 @@ interface FormData {
   city: string
   phone: string
   email: string
-  availability: 'full' | 'selected' | 'national' | 'release'
+  availability: string[]
   availabilityDetails: string
 
   // Step 2: Cricket
@@ -33,12 +33,14 @@ interface FormData {
   // Step 3: Category
   category: string
   basePrice: string
-  acceptRelegation: boolean
+  acceptRelegation: 'yes' | 'no' | 'emerging' | ''
+  relegationLimit: 'Diamond' | 'Gold' | 'Silver' | ''
 
   // Step 4: Uploads
   passportPhoto: File | null
   passportScan: File | null
   nocDoc: File | null
+  actionShot: File | null
 }
 
 const initialFormData: FormData = {
@@ -55,7 +57,7 @@ const initialFormData: FormData = {
   city: '',
   phone: '',
   email: '',
-  availability: 'full',
+  availability: ['full'],
   availabilityDetails: '',
   playingRole: 'All-Rounder',
   battingHand: 'Right-Handed',
@@ -67,10 +69,12 @@ const initialFormData: FormData = {
   profileLink: '',
   category: 'Gold Player',
   basePrice: '$20,000',
-  acceptRelegation: true,
+  acceptRelegation: '',
+  relegationLimit: '',
   passportPhoto: null,
   passportScan: null,
   nocDoc: null,
+  actionShot: null,
 }
 
 const categoriesList = [
@@ -79,39 +83,95 @@ const categoriesList = [
   { id: 'Diamond Player', label: 'Diamond Player', desc: 'Established talent', price: '$35,000' },
   { id: 'Gold Player', label: 'Gold Player', desc: 'Strong domestic record', price: '$20,000' },
   { id: 'Silver Player', label: 'Silver Player', desc: 'Rising performers', price: '$10,000' },
-  { id: 'Overseas Player', label: 'Overseas Player', desc: 'International talent', price: '$40,000' },
-  { id: 'Emerging Under-23', label: 'Emerging Under-23', desc: 'Future stars pathway', price: '$5,000' }
+  { id: 'Emerging Under-23', label: 'Emerging Under-23', desc: 'Afghan National Players Emerging Talent', price: '$5,000' }
 ]
+
+const validateFile = (file: File, allowedTypes: string[], maxSizeMB: number): string | null => {
+  const fileExtension = file.name.split('.').pop()?.toLowerCase() || ''
+  if (!allowedTypes.includes(fileExtension)) {
+    return `Invalid format. Allowed formats: ${allowedTypes.join(', ').toUpperCase()}`
+  }
+  if (file.size > maxSizeMB * 1024 * 1024) {
+    return `File size exceeds the ${maxSizeMB} MB limit.`
+  }
+  return null
+}
 
 export function RegisterPage() {
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
+  const [refCode, setRefCode] = useState<string>('')
   const [draftSaved, setDraftSaved] = useState<boolean>(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  
+
   // Step 5 Consents
   const [consent1, setConsent1] = useState<boolean>(false)
   const [consent2, setConsent2] = useState<boolean>(false)
   const [consent3, setConsent3] = useState<boolean>(false)
 
   useEffect(() => {
+    // Disable native browser scroll restoration to prevent snapping to footer on refresh
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+    // Instantly scroll to top of page on mount
+    const timer = setTimeout(() => {
+      if ((window as any).lenis) {
+        ;(window as any).lenis.scrollTo(0, { immediate: true })
+      } else {
+        window.scrollTo(0, 0)
+      }
+    }, 50)
+
+    const savedStep = localStorage.getItem('apl_player_registration_step')
+    if (savedStep) {
+      const parsedStep = parseInt(savedStep, 10)
+      if (parsedStep >= 1 && parsedStep <= 5) {
+        setCurrentStep(parsedStep)
+      }
+    }
+
     const saved = localStorage.getItem('apl_player_registration_draft')
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
+        if (parsed.availability && !Array.isArray(parsed.availability)) {
+          parsed.availability = [parsed.availability]
+        }
+        if (typeof parsed.acceptRelegation === 'boolean') {
+          parsed.acceptRelegation = parsed.acceptRelegation ? 'yes' : 'no'
+        }
         setFormData(prev => ({
           ...prev,
           ...parsed,
           passportPhoto: null,
           passportScan: null,
           nocDoc: null,
+          actionShot: null,
         }))
       } catch (e) {
         console.error('Failed to load draft from localStorage', e)
       }
     }
+
+    return () => clearTimeout(timer)
   }, [])
+
+  // Auto-save form data draft to localStorage on any input change
+  useEffect(() => {
+    const { passportPhoto: _pPhoto, passportScan: _pScan, nocDoc: _nocDoc, actionShot: _aShot, ...serializable } = formData
+    if (!isSubmitted) {
+      localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializable))
+    }
+  }, [formData, isSubmitted])
+
+  // Auto-save current step to localStorage
+  useEffect(() => {
+    if (!isSubmitted) {
+      localStorage.setItem('apl_player_registration_step', String(currentStep))
+    }
+  }, [currentStep, isSubmitted])
 
   const steps = [
     { id: 1, label: 'PERSONAL', icon: User },
@@ -150,7 +210,7 @@ export function RegisterPage() {
         }
       }
       if (!formData.nationality.trim()) newErrors.nationality = 'Nationality is required'
-      if (!formData.passportNumber.trim()) newErrors.passportNumber = 'Passport / ID Number is required'
+      if (!formData.passportNumber.trim()) newErrors.passportNumber = 'Passport Number is required'
       if (!formData.countryResidence.trim()) newErrors.countryResidence = 'Country of Residence is required'
       if (!formData.city.trim()) newErrors.city = 'City is required'
       if (!formData.phone.trim()) {
@@ -163,6 +223,9 @@ export function RegisterPage() {
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
         newErrors.email = 'Please enter a valid email address (e.g. player@domain.com)'
       }
+      if (!formData.availability || formData.availability.length === 0) {
+        newErrors.availability = 'At least one availability option must be selected'
+      }
     }
 
     if (step === 2) {
@@ -170,11 +233,11 @@ export function RegisterPage() {
       if (!formData.battingHand) newErrors.battingHand = 'Batting Hand is required'
       if (!formData.currentClub.trim()) newErrors.currentClub = 'Current Club / Team is required'
       if (!formData.playerStatus) newErrors.playerStatus = 'Player Status is required'
-      
+
       if (formData.totalMatches) {
         const matchesVal = Number(formData.totalMatches)
-        if (isNaN(matchesVal) || matchesVal < 0) {
-          newErrors.totalMatches = 'Total Matches must be 0 or more'
+        if (isNaN(matchesVal) || matchesVal < 0 || !Number.isInteger(matchesVal)) {
+          newErrors.totalMatches = 'Total Matches must be a valid whole number (0 or more)'
         }
       }
 
@@ -189,11 +252,43 @@ export function RegisterPage() {
 
     if (step === 3) {
       if (!formData.category) newErrors.category = 'Player Category is required'
+      if (!formData.acceptRelegation) {
+        newErrors.acceptRelegation = 'Please specify if you accept category relegation'
+      }
+      if (formData.acceptRelegation === 'yes') {
+        if (formData.category === 'Silver Player') {
+          newErrors.acceptRelegation = 'Relegation only applies to categories higher than Silver. Please select No or Emerging (Does not Apply).'
+        } else if (formData.category === 'Emerging Under-23') {
+          newErrors.acceptRelegation = 'Relegation does not apply to the Emerging Under-23 category. Please select Emerging (Does not Apply).'
+        } else if (!formData.relegationLimit) {
+          newErrors.relegationLimit = 'Please specify the lowest category you accept relegation to'
+        } else {
+          const ranks: Record<string, number> = {
+            'Icon Player': 5,
+            'Platinum Player': 4,
+            'Diamond Player': 3,
+            'Gold Player': 2,
+            'Silver Player': 1,
+            'Emerging Under-23': 0
+          }
+          const limitRanks: Record<string, number> = {
+            'Diamond': 3,
+            'Gold': 2,
+            'Silver': 1
+          }
+          const currentRank = ranks[formData.category] ?? 0
+          const limitRank = limitRanks[formData.relegationLimit] ?? 0
+          
+          if (limitRank >= currentRank) {
+            newErrors.relegationLimit = `Relegation limit must be lower than your selected category (${formData.category}).`
+          }
+        }
+      }
     }
 
     if (step === 4) {
       if (!formData.passportPhoto) newErrors.passportPhoto = 'Player Profile Photo is required'
-      if (!formData.passportScan) newErrors.passportScan = 'Passport / ID Copy is required'
+      if (!formData.passportScan) newErrors.passportScan = 'Passport Copy is required'
     }
 
     setErrors(newErrors)
@@ -223,15 +318,44 @@ export function RegisterPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'nocDoc') => {
+  const handleToggleAvailability = (value: string) => {
+    setFormData(prev => {
+      const current = Array.isArray(prev.availability) ? prev.availability : [prev.availability]
+      let next: string[]
+      if (current.includes(value)) {
+        next = current.filter(v => v !== value)
+      } else {
+        next = [...current, value]
+      }
+      return { ...prev, availability: next }
+    })
+    if (errors.availability) {
+      setErrors(prev => {
+        const copy = { ...prev }
+        delete copy.availability
+        return copy
+      })
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'nocDoc' | 'actionShot') => {
     if (e.target.files && e.target.files[0]) {
-      setFormData(prev => ({ ...prev, [fieldName]: e.target.files![0] }))
-      if (errors[fieldName]) {
-        setErrors(prev => {
-          const copy = { ...prev }
-          delete copy[fieldName]
-          return copy
-        })
+      const file = e.target.files[0]
+      const allowedTypes = fieldName === 'passportScan' ? ['jpg', 'jpeg', 'png', 'pdf'] : ['jpg', 'jpeg', 'png']
+      const errorMsg = validateFile(file, allowedTypes, 5)
+
+      if (errorMsg) {
+        setErrors(prev => ({ ...prev, [fieldName]: errorMsg }))
+        setFormData(prev => ({ ...prev, [fieldName]: null }))
+      } else {
+        setFormData(prev => ({ ...prev, [fieldName]: file }))
+        if (errors[fieldName]) {
+          setErrors(prev => {
+            const copy = { ...prev }
+            delete copy[fieldName]
+            return copy
+          })
+        }
       }
     }
   }
@@ -240,16 +364,44 @@ export function RegisterPage() {
     e.preventDefault()
   }
 
-  const handleDrop = (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan') => {
+  const handleDrop = (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan' | 'nocDoc' | 'actionShot') => {
     e.preventDefault()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFormData(prev => ({ ...prev, [fieldName]: e.dataTransfer.files[0] }))
-      if (errors[fieldName]) {
-        setErrors(prev => {
-          const copy = { ...prev }
-          delete copy[fieldName]
-          return copy
-        })
+      const file = e.dataTransfer.files[0]
+      const allowedTypes = fieldName === 'passportScan' ? ['jpg', 'jpeg', 'png', 'pdf'] : ['jpg', 'jpeg', 'png']
+      const errorMsg = validateFile(file, allowedTypes, 5)
+
+      if (errorMsg) {
+        setErrors(prev => ({ ...prev, [fieldName]: errorMsg }))
+        setFormData(prev => ({ ...prev, [fieldName]: null }))
+      } else {
+        setFormData(prev => ({ ...prev, [fieldName]: file }))
+        if (errors[fieldName]) {
+          setErrors(prev => {
+            const copy = { ...prev }
+            delete copy[fieldName]
+            return copy
+          })
+        }
+      }
+    }
+  }
+
+  const scrollToFormTop = () => {
+    const el = document.querySelector('.register-content-section')
+    if (el) {
+      if ((window as any).lenis) {
+        ;(window as any).lenis.scrollTo(el, { immediate: true, offset: -90 })
+      } else {
+        const yOffset = -90 // clearance for sticky navbar
+        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset
+        window.scrollTo({ top: y, behavior: 'auto' })
+      }
+    } else {
+      if ((window as any).lenis) {
+        ;(window as any).lenis.scrollTo(0, { immediate: true })
+      } else {
+        window.scrollTo(0, 0)
       }
     }
   }
@@ -257,26 +409,32 @@ export function RegisterPage() {
   const handleNext = () => {
     if (validateStep(currentStep)) {
       if (currentStep < 5) {
+        scrollToFormTop()
         setCurrentStep(prev => prev + 1)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
       } else {
         // Final Submit
         localStorage.removeItem('apl_player_registration_draft')
+        localStorage.removeItem('apl_player_registration_step')
+        setRefCode(`APL-2026-${Math.floor(Math.random() * 90000) + 10000}`)
         setIsSubmitted(true)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        if ((window as any).lenis) {
+          ;(window as any).lenis.scrollTo(0, { immediate: true })
+        } else {
+          window.scrollTo(0, 0)
+        }
       }
     }
   }
 
   const handlePrev = () => {
     if (currentStep > 1) {
+      scrollToFormTop()
       setCurrentStep(prev => prev - 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   const handleSaveDraft = () => {
-    const { passportPhoto: _passportPhoto, passportScan: _passportScan, nocDoc: _nocDoc, ...serializableData } = formData
+    const { passportPhoto: _passportPhoto, passportScan: _passportScan, nocDoc: _nocDoc, actionShot: _actionShot, ...serializableData } = formData
     localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializableData))
     setDraftSaved(true)
     setTimeout(() => setDraftSaved(false), 3000)
@@ -284,6 +442,7 @@ export function RegisterPage() {
 
   const handleReset = () => {
     localStorage.removeItem('apl_player_registration_draft')
+    localStorage.removeItem('apl_player_registration_step')
     setFormData(initialFormData)
     setConsent1(false)
     setConsent2(false)
@@ -318,9 +477,9 @@ export function RegisterPage() {
             <div className="success-details-premium">
               <div className="success-detail-row">
                 <span className="detail-label">Application Reference</span>
-                <span className="detail-value reference-code">APL-2026-{(Math.floor(Math.random() * 90000) + 10000)}</span>
+                <span className="detail-value reference-code">{refCode}</span>
               </div>
-              
+
               <div className="success-detail-row">
                 <span className="detail-label">Draft Status</span>
                 <span className="detail-value status-badge">Under Review by ACB Cricket Operations</span>
@@ -359,7 +518,7 @@ export function RegisterPage() {
       {/* Main Form Container */}
       <section className="register-content-section">
         <div className="register-form-card">
-          
+
           {/* Progress Steps Header */}
           <div className="register-steps-header">
             <div className="steps-container">
@@ -369,10 +528,13 @@ export function RegisterPage() {
                 return (
                   <div key={step.id} className={`step-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
                     <div className="step-circle-wrapper">
-                      <button 
+                      <button
                         className="step-circle"
                         onClick={() => {
-                          if (step.id < currentStep) setCurrentStep(step.id)
+                          if (step.id < currentStep) {
+                            scrollToFormTop()
+                            setCurrentStep(step.id)
+                          }
                         }}
                         disabled={step.id > currentStep}
                       >
@@ -401,15 +563,15 @@ export function RegisterPage() {
                 <div className="form-section">
                   <h3 className="section-title">Registration Type</h3>
                   <p className="section-subtitle">Who is submitting this registration?</p>
-                  
+
                   <div className="reg-type-cards">
-                    <div 
+                    <div
                       className={`type-card ${formData.regType === 'player' ? 'selected' : ''}`}
                       onClick={() => handleSelectOption('regType', 'player')}
                     >
                       <span className="type-card-title">I am the Player</span>
                     </div>
-                    <div 
+                    <div
                       className={`type-card ${formData.regType === 'agent' ? 'selected' : ''}`}
                       onClick={() => handleSelectOption('regType', 'agent')}
                     >
@@ -426,24 +588,24 @@ export function RegisterPage() {
                     <div className="form-grid-2col">
                       <div className="form-group">
                         <label>Agent Full Name <span className="required">*</span></label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="agentName"
-                          value={formData.agentName} 
+                          value={formData.agentName}
                           onChange={handleInputChange}
                           placeholder="e.g. John Doe"
                           className={errors.agentName ? 'input-error' : ''}
-                          required 
+                          required
                         />
                         {errors.agentName && <span className="error-message">{errors.agentName}</span>}
                       </div>
 
                       <div className="form-group">
                         <label>Agency / Company Name</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           name="agentAgency"
-                          value={formData.agentAgency} 
+                          value={formData.agentAgency}
                           onChange={handleInputChange}
                           placeholder="e.g. Apex Sports Management"
                         />
@@ -451,28 +613,28 @@ export function RegisterPage() {
 
                       <div className="form-group">
                         <label>Agent Phone Number <span className="required">*</span></label>
-                        <input 
-                          type="tel" 
+                        <input
+                          type="tel"
                           name="agentPhone"
-                          value={formData.agentPhone} 
+                          value={formData.agentPhone}
                           onChange={handleInputChange}
                           placeholder="e.g. +93 70 987 6543"
                           className={errors.agentPhone ? 'input-error' : ''}
-                          required 
+                          required
                         />
                         {errors.agentPhone && <span className="error-message">{errors.agentPhone}</span>}
                       </div>
 
                       <div className="form-group">
                         <label>Agent Email Address <span className="required">*</span></label>
-                        <input 
-                          type="email" 
+                        <input
+                          type="email"
                           name="agentEmail"
-                          value={formData.agentEmail} 
+                          value={formData.agentEmail}
                           onChange={handleInputChange}
                           placeholder="e.g. agent@agency.com"
                           className={errors.agentEmail ? 'input-error' : ''}
-                          required 
+                          required
                         />
                         {errors.agentEmail && <span className="error-message">{errors.agentEmail}</span>}
                       </div>
@@ -492,14 +654,14 @@ export function RegisterPage() {
                   <div className="form-grid-2col">
                     <div className="form-group">
                       <label>Full Legal Name <span className="required">*</span></label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="fullName"
-                        value={formData.fullName} 
+                        value={formData.fullName}
                         onChange={handleInputChange}
                         placeholder="e.g. Rashid Khan"
                         className={errors.fullName ? 'input-error' : ''}
-                        required 
+                        required
                       />
                       {errors.fullName && <span className="error-message">{errors.fullName}</span>}
                     </div>
@@ -507,13 +669,13 @@ export function RegisterPage() {
                     <div className="form-group">
                       <label>Date of Birth <span className="required">*</span></label>
                       <div className="date-input-wrapper">
-                        <input 
-                          type="date" 
+                        <input
+                          type="date"
                           name="dob"
-                          value={formData.dob} 
+                          value={formData.dob}
                           onChange={handleInputChange}
                           className={errors.dob ? 'input-error' : ''}
-                          required 
+                          required
                         />
                         <Calendar size={18} className="calendar-icon" />
                       </div>
@@ -522,84 +684,84 @@ export function RegisterPage() {
 
                     <div className="form-group">
                       <label>Nationality <span className="required">*</span></label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="nationality"
-                        value={formData.nationality} 
+                        value={formData.nationality}
                         onChange={handleInputChange}
                         placeholder="e.g. Afghanistan"
                         className={errors.nationality ? 'input-error' : ''}
-                        required 
+                        required
                       />
                       {errors.nationality && <span className="error-message">{errors.nationality}</span>}
                     </div>
 
                     <div className="form-group">
-                      <label>Passport / National ID Number <span className="required">*</span></label>
-                      <input 
-                        type="text" 
+                      <label>Passport Number <span className="required">*</span></label>
+                      <input
+                        type="text"
                         name="passportNumber"
-                        value={formData.passportNumber} 
+                        value={formData.passportNumber}
                         onChange={handleInputChange}
                         placeholder="e.g. O1838204A"
                         className={errors.passportNumber ? 'input-error' : ''}
-                        required 
+                        required
                       />
                       {errors.passportNumber && <span className="error-message">{errors.passportNumber}</span>}
                     </div>
 
                     <div className="form-group">
                       <label>Country of Residence <span className="required">*</span></label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="countryResidence"
-                        value={formData.countryResidence} 
+                        value={formData.countryResidence}
                         onChange={handleInputChange}
                         placeholder="e.g. Afghanistan"
                         className={errors.countryResidence ? 'input-error' : ''}
-                        required 
+                        required
                       />
                       {errors.countryResidence && <span className="error-message">{errors.countryResidence}</span>}
                     </div>
 
                     <div className="form-group">
                       <label>City <span className="required">*</span></label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="city"
-                        value={formData.city} 
+                        value={formData.city}
                         onChange={handleInputChange}
                         placeholder="e.g. Kabul"
                         className={errors.city ? 'input-error' : ''}
-                        required 
+                        required
                       />
                       {errors.city && <span className="error-message">{errors.city}</span>}
                     </div>
 
                     <div className="form-group">
                       <label>Phone / WhatsApp Number <span className="required">*</span></label>
-                      <input 
-                        type="tel" 
+                      <input
+                        type="tel"
                         name="phone"
-                        value={formData.phone} 
+                        value={formData.phone}
                         onChange={handleInputChange}
                         placeholder="e.g. +93 70 123 4567"
                         className={errors.phone ? 'input-error' : ''}
-                        required 
+                        required
                       />
                       {errors.phone && <span className="error-message">{errors.phone}</span>}
                     </div>
 
                     <div className="form-group">
                       <label>Email Address <span className="required">*</span></label>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         name="email"
-                        value={formData.email} 
+                        value={formData.email}
                         onChange={handleInputChange}
                         placeholder="e.g. player@domain.com"
                         className={errors.email ? 'input-error' : ''}
-                        required 
+                        required
                       />
                       {errors.email && <span className="error-message">{errors.email}</span>}
                     </div>
@@ -609,39 +771,40 @@ export function RegisterPage() {
                 {/* Player Availability */}
                 <div className="form-section">
                   <h3 className="section-title">Player Availability <span className="required">*</span></h3>
-                  
-                  <div className="availability-grid">
-                    <div 
-                      className={`avail-card ${formData.availability === 'full' ? 'selected' : ''}`}
-                      onClick={() => handleSelectOption('availability', 'full')}
+
+                  <div className={`availability-grid ${errors.availability ? 'dropzone-error' : ''}`}>
+                    <div
+                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('full') : formData.availability === 'full') ? 'selected' : ''}`}
+                      onClick={() => handleToggleAvailability('full')}
                     >
                       <span className="avail-card-title">Available for full season</span>
                     </div>
-                    <div 
-                      className={`avail-card ${formData.availability === 'selected' ? 'selected' : ''}`}
-                      onClick={() => handleSelectOption('availability', 'selected')}
+                    <div
+                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('selected') : formData.availability === 'selected') ? 'selected' : ''}`}
+                      onClick={() => handleToggleAvailability('selected')}
                     >
                       <span className="avail-card-title">Available for selected dates</span>
                     </div>
-                    <div 
-                      className={`avail-card ${formData.availability === 'national' ? 'selected' : ''}`}
-                      onClick={() => handleSelectOption('availability', 'national')}
+                    <div
+                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('national') : formData.availability === 'national') ? 'selected' : ''}`}
+                      onClick={() => handleToggleAvailability('national')}
                     >
                       <span className="avail-card-title">Subject to national-team commitments</span>
                     </div>
-                    <div 
-                      className={`avail-card ${formData.availability === 'release' ? 'selected' : ''}`}
-                      onClick={() => handleSelectOption('availability', 'release')}
+                    <div
+                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('release') : formData.availability === 'release') ? 'selected' : ''}`}
+                      onClick={() => handleToggleAvailability('release')}
                     >
                       <span className="avail-card-title">Subject to club or franchise release</span>
                     </div>
                   </div>
+                  {errors.availability && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.availability}</span>}
 
                   <div className="form-group" style={{ marginTop: '1.5rem' }}>
                     <label>Availability Details</label>
-                    <textarea 
+                    <textarea
                       name="availabilityDetails"
-                      value={formData.availabilityDetails} 
+                      value={formData.availabilityDetails}
                       onChange={handleInputChange}
                       placeholder="Mention unavailable dates or existing commitments."
                       rows={4}
@@ -654,16 +817,16 @@ export function RegisterPage() {
             {/* STEP 2: CRICKET INFORMATION */}
             {currentStep === 2 && (
               <div className="form-step-content animate-fade-in">
-                
+
                 {/* Playing Role */}
                 <div className="form-section">
                   <h3 className="section-title">Cricket Profile</h3>
                   <p className="section-subtitle">Details about the player's playing style and history.</p>
-                  
+
                   <label className="field-group-label">Playing Role <span className="required">*</span></label>
                   <div className="playing-role-grid">
                     {['Batter', 'Wicketkeeper-Batter', 'All-Rounder', 'Fast Bowler', 'Spin Bowler'].map((role) => (
-                      <div 
+                      <div
                         key={role}
                         className={`type-card ${formData.playingRole === role ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('playingRole', role)}
@@ -679,7 +842,7 @@ export function RegisterPage() {
                   <label className="field-group-label">Batting Hand <span className="required">*</span></label>
                   <div className="reg-type-cards">
                     {['Right-Handed', 'Left-Handed'].map((hand) => (
-                      <div 
+                      <div
                         key={hand}
                         className={`type-card ${formData.battingHand === hand ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('battingHand', hand)}
@@ -695,10 +858,10 @@ export function RegisterPage() {
                   <div className="form-grid-2col">
                     <div className="form-group">
                       <label>Bowling Style</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="bowlingStyle"
-                        value={formData.bowlingStyle} 
+                        value={formData.bowlingStyle}
                         onChange={handleInputChange}
                         placeholder="e.g. Right-arm leg spin"
                       />
@@ -706,10 +869,10 @@ export function RegisterPage() {
 
                     <div className="form-group">
                       <label>Current Club / Team <span className="required">*</span></label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         name="currentClub"
-                        value={formData.currentClub} 
+                        value={formData.currentClub}
                         onChange={handleInputChange}
                         placeholder="e.g. Kabul Knights"
                         className={errors.currentClub ? 'input-error' : ''}
@@ -724,10 +887,10 @@ export function RegisterPage() {
                 <div className="form-section">
                   <div className="form-group">
                     <label>Previous Major Teams</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       name="prevTeams"
-                      value={formData.prevTeams} 
+                      value={formData.prevTeams}
                       onChange={handleInputChange}
                       placeholder="e.g. Afghanistan National Team, Sunrisers Leeds"
                     />
@@ -743,9 +906,9 @@ export function RegisterPage() {
                       'Afghanistan Domestic',
                       'Overseas International',
                       'Overseas Domestic',
-                      'Emerging Player'
+                      'Domestic Emerging Player'
                     ].map((status) => (
-                      <div 
+                      <div
                         key={status}
                         className={`type-card ${formData.playerStatus === status ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('playerStatus', status)}
@@ -761,10 +924,10 @@ export function RegisterPage() {
                   <div className="form-grid-2col">
                     <div className="form-group">
                       <label>Total T20 Matches</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         name="totalMatches"
-                        value={formData.totalMatches} 
+                        value={formData.totalMatches}
                         onChange={handleInputChange}
                         placeholder="e.g. 120"
                         className={errors.totalMatches ? 'input-error' : ''}
@@ -774,10 +937,10 @@ export function RegisterPage() {
 
                     <div className="form-group">
                       <label>ESPNcricinfo or Cricbuzz Profile Link <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
-                      <input 
-                        type="url" 
+                      <input
+                        type="url"
                         name="profileLink"
-                        value={formData.profileLink} 
+                        value={formData.profileLink}
                         onChange={handleInputChange}
                         placeholder="https://..."
                         className={errors.profileLink ? 'input-error' : ''}
@@ -799,7 +962,7 @@ export function RegisterPage() {
 
                   <div className="categories-grid-cards">
                     {categoriesList.map((cat) => (
-                      <div 
+                      <div
                         key={cat.id}
                         className={`category-large-card ${formData.category === cat.id ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('category', cat.id, { basePrice: cat.price })}
@@ -815,19 +978,69 @@ export function RegisterPage() {
 
                 {/* Relegation Consent */}
                 <div className="form-section">
-                  <h3 className="section-title">Category Relegation</h3>
-                  <div 
-                    className={`relegation-toggle-card ${formData.acceptRelegation ? 'accepted' : ''}`}
-                    onClick={() => setFormData(prev => ({ ...prev, acceptRelegation: !prev.acceptRelegation }))}
-                  >
-                    <div className="relegation-checkbox-circle">
-                      {formData.acceptRelegation && <CheckCircle2 size={18} className="checkbox-tick" />}
+                  <h3 className="section-title">Accept Relegation <span className="required">*</span></h3>
+                  <p className="section-subtitle">If you are not selected in your preferred category, do you accept being considered for lower categories?</p>
+                  
+                  <div className="relegation-cards-grid">
+                    <div 
+                      className={`type-card ${formData.acceptRelegation === 'yes' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
+                      onClick={() => {
+                        handleSelectOption('acceptRelegation', 'yes')
+                        handleSelectOption('relegationLimit', '') // reset limit
+                      }}
+                    >
+                      <span className="type-card-title">Yes</span>
                     </div>
-                    <span className="relegation-text">
-                      Accept Relegation — if not selected in the preferred category, consider the player for the next lower category.
-                    </span>
+                    <div 
+                      className={`type-card ${formData.acceptRelegation === 'no' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
+                      onClick={() => {
+                        handleSelectOption('acceptRelegation', 'no')
+                        handleSelectOption('relegationLimit', '') // reset limit
+                      }}
+                    >
+                      <span className="type-card-title">No</span>
+                    </div>
+                    <div 
+                      className={`type-card ${formData.acceptRelegation === 'emerging' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
+                      onClick={() => {
+                        handleSelectOption('acceptRelegation', 'emerging')
+                        handleSelectOption('relegationLimit', '') // reset limit
+                      }}
+                    >
+                      <span className="type-card-title">Emerging (Does not Apply)</span>
+                    </div>
                   </div>
+                  {errors.acceptRelegation && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.acceptRelegation}</span>}
                 </div>
+
+                {formData.acceptRelegation === 'yes' && (
+                  <div className="form-section animate-fade-in">
+                    <h3 className="section-title">Relegation accepted till: <span className="required">*</span></h3>
+                    <p className="section-subtitle">Select the lowest category you accept being relegated to.</p>
+                    
+                    <div className="relegation-cards-grid">
+                      <div 
+                        className={`type-card ${formData.relegationLimit === 'Diamond' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
+                        onClick={() => handleSelectOption('relegationLimit', 'Diamond')}
+                      >
+                        <span className="type-card-title">Diamond</span>
+                      </div>
+                      <div 
+                        className={`type-card ${formData.relegationLimit === 'Gold' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
+                        onClick={() => handleSelectOption('relegationLimit', 'Gold')}
+                      >
+                        <span className="type-card-title">Gold</span>
+                      </div>
+                      <div 
+                        className={`type-card ${formData.relegationLimit === 'Silver' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
+                        onClick={() => handleSelectOption('relegationLimit', 'Silver')}
+                      >
+                        <span className="type-card-title">Silver</span>
+                      </div>
+                    </div>
+                    {errors.relegationLimit && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.relegationLimit}</span>}
+                  </div>
+                )}
 
               </div>
             )}
@@ -846,14 +1059,14 @@ export function RegisterPage() {
                       Upload a recent, clear, front-facing portrait photograph.
                     </p>
 
-                    <div 
+                    <div
                       className={`upload-dropzone ${formData.passportPhoto ? 'has-file' : ''} ${errors.passportPhoto ? 'dropzone-error' : ''}`}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, 'passportPhoto')}
                       onClick={() => document.getElementById('passportPhotoInput')?.click()}
                     >
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         id="passportPhotoInput"
                         accept=".jpg,.jpeg,.png"
                         onChange={(e) => handleFileChange(e, 'passportPhoto')}
@@ -871,18 +1084,18 @@ export function RegisterPage() {
                     {errors.passportPhoto && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportPhoto}</span>}
                   </div>
 
-                  {/* Passport / National ID Copy */}
-                  <div className="form-group">
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Passport / National ID Copy <span className="required">*</span></label>
-                    
-                    <div 
+                  {/* Passport Copy */}
+                  <div className="form-group" style={{ marginBottom: '2rem' }}>
+                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Passport Copy <span className="required">*</span></label>
+
+                    <div
                       className={`upload-dropzone ${formData.passportScan ? 'has-file' : ''} ${errors.passportScan ? 'dropzone-error' : ''}`}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, 'passportScan')}
                       onClick={() => document.getElementById('passportScanInput')?.click()}
                     >
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         id="passportScanInput"
                         accept=".pdf,.jpg,.jpeg,.png"
                         onChange={(e) => handleFileChange(e, 'passportScan')}
@@ -900,6 +1113,37 @@ export function RegisterPage() {
                     {errors.passportScan && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportScan}</span>}
                   </div>
 
+                  {/* Action Shot (Optional) */}
+                  <div className="form-group">
+                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Action Shot <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
+                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Upload a high-quality action photograph of you playing cricket.
+                    </p>
+
+                    <div
+                      className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''}`}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, 'actionShot')}
+                      onClick={() => document.getElementById('actionShotInput')?.click()}
+                    >
+                      <input
+                        type="file"
+                        id="actionShotInput"
+                        accept=".jpg,.jpeg,.png"
+                        onChange={(e) => handleFileChange(e, 'actionShot')}
+                        style={{ display: 'none' }}
+                      />
+                      <div className="dropzone-inner">
+                        <span className="dropzone-title">
+                          {formData.actionShot ? `Selected: ${formData.actionShot.name}` : 'Click or drag a photo here'}
+                        </span>
+                        <span className="dropzone-subtitle">
+                          {formData.actionShot ? 'Click to change photo' : 'JPG or PNG, up to 5 MB'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             )}
@@ -912,7 +1156,7 @@ export function RegisterPage() {
                   <p className="section-subtitle">Please review your registration before submitting.</p>
 
                   <div className="review-mockup-wrap">
-                    
+
                     {/* AGENT DETAILS */}
                     {formData.regType === 'agent' && (
                       <div className="review-section-block">
@@ -955,7 +1199,7 @@ export function RegisterPage() {
                           <span className="review-line-val">{formData.nationality || '—'}</span>
                         </div>
                         <div className="review-line-item">
-                          <span className="review-line-label">Passport / ID Number</span>
+                          <span className="review-line-label">Passport Number</span>
                           <span className="review-line-val">{formData.passportNumber || '—'}</span>
                         </div>
                         <div className="review-line-item">
@@ -977,10 +1221,20 @@ export function RegisterPage() {
                         <div className="review-line-item">
                           <span className="review-line-label">Availability</span>
                           <span className="review-line-val">
-                            {formData.availability === 'full' ? 'Available for full season' : 
-                             formData.availability === 'selected' ? 'Available for selected dates' :
-                             formData.availability === 'national' ? 'Subject to national-team commitments' :
-                             'Subject to club or franchise release'}
+                            {Array.isArray(formData.availability) ? (
+                              formData.availability.map(key => {
+                                if (key === 'full') return 'Available for full season'
+                                if (key === 'selected') return 'Available for selected dates'
+                                if (key === 'national') return 'Subject to national-team commitments'
+                                if (key === 'release') return 'Subject to club or franchise release'
+                                return key
+                              }).join(', ') || 'None selected'
+                            ) : (
+                              formData.availability === 'full' ? 'Available for full season' :
+                                formData.availability === 'selected' ? 'Available for selected dates' :
+                                  formData.availability === 'national' ? 'Subject to national-team commitments' :
+                                    'Subject to club or franchise release'
+                            )}
                           </span>
                         </div>
                       </div>
@@ -1027,11 +1281,18 @@ export function RegisterPage() {
                         </div>
                         <div className="review-line-item">
                           <span className="review-line-label">Accepts Relegation</span>
-                          <span className="review-line-val">{formData.acceptRelegation ? 'Yes' : 'No'}</span>
+                          <span className="review-line-val">
+                            {formData.acceptRelegation === 'yes' ? 'Yes' :
+                             formData.acceptRelegation === 'no' ? 'No' :
+                             formData.acceptRelegation === 'emerging' ? 'Emerging (Does not Apply)' :
+                             '—'}
+                          </span>
                         </div>
                         <div className="review-line-item">
                           <span className="review-line-label">Lowest Acceptable Category</span>
-                          <span className="review-line-val">{formData.acceptRelegation ? 'Emerging Under-23' : 'N/A'}</span>
+                          <span className="review-line-val">
+                            {formData.acceptRelegation === 'yes' ? (formData.relegationLimit || '—') : 'N/A'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1045,8 +1306,12 @@ export function RegisterPage() {
                           <span className="review-line-val">{formData.passportPhoto ? formData.passportPhoto.name : '—'}</span>
                         </div>
                         <div className="review-line-item">
-                          <span className="review-line-label">Passport / ID Copy</span>
+                          <span className="review-line-label">Passport Copy</span>
                           <span className="review-line-val">{formData.passportScan ? formData.passportScan.name : '—'}</span>
+                        </div>
+                        <div className="review-line-item">
+                          <span className="review-line-label">Action Shot</span>
+                          <span className="review-line-val">{formData.actionShot ? formData.actionShot.name : '—'}</span>
                         </div>
                       </div>
                     </div>
@@ -1056,9 +1321,9 @@ export function RegisterPage() {
                   {/* Consents */}
                   <div className="review-consents-wrap">
                     <div className="consent-checkbox-line">
-                      <input 
-                        type="checkbox" 
-                        id="consent-1" 
+                      <input
+                        type="checkbox"
+                        id="consent-1"
                         checked={consent1}
                         onChange={(e) => setConsent1(e.target.checked)}
                       />
@@ -1066,9 +1331,9 @@ export function RegisterPage() {
                     </div>
 
                     <div className="consent-checkbox-line">
-                      <input 
-                        type="checkbox" 
-                        id="consent-2" 
+                      <input
+                        type="checkbox"
+                        id="consent-2"
                         checked={consent2}
                         onChange={(e) => setConsent2(e.target.checked)}
                       />
@@ -1076,9 +1341,9 @@ export function RegisterPage() {
                     </div>
 
                     <div className="consent-checkbox-line">
-                      <input 
-                        type="checkbox" 
-                        id="consent-3" 
+                      <input
+                        type="checkbox"
+                        id="consent-3"
                         checked={consent3}
                         onChange={(e) => setConsent3(e.target.checked)}
                       />
@@ -1104,9 +1369,9 @@ export function RegisterPage() {
                   </button>
                 </div>
                 <div className="review-bottom-submit-row">
-                  <button 
-                    type="button" 
-                    className="btn-submit-registration" 
+                  <button
+                    type="button"
+                    className="btn-submit-registration"
                     onClick={handleNext}
                     disabled={!consent1 || !consent2 || !consent3}
                   >
@@ -1126,9 +1391,9 @@ export function RegisterPage() {
                   </button>
                 )}
 
-                <button 
-                  type="button" 
-                  className="btn-primary" 
+                <button
+                  type="button"
+                  className="btn-primary"
                   onClick={handleNext}
                 >
                   Next Step

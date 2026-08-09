@@ -1,8 +1,32 @@
+import { useState } from 'react'
 import aboutHeroImg from '../assets/about-hero-bg.jpeg'
 import './ContactPage.css'
 import './About.css'
 
 export function ContactPage() {
+  const [submitted, setSubmitted] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+      return
+    }
+    // Simulate API call
+    setSubmitted(true)
+  }
+
   return (
     <div className="contact-page-container about-page">
       {/* Hero Section */}
@@ -77,33 +101,117 @@ export function ContactPage() {
 
           {/* Right Column: Interactive Form */}
           <div className="contact-form-panel">
-            <h2 className="contact-form-title">Get in Touch</h2>
-            <p className="contact-form-subtitle">
-              Send us a message and our administration team will assist you shortly.
-            </p>
+            {submitted ? (
+              <div className="contact-success-card animate-fade-in" style={{
+                textAlign: 'center',
+                padding: '2.5rem 1.5rem',
+                border: '1px solid rgba(250, 167, 24, 0.2)',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1rem'
+              }}>
+                <div style={{
+                  fontSize: '3rem',
+                  color: 'var(--brand-gold, #faa718)',
+                  animation: 'spin 1s ease-out',
+                  lineHeight: '1'
+                }}>✓</div>
+                <h3 style={{
+                  fontSize: '1.5rem',
+                  color: '#ffffff',
+                  margin: 0,
+                  fontFamily: 'var(--font-display)',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase'
+                }}>Message Sent</h3>
+                <p style={{
+                  color: 'rgba(229, 233, 240, 0.7)',
+                  fontSize: '0.95rem',
+                  lineHeight: '1.6',
+                  margin: '0 0 1rem 0',
+                  maxWidth: '400px'
+                }}>
+                  Thank you, <strong>{formData.name}</strong>. Your message regarding "<strong>{formData.subject}</strong>" has been received. Our team will get back to you shortly.
+                </p>
+                <button 
+                  onClick={() => {
+                    setSubmitted(false)
+                    setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
+                  }}
+                  className="contact-submit-btn"
+                  style={{ width: 'auto', padding: '0.8rem 2rem' }}
+                >
+                  Send Another Message
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 className="contact-form-title">Get in Touch</h2>
+                <p className="contact-form-subtitle">
+                  Send us a message and our administration team will assist you shortly.
+                </p>
 
-            <form className="contact-form-element" onSubmit={(e) => e.preventDefault()}>
-              <div className="form-input-wrapper">
-                <input type="text" id="contact-name" placeholder="Full name" required />
-              </div>
-              <div className="form-input-wrapper">
-                <input type="email" id="contact-email" placeholder="Email" required />
-              </div>
-              <div className="form-input-wrapper">
-                <input type="tel" id="contact-phone" placeholder="Phone number" />
-              </div>
+                <form className="contact-form-element" onSubmit={handleSubmit}>
+                  <div className="form-input-wrapper">
+                    <input 
+                      type="text" 
+                      name="name"
+                      placeholder="Full name" 
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required 
+                    />
+                  </div>
+                  <div className="form-input-wrapper">
+                    <input 
+                      type="email" 
+                      name="email"
+                      placeholder="Email" 
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required 
+                    />
+                  </div>
+                  <div className="form-input-wrapper">
+                    <input 
+                      type="tel" 
+                      name="phone"
+                      placeholder="Phone number" 
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
+                  </div>
 
-              <div className="form-input-wrapper">
-                <input type="text" id="contact-subject" placeholder="Subject" required />
-              </div>
-              <div className="form-input-wrapper">
-                <textarea id="contact-message" rows={4} placeholder="Message" required></textarea>
-              </div>
+                  <div className="form-input-wrapper">
+                    <input 
+                      type="text" 
+                      name="subject"
+                      placeholder="Subject" 
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      required 
+                    />
+                  </div>
+                  <div className="form-input-wrapper">
+                    <textarea 
+                      name="message"
+                      rows={4} 
+                      placeholder="Message" 
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      required
+                    ></textarea>
+                  </div>
 
-              <button type="submit" className="contact-submit-btn">
-                Send Message
-              </button>
-            </form>
+                  <button type="submit" className="contact-submit-btn">
+                    Send Message
+                  </button>
+                </form>
+              </>
+            )}
           </div>
         </div>
       </section>

@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Masonry from './Masonry'
+import { AnimatedCounter } from './AnimatedCounter'
+import { X } from 'lucide-react'
 import gallery1 from '../assets/gallery-1.webp'
 import gallery2 from '../assets/gallery-2.webp'
 import gallery3 from '../assets/gallery-3.webp'
@@ -59,47 +61,9 @@ const allGalleryItems: GalleryItem[] = [
 
 const categories = ['ALL IMAGES', 'MATCH ACTION', 'FANS & STADIUM', 'BEHIND THE SCENES', 'PRESS & LAUNCH']
 
-interface AnimatedCounterProps {
-  target: number
-  suffix?: string
-  duration?: number
-}
-
-function AnimatedCounter({ target, suffix = '', duration = 1200 }: AnimatedCounterProps) {
-  const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    let startTime: number | null = null
-    let animationFrameId: number
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp
-      const progress = timestamp - startTime
-      const percentage = Math.min(progress / duration, 1)
-      const easeVal = percentage * (2 - percentage)
-      setCount(Math.floor(easeVal * target))
-
-      if (progress < duration) {
-        animationFrameId = requestAnimationFrame(animate)
-      } else {
-        setCount(target)
-      }
-    }
-
-    animationFrameId = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(animationFrameId)
-  }, [target, duration])
-
-  return (
-    <>
-      {count.toLocaleString()}
-      {suffix}
-    </>
-  )
-}
-
 export function GalleryPage() {
   const [selectedCategory, setSelectedCategory] = useState('ALL IMAGES')
+  const [activeLightboxImg, setActiveLightboxImg] = useState<string | null>(null)
 
   const filteredItems = allGalleryItems.filter(item => {
     if (selectedCategory === 'ALL IMAGES') return true
@@ -188,9 +152,28 @@ export function GalleryPage() {
             hoverScale={0.96}
             blurToFocus={true}
             colorShiftOnHover={false}
+            onItemClick={(item) => setActiveLightboxImg(item.img)}
           />
         </div>
       </section>
+
+      {activeLightboxImg && (
+        <div 
+          className="gallery-lightbox-overlay animate-fade-in" 
+          onClick={() => setActiveLightboxImg(null)}
+        >
+          <button 
+            className="gallery-lightbox-close" 
+            onClick={() => setActiveLightboxImg(null)}
+            aria-label="Close Lightbox"
+          >
+            <X size={28} />
+          </button>
+          <div className="gallery-lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <img src={activeLightboxImg} alt="APL Gallery Large" className="gallery-lightbox-img" />
+          </div>
+        </div>
+      )}
 
     </div>
   )

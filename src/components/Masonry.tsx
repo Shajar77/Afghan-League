@@ -19,6 +19,7 @@ interface MasonryProps {
   hoverScale?: number;
   blurToFocus?: boolean;
   colorShiftOnHover?: boolean;
+  onItemClick?: (item: MasonryItem) => void;
 }
 
 const useMedia = (queries: string[], values: number[], defaultValue: number) => {
@@ -81,7 +82,8 @@ export default function Masonry({
   scaleOnHover = true,
   hoverScale = 0.95,
   blurToFocus = true,
-  colorShiftOnHover = false
+  colorShiftOnHover = false,
+  onItemClick
 }: MasonryProps) {
   const columns = useMedia(
     MASONRY_QUERIES,
@@ -251,7 +253,14 @@ export default function Masonry({
             key={item.id}
             data-key={item.id}
             className="item-wrapper"
-            onClick={() => window.open(item.url, '_blank', 'noopener,noreferrer')}
+            onClick={(e) => {
+              if (onItemClick) {
+                e.preventDefault();
+                onItemClick(item);
+              } else {
+                window.open(item.url, '_blank', 'noopener,noreferrer');
+              }
+            }}
             onMouseEnter={e => handleMouseEnter(e, item)}
             onMouseLeave={e => handleMouseLeave(e, item)}
           >

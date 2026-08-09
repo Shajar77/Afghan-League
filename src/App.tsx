@@ -13,7 +13,8 @@ const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ d
 const TeamsPage = lazy(() => import('./components/TeamsPage').then(m => ({ default: m.TeamsPage })))
 const ComingSoonPage = lazy(() => import('./components/ComingSoonPage').then(m => ({ default: m.ComingSoonPage })))
 const RegisterPage = lazy(() => import('./components/RegisterPage').then(m => ({ default: m.RegisterPage })))
-const RegisterStatusPage = lazy(() => import('./components/RegisterStatusPage').then(m => ({ default: m.RegisterStatusPage })))
+import { RegisterStatusPage } from './components/RegisterStatusPage'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { VolumeX } from 'lucide-react'
 import { useAppStore } from './store/useAppStore'
 import Lenis from 'lenis'
@@ -631,61 +632,58 @@ function App() {
           </main>
         </>
       ) : (
-        <Suspense fallback={
-          <div style={{
-            minHeight: '60vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            gap: '1rem',
-            fontFamily: 'var(--font-display)',
-            color: 'var(--brand-gold)'
-          }}>
-            <div className="page-loading-spinner" style={{
-              width: '40px',
-              height: '40px',
-              border: '3px solid rgba(255, 255, 255, 0.1)',
-              borderTopColor: 'var(--brand-gold)',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <style>{`
-              @keyframes spin {
-                to { transform: rotate(360deg); }
-              }
-            `}</style>
-            <span style={{ fontSize: '1.5rem', letterSpacing: '0.1em' }}>LOADING...</span>
-          </div>
-        }>
-          {currentPage === 'news' ? (
-            <News />
-          ) : currentPage === 'teams' ? (
-            <TeamsPage />
-          ) : currentPage === 'gallery' ? (
-            <GalleryPage />
-          ) : currentPage === 'fixtures' ? (
-            <FixturesPage />
-          ) : currentPage === 'points-table' ? (
-            <PointsTable />
-          ) : currentPage === 'partnerships' ? (
-            <PartnershipsPage />
-          ) : currentPage === 'contact' ? (
-            <ContactPage />
-          ) : currentPage === 'acb-governance' ? (
-            <ComingSoonPage title="ACB GOVERNANCE" />
-          ) : currentPage === 'player-register' ? (
-            <RegisterPage />
-          ) : currentPage === 'register-status' ? (
-            <RegisterStatusPage />
-          ) : currentPage === 'league-faq' ? (
-            <ComingSoonPage title="LEAGUE FAQ" />
-          ) : currentPage === 'media-kit' ? (
-            <ComingSoonPage title="MEDIA KIT" />
-          ) : (
-            <About />
-          )}
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={
+            <div style={{
+              minHeight: '60vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              gap: '1rem',
+              fontFamily: 'var(--font-display)',
+              color: 'var(--brand-gold)'
+            }}>
+              <div className="page-loading-spinner" style={{
+                width: '40px',
+                height: '40px',
+                border: '3px solid rgba(255, 255, 255, 0.1)',
+                borderTopColor: 'var(--brand-gold)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              <span style={{ fontSize: '1.5rem', letterSpacing: '0.1em' }}>LOADING...</span>
+            </div>
+          }>
+            {currentPage === 'news' ? (
+              <News />
+            ) : currentPage === 'teams' ? (
+              <TeamsPage />
+            ) : currentPage === 'gallery' ? (
+              <GalleryPage />
+            ) : currentPage === 'fixtures' ? (
+              <FixturesPage />
+            ) : currentPage === 'points-table' ? (
+              <PointsTable />
+            ) : currentPage === 'partnerships' ? (
+              <PartnershipsPage />
+            ) : currentPage === 'contact' ? (
+              <ContactPage />
+            ) : currentPage === 'acb-governance' ? (
+              <ComingSoonPage title="ACB GOVERNANCE" />
+            ) : currentPage === 'player-register' ? (
+              <RegisterPage />
+            ) : currentPage === 'register-status' ? (
+              <RegisterStatusPage />
+            ) : currentPage === 'league-faq' ? (
+              <ComingSoonPage title="LEAGUE FAQ" />
+            ) : currentPage === 'media-kit' ? (
+              <ComingSoonPage title="MEDIA KIT" />
+            ) : (
+              <About />
+            )}
+          </Suspense>
+        </ErrorBoundary>
       )}
 
       <footer className="app-footer">
@@ -706,11 +704,11 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Navigation</h4>
               <ul className="footer-links-list">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Home</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('fixtures'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Fixtures & Results</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('points-table'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Points Table</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('news'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Latest News</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('gallery'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Media Gallery</a></li>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#fixtures">Fixtures & Results</a></li>
+                <li><a href="#points-table">Points Table</a></li>
+                <li><a href="#news">Latest News</a></li>
+                <li><a href="#gallery">Media Gallery</a></li>
               </ul>
             </div>
 
@@ -718,9 +716,9 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Info & Support</h4>
               <ul className="footer-links-list">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('about'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>About APL</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('partnerships'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Partnerships</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Contact Us</a></li>
+                <li><a href="#about">About APL</a></li>
+                <li><a href="#partnerships">Partnerships</a></li>
+                <li><a href="#contact-us">Contact Us</a></li>
               </ul>
             </div>
 
@@ -728,12 +726,12 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Franchises</h4>
               <ul className="footer-links-list">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Kabul Knights</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Kandahar Kings</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Balkh Legends</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Paktia Panthers</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Amo Sharks</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('teams'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Band-e-Amir Dragons</a></li>
+                <li><a href="#teams">Kabul Knights</a></li>
+                <li><a href="#teams">Kandahar Kings</a></li>
+                <li><a href="#teams">Balkh Legends</a></li>
+                <li><a href="#teams">Paktia Panthers</a></li>
+                <li><a href="#teams">Amo Sharks</a></li>
+                <li><a href="#teams">Band-e-Amir Dragons</a></li>
               </ul>
             </div>
 
@@ -741,10 +739,10 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Resources</h4>
               <ul className="footer-links-list">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('acb-governance'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>ACB Governance</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('player-register'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Player Register</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('league-faq'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>League FAQ</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('media-kit'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Media Kit</a></li>
+                <li><a href="#acb-governance">ACB Governance</a></li>
+                <li><a href="#register-player">Player Register</a></li>
+                <li><a href="#league-faq">League FAQ</a></li>
+                <li><a href="#media-kit">Media Kit</a></li>
               </ul>
             </div>
 

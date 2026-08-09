@@ -690,6 +690,20 @@
   box-shadow: 0 4px 12px rgba(13, 30, 82, 0.04);
 }
 
+.upload-dropzone.has-file-warning {
+  border-style: dashed;
+  border-color: var(--brand-gold, #faa718);
+  background-color: rgba(250, 167, 24, 0.05);
+  box-shadow: 0 4px 12px rgba(250, 167, 24, 0.04);
+}
+
+.type-card:focus-visible,
+.avail-card:focus-visible,
+.category-large-card:focus-visible {
+  outline: 2px solid var(--brand-gold, #faa718);
+  outline-offset: 2px;
+}
+
 .dropzone-inner {
   display: flex;
   flex-direction: column;

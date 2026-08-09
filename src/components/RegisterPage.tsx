@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calendar, CheckCircle2, User, Award, Layers, Upload, Eye } from 'lucide-react'
+import { Calendar, CheckCircle2 } from 'lucide-react'
 import './RegisterPage.css'
 
 interface FormData {
@@ -39,7 +39,6 @@ interface FormData {
   // Step 4: Uploads
   passportPhoto: File | null
   passportScan: File | null
-  nocDoc: File | null
   actionShot: File | null
 }
 
@@ -73,7 +72,6 @@ const initialFormData: FormData = {
   relegationLimit: '',
   passportPhoto: null,
   passportScan: null,
-  nocDoc: null,
   actionShot: null,
 }
 
@@ -105,6 +103,7 @@ export function RegisterPage() {
   const [draftSaved, setDraftSaved] = useState<boolean>(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoaded, setIsLoaded] = useState<boolean>(false)
+  const [fileMeta, setFileMeta] = useState<Record<string, { name: string; size: number }>>({})
 
   // Step 5 Consents
   const [consent1, setConsent1] = useState<boolean>(false)
@@ -113,7 +112,9 @@ export function RegisterPage() {
 
   useEffect(() => {
     // Disable native browser scroll restoration to prevent snapping to footer on refresh
+    let previousScrollRestoration: ScrollRestoration = 'auto'
     if ('scrollRestoration' in window.history) {
+      previousScrollRestoration = window.history.scrollRestoration
       window.history.scrollRestoration = 'manual'
     }
     // Instantly scroll to top of page on mount
@@ -148,7 +149,6 @@ export function RegisterPage() {
           ...parsed,
           passportPhoto: null,
           passportScan: null,
-          nocDoc: null,
           actionShot: null,
         }))
       } catch (e) {
@@ -156,15 +156,29 @@ export function RegisterPage() {
       }
     }
 
+    const savedFileMeta = localStorage.getItem('apl_player_registration_file_meta')
+    if (savedFileMeta) {
+      try {
+        setFileMeta(JSON.parse(savedFileMeta))
+      } catch (e) {
+        console.error('Failed to parse file metadata', e)
+      }
+    }
+
     setIsLoaded(true)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = previousScrollRestoration
+      }
+    }
   }, [])
 
   // Auto-save form data draft to localStorage on any input change
   useEffect(() => {
     if (!isLoaded) return // Skip auto-saving on initial render/mount to avoid race conditions
-    const { passportPhoto: _pPhoto, passportScan: _pScan, nocDoc: _nocDoc, actionShot: _aShot, ...serializable } = formData
+    const { passportPhoto: _pPhoto, passportScan: _pScan, actionShot: _aShot, ...serializable } = formData
     if (!isSubmitted) {
       localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializable))
     }
@@ -179,11 +193,11 @@ export function RegisterPage() {
   }, [currentStep, isSubmitted, isLoaded])
 
   const steps = [
-    { id: 1, label: 'PERSONAL', icon: User },
-    { id: 2, label: 'CRICKET', icon: Award },
-    { id: 3, label: 'CATEGORY', icon: Layers },
-    { id: 4, label: 'UPLOADS', icon: Upload },
-    { id: 5, label: 'REVIEW', icon: Eye },
+    { id: 1, label: 'PERSONAL' },
+    { id: 2, label: 'CRICKET' },
+    { id: 3, label: 'CATEGORY' },
+    { id: 4, label: 'UPLOADS' },
+    { id: 5, label: 'REVIEW' },
   ]
 
   const validateStep = (step: number): boolean => {
@@ -321,7 +335,7 @@ export function RegisterPage() {
     }
   }
 
-  const handleSelectOption = (fieldName: string, value: any, extraData = {}) => {
+  const handleSelectOption = <K extends keyof FormData>(fieldName: K, value: FormData[K], extraData: Partial<FormData> = {}) => {
     setFormData(prev => ({ ...prev, [fieldName]: value, ...extraData }))
     if (errors[fieldName]) {
       setErrors(prev => {
@@ -352,7 +366,7 @@ export function RegisterPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'nocDoc' | 'actionShot') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot') => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       const allowedTypes = fieldName === 'passportScan' ? ['jpg', 'jpeg', 'png', 'pdf'] : ['jpg', 'jpeg', 'png']
@@ -361,8 +375,22 @@ export function RegisterPage() {
       if (errorMsg) {
         setErrors(prev => ({ ...prev, [fieldName]: errorMsg }))
         setFormData(prev => ({ ...prev, [fieldName]: null }))
+        setFileMeta(prev => {
+          const copy = { ...prev }
+          delete copy[fieldName]
+          localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(copy))
+          return copy
+        })
       } else {
         setFormData(prev => ({ ...prev, [fieldName]: file }))
+        setFileMeta(prev => {
+          const updated = {
+            ...prev,
+            [fieldName]: { name: file.name, size: file.size }
+          }
+          localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(updated))
+          return updated
+        })
         if (errors[fieldName]) {
           setErrors(prev => {
             const copy = { ...prev }
@@ -378,7 +406,7 @@ export function RegisterPage() {
     e.preventDefault()
   }
 
-  const handleDrop = (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan' | 'nocDoc' | 'actionShot') => {
+  const handleDrop = (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot') => {
     e.preventDefault()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
@@ -388,8 +416,22 @@ export function RegisterPage() {
       if (errorMsg) {
         setErrors(prev => ({ ...prev, [fieldName]: errorMsg }))
         setFormData(prev => ({ ...prev, [fieldName]: null }))
+        setFileMeta(prev => {
+          const copy = { ...prev }
+          delete copy[fieldName]
+          localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(copy))
+          return copy
+        })
       } else {
         setFormData(prev => ({ ...prev, [fieldName]: file }))
+        setFileMeta(prev => {
+          const updated = {
+            ...prev,
+            [fieldName]: { name: file.name, size: file.size }
+          }
+          localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(updated))
+          return updated
+        })
         if (errors[fieldName]) {
           setErrors(prev => {
             const copy = { ...prev }
@@ -429,7 +471,10 @@ export function RegisterPage() {
         // Final Submit
         localStorage.removeItem('apl_player_registration_draft')
         localStorage.removeItem('apl_player_registration_step')
-        setRefCode(`APL-2026-${Math.floor(Math.random() * 90000) + 10000}`)
+        localStorage.removeItem('apl_player_registration_file_meta')
+        const uniqueSuffix = Date.now().toString().slice(-5)
+        const randVal = Math.floor(Math.random() * 900) + 100
+        setRefCode(`APL-2026-${uniqueSuffix}-${randVal}`)
         setIsSubmitted(true)
         if ((window as any).lenis) {
           ; (window as any).lenis.scrollTo(0, { immediate: true })
@@ -448,7 +493,7 @@ export function RegisterPage() {
   }
 
   const handleSaveDraft = () => {
-    const { passportPhoto: _passportPhoto, passportScan: _passportScan, nocDoc: _nocDoc, actionShot: _actionShot, ...serializableData } = formData
+    const { passportPhoto: _passportPhoto, passportScan: _passportScan, actionShot: _actionShot, ...serializableData } = formData
     localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializableData))
     setDraftSaved(true)
     setTimeout(() => setDraftSaved(false), 3000)
@@ -457,7 +502,9 @@ export function RegisterPage() {
   const handleReset = () => {
     localStorage.removeItem('apl_player_registration_draft')
     localStorage.removeItem('apl_player_registration_step')
+    localStorage.removeItem('apl_player_registration_file_meta')
     setFormData(initialFormData)
+    setFileMeta({})
     setConsent1(false)
     setConsent2(false)
     setConsent3(false)
@@ -583,12 +630,28 @@ export function RegisterPage() {
                     <div
                       className={`type-card ${formData.regType === 'player' ? 'selected' : ''}`}
                       onClick={() => handleSelectOption('regType', 'player')}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleSelectOption('regType', 'player')
+                        }
+                      }}
                     >
                       <span className="type-card-title">I am the Player</span>
                     </div>
                     <div
                       className={`type-card ${formData.regType === 'agent' ? 'selected' : ''}`}
                       onClick={() => handleSelectOption('regType', 'agent')}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleSelectOption('regType', 'agent')
+                        }
+                      }}
                     >
                       <span className="type-card-title">I am an Agent / Authorized Representative</span>
                     </div>
@@ -791,24 +854,56 @@ export function RegisterPage() {
                     <div
                       className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('full') : formData.availability === 'full') ? 'selected' : ''}`}
                       onClick={() => handleToggleAvailability('full')}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleToggleAvailability('full')
+                        }
+                      }}
                     >
                       <span className="avail-card-title">Available for full season</span>
                     </div>
                     <div
                       className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('selected') : formData.availability === 'selected') ? 'selected' : ''}`}
                       onClick={() => handleToggleAvailability('selected')}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleToggleAvailability('selected')
+                        }
+                      }}
                     >
                       <span className="avail-card-title">Available for selected dates</span>
                     </div>
                     <div
                       className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('national') : formData.availability === 'national') ? 'selected' : ''}`}
                       onClick={() => handleToggleAvailability('national')}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleToggleAvailability('national')
+                        }
+                      }}
                     >
                       <span className="avail-card-title">Subject to national-team commitments</span>
                     </div>
                     <div
                       className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('release') : formData.availability === 'release') ? 'selected' : ''}`}
                       onClick={() => handleToggleAvailability('release')}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleToggleAvailability('release')
+                        }
+                      }}
                     >
                       <span className="avail-card-title">Subject to club or franchise release</span>
                     </div>
@@ -845,6 +940,14 @@ export function RegisterPage() {
                         key={role}
                         className={`type-card ${formData.playingRole === role ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('playingRole', role)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSelectOption('playingRole', role)
+                          }
+                        }}
                       >
                         <span className="type-card-title">{role}</span>
                       </div>
@@ -861,6 +964,14 @@ export function RegisterPage() {
                         key={hand}
                         className={`type-card ${formData.battingHand === hand ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('battingHand', hand)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSelectOption('battingHand', hand)
+                          }
+                        }}
                       >
                         <span className="type-card-title">{hand}</span>
                       </div>
@@ -927,6 +1038,14 @@ export function RegisterPage() {
                         key={status}
                         className={`type-card ${formData.playerStatus === status ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('playerStatus', status)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSelectOption('playerStatus', status)
+                          }
+                        }}
                       >
                         <span className="type-card-title">{status}</span>
                       </div>
@@ -981,6 +1100,14 @@ export function RegisterPage() {
                         key={cat.id}
                         className={`category-large-card ${formData.category === cat.id ? 'selected' : ''}`}
                         onClick={() => handleSelectOption('category', cat.id, { basePrice: cat.price })}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSelectOption('category', cat.id, { basePrice: cat.price })
+                          }
+                        }}
                       >
                         <div className="cat-card-left">
                           <h4 className="cat-card-title">{cat.label}</h4>
@@ -1004,6 +1131,16 @@ export function RegisterPage() {
                           handleSelectOption('acceptRelegation', 'yes')
                         }
                       }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          if (formData.acceptRelegation !== 'yes') {
+                            handleSelectOption('acceptRelegation', 'yes')
+                          }
+                        }
+                      }}
                     >
                       <span className="type-card-title">Yes</span>
                     </div>
@@ -1012,6 +1149,14 @@ export function RegisterPage() {
                       onClick={() => {
                         handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
                       }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
+                        }
+                      }}
                     >
                       <span className="type-card-title">No</span>
                     </div>
@@ -1019,6 +1164,14 @@ export function RegisterPage() {
                       className={`type-card ${formData.acceptRelegation === 'emerging' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
                       onClick={() => {
                         handleSelectOption('acceptRelegation', 'emerging', { relegationLimit: '' })
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          handleSelectOption('acceptRelegation', 'emerging', { relegationLimit: '' })
+                        }
                       }}
                     >
                       <span className="type-card-title">Emerging (Does not Apply)</span>
@@ -1033,21 +1186,45 @@ export function RegisterPage() {
                     <p className="section-subtitle">Select the lowest category you accept being relegated to.</p>
 
                     <div className="relegation-cards-grid">
-                      <div
+                       <div
                         className={`type-card ${formData.relegationLimit === 'Diamond' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
                         onClick={() => handleSelectOption('relegationLimit', 'Diamond')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSelectOption('relegationLimit', 'Diamond')
+                          }
+                        }}
                       >
                         <span className="type-card-title">Diamond</span>
                       </div>
                       <div
                         className={`type-card ${formData.relegationLimit === 'Gold' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
                         onClick={() => handleSelectOption('relegationLimit', 'Gold')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSelectOption('relegationLimit', 'Gold')
+                          }
+                        }}
                       >
                         <span className="type-card-title">Gold</span>
                       </div>
                       <div
                         className={`type-card ${formData.relegationLimit === 'Silver' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
                         onClick={() => handleSelectOption('relegationLimit', 'Silver')}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            handleSelectOption('relegationLimit', 'Silver')
+                          }
+                        }}
                       >
                         <span className="type-card-title">Silver</span>
                       </div>
@@ -1074,7 +1251,7 @@ export function RegisterPage() {
                     </p>
 
                     <div
-                      className={`upload-dropzone ${formData.passportPhoto ? 'has-file' : ''} ${errors.passportPhoto ? 'dropzone-error' : ''}`}
+                      className={`upload-dropzone ${formData.passportPhoto ? 'has-file' : ''} ${(!formData.passportPhoto && fileMeta.passportPhoto) ? 'has-file-warning' : ''} ${errors.passportPhoto ? 'dropzone-error' : ''}`}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, 'passportPhoto')}
                       onClick={() => document.getElementById('passportPhotoInput')?.click()}
@@ -1088,10 +1265,14 @@ export function RegisterPage() {
                       />
                       <div className="dropzone-inner">
                         <span className="dropzone-title">
-                          {formData.passportPhoto ? `Selected: ${formData.passportPhoto.name}` : 'Click or drag a photo here'}
+                          {formData.passportPhoto ? `Selected: ${formData.passportPhoto.name}` :
+                           fileMeta.passportPhoto ? `Restored: ${fileMeta.passportPhoto.name} (⚠️ Re-upload required)` :
+                           'Click or drag a photo here'}
                         </span>
                         <span className="dropzone-subtitle">
-                          {formData.passportPhoto ? 'Click to change photo' : 'JPG or PNG, up to 5 MB'}
+                          {formData.passportPhoto ? 'Click to change photo' :
+                           fileMeta.passportPhoto ? 'File must be re-selected' :
+                           'JPG or PNG, up to 5 MB'}
                         </span>
                       </div>
                     </div>
@@ -1103,7 +1284,7 @@ export function RegisterPage() {
                     <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Passport Image<span className="required">*</span></label>
 
                     <div
-                      className={`upload-dropzone ${formData.passportScan ? 'has-file' : ''} ${errors.passportScan ? 'dropzone-error' : ''}`}
+                      className={`upload-dropzone ${formData.passportScan ? 'has-file' : ''} ${(!formData.passportScan && fileMeta.passportScan) ? 'has-file-warning' : ''} ${errors.passportScan ? 'dropzone-error' : ''}`}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, 'passportScan')}
                       onClick={() => document.getElementById('passportScanInput')?.click()}
@@ -1117,10 +1298,14 @@ export function RegisterPage() {
                       />
                       <div className="dropzone-inner">
                         <span className="dropzone-title">
-                          {formData.passportScan ? `Selected: ${formData.passportScan.name}` : 'Click or drag a file here'}
+                          {formData.passportScan ? `Selected: ${formData.passportScan.name}` :
+                           fileMeta.passportScan ? `Restored: ${fileMeta.passportScan.name} (⚠️ Re-upload required)` :
+                           'Click or drag a file here'}
                         </span>
                         <span className="dropzone-subtitle">
-                          {formData.passportScan ? 'Click to change file' : 'JPG, PNG, or PDF, up to 5 MB'}
+                          {formData.passportScan ? 'Click to change file' :
+                           fileMeta.passportScan ? 'File must be re-selected' :
+                           'JPG, PNG, or PDF, up to 5 MB'}
                         </span>
                       </div>
                     </div>
@@ -1135,7 +1320,7 @@ export function RegisterPage() {
                     </p>
 
                     <div
-                      className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''}`}
+                      className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''} ${(!formData.actionShot && fileMeta.actionShot) ? 'has-file-warning' : ''}`}
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, 'actionShot')}
                       onClick={() => document.getElementById('actionShotInput')?.click()}
@@ -1149,10 +1334,14 @@ export function RegisterPage() {
                       />
                       <div className="dropzone-inner">
                         <span className="dropzone-title">
-                          {formData.actionShot ? `Selected: ${formData.actionShot.name}` : 'Click or drag a photo here'}
+                          {formData.actionShot ? `Selected: ${formData.actionShot.name}` :
+                           fileMeta.actionShot ? `Restored: ${fileMeta.actionShot.name} (⚠️ Re-upload optional)` :
+                           'Click or drag a photo here'}
                         </span>
                         <span className="dropzone-subtitle">
-                          {formData.actionShot ? 'Click to change photo' : 'JPG or PNG, up to 5 MB'}
+                          {formData.actionShot ? 'Click to change photo' :
+                           fileMeta.actionShot ? 'File must be re-selected' :
+                           'JPG or PNG, up to 5 MB'}
                         </span>
                       </div>
                     </div>

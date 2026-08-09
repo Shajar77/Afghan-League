@@ -16,8 +16,7 @@ interface NavItem {
 }
 
 export function Navbar() {
-  const { mobileMenuOpen, setMobileMenuOpen } = useAppStore()
-  const [activeTab, setActiveTab] = useState('Home')
+  const { mobileMenuOpen, setMobileMenuOpen, currentPage } = useAppStore()
   const [moreOpen, setMoreOpen] = useState(false)
   const [registerDropdownOpen, setRegisterDropdownOpen] = useState(false)
   const [mobileRegisterOpen, setMobileRegisterOpen] = useState(false)
@@ -28,38 +27,6 @@ export function Navbar() {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [mobileMenuOpen])
-
-  useEffect(() => {
-    const syncActiveTab = () => {
-      const hash = window.location.hash
-      if (hash === '#about') {
-        setActiveTab('About')
-      } else if (hash === '#teams') {
-        setActiveTab('Teams')
-      } else if (hash === '#news') {
-        setActiveTab('News & Media')
-      } else if (hash === '#fixtures') {
-        setActiveTab('Fixtures')
-      } else if (hash === '#points-table') {
-        setActiveTab('Points Table')
-      } else if (hash === '#gallery') {
-        setActiveTab('Gallery')
-      } else if (hash === '#partnerships') {
-        setActiveTab('Partnerships')
-      } else if (hash === '#contact-us' || hash === '#contact') {
-        setActiveTab('Contact Us')
-      } else if (hash === '#register-player' || hash === '#register') {
-        setActiveTab('Register')
-      } else if (hash === '#register-status' || hash === '#status') {
-        setActiveTab('Register Status')
-      } else {
-        setActiveTab('Home')
-      }
-    }
-    syncActiveTab()
-    window.addEventListener('hashchange', syncActiveTab)
-    return () => window.removeEventListener('hashchange', syncActiveTab)
-  }, [])
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -102,7 +69,7 @@ export function Navbar() {
         <div className="navbar-top-inner">
 
           {/* Left: APL Brand Logo */}
-          <a href="#home" className="navbar-brand" onClick={() => setActiveTab('Home')}>
+          <a href="#home" className="navbar-brand">
             <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
           </a>
 
@@ -135,10 +102,9 @@ export function Navbar() {
                 <div className="register-dropdown-menu">
                   <a 
                     href="#register-player" 
-                    className={`dropdown-item ${activeTab === 'Register' ? 'active' : ''}`}
+                    className={`dropdown-item ${currentPage === 'player-register' ? 'active' : ''}`}
                     onClick={() => {
                       setRegisterDropdownOpen(false)
-                      setActiveTab('Register')
                     }}
                   >
                     <UserPlus size={16} strokeWidth={2.5} className="dropdown-item-icon" />
@@ -149,10 +115,9 @@ export function Navbar() {
                   </a>
                   <a 
                     href="#register-status" 
-                    className={`dropdown-item ${activeTab === 'Register Status' ? 'active' : ''}`}
+                    className={`dropdown-item ${currentPage === 'register-status' ? 'active' : ''}`}
                     onClick={() => {
                       setRegisterDropdownOpen(false)
-                      setActiveTab('Register Status')
                     }}
                   >
                     <ClipboardList size={16} strokeWidth={2.5} className="dropdown-item-icon" />
@@ -181,40 +146,55 @@ export function Navbar() {
       <div className="navbar-bottom-row">
         <div className="navbar-bottom-inner">
           <nav className="desktop-nav">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className={`desktop-nav-link ${activeTab === item.label ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTab(item.label)
-                  setMoreOpen(false)
-                }}
-              >
-                <span className="desktop-nav-link-text">{item.label}</span>
-              </a>
-            ))}
+            {(() => {
+              const isTabActive = (label: string): boolean => {
+                if (label === 'Home') return currentPage === 'home'
+                if (label === 'About') return currentPage === 'about'
+                if (label === 'Teams') return currentPage === 'teams'
+                if (label === 'Fixtures') return currentPage === 'fixtures'
+                if (label === 'Points Table') return currentPage === 'points-table'
+                if (label === 'News & Media') return currentPage === 'news'
+                if (label === 'Gallery') return currentPage === 'gallery'
+                return false
+              }
+              return (
+                <>
+                  {navItems.map((item) => (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      className={`desktop-nav-link ${isTabActive(item.label) ? 'active' : ''}`}
+                      onClick={() => {
+                        setMoreOpen(false)
+                      }}
+                    >
+                      <span className="desktop-nav-link-text">{item.label}</span>
+                    </a>
+                  ))}
 
-            {/* More Dropdown */}
-            <div className="more-dropdown-wrapper" ref={dropdownRef}>
-              <button
-                className={`desktop-nav-link ${moreOpen || activeTab === 'Partnerships' || activeTab === 'Contact Us' ? 'active' : ''}`}
-                onClick={() => setMoreOpen(!moreOpen)}
-              >
-                <span className="desktop-nav-link-text">MORE</span>
-                <ChevronDown size={11} className="desktop-nav-link-text" style={{ marginLeft: '3px' }} />
-              </button>
-              {moreOpen && (
-                <div className="register-dropdown-menu more-dropdown-menu">
-                  <a href="#partnerships" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Partnerships'); }}>
-                    Partnerships
-                  </a>
-                  <a href="#contact-us" className="register-option-item" onClick={() => { setMoreOpen(false); setActiveTab('Contact Us'); }}>
-                    Contact Us
-                  </a>
-                </div>
-              )}
-            </div>
+                  {/* More Dropdown */}
+                  <div className="more-dropdown-wrapper" ref={dropdownRef}>
+                    <button
+                      className={`desktop-nav-link ${moreOpen || currentPage === 'partnerships' || currentPage === 'contact' ? 'active' : ''}`}
+                      onClick={() => setMoreOpen(!moreOpen)}
+                    >
+                      <span className="desktop-nav-link-text">MORE</span>
+                      <ChevronDown size={11} className="desktop-nav-link-text" style={{ marginLeft: '3px' }} />
+                    </button>
+                    {moreOpen && (
+                      <div className="register-dropdown-menu more-dropdown-menu">
+                        <a href="#partnerships" className="register-option-item" onClick={() => setMoreOpen(false)}>
+                          Partnerships
+                        </a>
+                        <a href="#contact-us" className="register-option-item" onClick={() => setMoreOpen(false)}>
+                          Contact Us
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )
+            })()}
           </nav>
         </div>
       </div>
@@ -222,7 +202,7 @@ export function Navbar() {
       {/* ── MOBILE DRAWER ── */}
       <div className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="mobile-drawer-header">
-          <a href="#home" className="navbar-brand" onClick={() => { setActiveTab('Home'); setMobileMenuOpen(false); }}>
+          <a href="#home" className="navbar-brand" onClick={() => { setMobileMenuOpen(false); }}>
             <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
           </a>
           <button
@@ -235,25 +215,40 @@ export function Navbar() {
         </div>
 
         <ul className="mobile-nav-list">
-          {navItems.map((item) => (
-            <li key={item.label} className="mobile-nav-item">
-              <a
-                href={item.href}
-                className={`mobile-nav-link ${activeTab === item.label ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTab(item.label)
-                  setMobileMenuOpen(false)
-                }}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
+          {(() => {
+            const isTabActive = (label: string): boolean => {
+              if (label === 'Home') return currentPage === 'home'
+              if (label === 'About') return currentPage === 'about'
+              if (label === 'Teams') return currentPage === 'teams'
+              if (label === 'Fixtures') return currentPage === 'fixtures'
+              if (label === 'Points Table') return currentPage === 'points-table'
+              if (label === 'News & Media') return currentPage === 'news'
+              if (label === 'Gallery') return currentPage === 'gallery'
+              return false
+            }
+            return (
+              <>
+                {navItems.map((item) => (
+                  <li key={item.label} className="mobile-nav-item">
+                    <a
+                      href={item.href}
+                      className={`mobile-nav-link ${isTabActive(item.label) ? 'active' : ''}`}
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                      }}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </>
+            )
+          })()}
           <li className="mobile-nav-item">
             <a
               href="#partnerships"
-              className={`mobile-nav-link ${activeTab === 'Partnerships' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Partnerships'); setMobileMenuOpen(false) }}
+              className={`mobile-nav-link ${currentPage === 'partnerships' ? 'active' : ''}`}
+              onClick={() => { setMobileMenuOpen(false) }}
             >
               Partnerships
             </a>
@@ -261,15 +256,15 @@ export function Navbar() {
           <li className="mobile-nav-item">
             <a
               href="#contact-us"
-              className={`mobile-nav-link ${activeTab === 'Contact Us' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('Contact Us'); setMobileMenuOpen(false) }}
+              className={`mobile-nav-link ${currentPage === 'contact' ? 'active' : ''}`}
+              onClick={() => { setMobileMenuOpen(false) }}
             >
               Contact Us
             </a>
           </li>
           <li className="mobile-nav-item">
             <button
-              className={`mobile-nav-link ${activeTab === 'Register' || activeTab === 'Register Status' ? 'active' : ''}`}
+              className={`mobile-nav-link ${currentPage === 'player-register' || currentPage === 'register-status' ? 'active' : ''}`}
               onClick={() => setMobileRegisterOpen(!mobileRegisterOpen)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', outline: 'none', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
             >
@@ -290,13 +285,12 @@ export function Navbar() {
                 <li style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
                   <a
                     href="#register-player"
-                    className={`mobile-nav-link ${activeTab === 'Register' ? 'active' : ''}`}
+                    className={`mobile-nav-link ${currentPage === 'player-register' ? 'active' : ''}`}
                     style={{
                       fontSize: '1.25rem',
                       padding: '0.75rem 2rem'
                     }}
                     onClick={() => {
-                      setActiveTab('Register')
                       setMobileMenuOpen(false)
                       setMobileRegisterOpen(false)
                     }}
@@ -307,13 +301,12 @@ export function Navbar() {
                 <li>
                   <a
                     href="#register-status"
-                    className={`mobile-nav-link ${activeTab === 'Register Status' ? 'active' : ''}`}
+                    className={`mobile-nav-link ${currentPage === 'register-status' ? 'active' : ''}`}
                     style={{
                       fontSize: '1.25rem',
                       padding: '0.75rem 2rem'
                     }}
                     onClick={() => {
-                      setActiveTab('Register Status')
                       setMobileMenuOpen(false)
                       setMobileRegisterOpen(false)
                     }}

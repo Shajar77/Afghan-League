@@ -367,7 +367,7 @@ export function News() {
       {/* ARTICLE DETAILS MODAL */}
       {selectedArticle && (
         <div className="news-modal-overlay" onClick={() => setSelectedArticle(null)}>
-          <div className="news-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="news-modal-content" data-lenis-prevent onClick={(e) => e.stopPropagation()}>
             <button className="news-modal-close" onClick={() => setSelectedArticle(null)} aria-label="Close modal">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>

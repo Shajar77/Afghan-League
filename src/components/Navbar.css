@@ -101,7 +101,7 @@
 
 .btn-register-now {
   background: var(--brand-gold);
-  color: #ffffff;
+  color: #0e1038;
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 0.8rem;
@@ -117,12 +117,13 @@
   text-decoration: none;
   cursor: pointer;
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
 
 .btn-register-now:hover {
   background: #ffd700;
+  color: #0e1038;
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(248, 200, 0, 0.35);
 }

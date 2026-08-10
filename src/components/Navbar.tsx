@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Menu, X, ChevronDown, UserPlus, ClipboardList } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
-import aplLogo from '../assets/APL Logo - White.webp'
+import aplLogo from '../assets/Asset 2@2x.png'
 import londonSpiritLogo from '../assets/london-spirit-white.svg'
 import birminghamPhoenixLogo from '../assets/birmingham-phoenix.svg'
 import manchesterSuperGiantsLogo from '../assets/manchester-super-giants.svg'

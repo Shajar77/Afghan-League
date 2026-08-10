@@ -30,6 +30,7 @@ interface FormData {
   // Step 2: Cricket
   playingRole: string
   battingHand: string
+  bowlerType: string
   bowlingStyle: string
   bowlingSubtype: string
   spinType: string
@@ -72,6 +73,7 @@ const initialFormData: FormData = {
   availabilityDetails: '',
   playingRole: '',
   battingHand: '',
+  bowlerType: '',
   bowlingStyle: '',
   bowlingSubtype: '',
   spinType: '',
@@ -281,8 +283,23 @@ export function RegisterPage() {
       if (!formData.playingRole) newErrors.playingRole = 'Playing Role is required'
       if (!formData.battingHand) newErrors.battingHand = 'Batting Hand is required'
 
-      const isBowlerOrAllRounder = formData.playingRole === 'All-Rounder' || formData.playingRole === 'Fast Bowler' || formData.playingRole === 'Spin Bowler'
-      if (isBowlerOrAllRounder) {
+      const isAllRounder = formData.playingRole === 'All Rounder (Batting)' || formData.playingRole === 'All Rounder (Bowling)'
+      const isBowler = formData.playingRole === 'Bowler'
+
+      if (isBowler) {
+        if (!formData.bowlerType) {
+          newErrors.bowlerType = 'Bowler Type selection is required'
+        }
+        if (!formData.bowlingStyle) {
+          newErrors.bowlingStyle = 'Bowling Arm selection is required'
+        }
+        if (formData.bowlerType === 'Fast Bowler' && !formData.bowlingSubtype) {
+          newErrors.bowlingSubtype = 'Bowling Type selection is required'
+        }
+        if (formData.bowlerType === 'Spin Bowler' && !formData.spinType) {
+          newErrors.spinType = 'Spin Type selection is required'
+        }
+      } else if (isAllRounder) {
         if (!formData.bowlingStyle) {
           newErrors.bowlingStyle = 'Bowling Arm selection is required'
         }
@@ -378,8 +395,15 @@ export function RegisterPage() {
 
   const handleSelectOption = <K extends keyof FormData>(fieldName: K, value: FormData[K], extraData: Partial<FormData> = {}) => {
     let finalExtraData = { ...extraData }
-    if (fieldName === 'playingRole' && (value === 'Batter' || value === 'Wicketkeeper-Batter')) {
-      finalExtraData = { ...finalExtraData, bowlingStyle: '', bowlingSubtype: '', spinType: '' }
+    if (fieldName === 'playingRole') {
+      finalExtraData = { ...finalExtraData, bowlerType: '', bowlingStyle: '', bowlingSubtype: '', spinType: '' }
+    }
+    if (fieldName === 'bowlerType') {
+      if (value === 'Spin Bowler') {
+        finalExtraData = { ...finalExtraData, bowlingSubtype: 'Spin Bowler' }
+      } else if (value === 'Fast Bowler') {
+        finalExtraData = { ...finalExtraData, bowlingSubtype: '', spinType: '' }
+      }
     }
     if (fieldName === 'bowlingSubtype' && value !== 'Spin Bowler') {
       finalExtraData = { ...finalExtraData, spinType: '' }
@@ -997,10 +1021,10 @@ export function RegisterPage() {
 
                   <label className="field-group-label">Playing Role <span className="required">*</span></label>
                   <div className="playing-role-grid">
-                    {['Batter', 'Wicketkeeper-Batter', 'All-Rounder', 'Fast Bowler', 'Spin Bowler'].map((role) => (
+                    {['Batter', 'Wicketkeeper-Batter', 'Bowler', 'All Rounder (Batting)', 'All Rounder (Bowling)'].map((role) => (
                       <div
                         key={role}
-                        className={`type-card ${formData.playingRole === role ? 'selected' : ''}`}
+                        className={`type-card ${formData.playingRole === role ? 'selected' : ''} ${errors.playingRole ? 'input-error' : ''}`}
                         onClick={() => handleSelectOption('playingRole', role)}
                         role="button"
                         tabIndex={0}
@@ -1042,39 +1066,73 @@ export function RegisterPage() {
                 </div>
 
                 {/* Progressive Bowling Style */}
-                {(formData.playingRole === 'All-Rounder' || formData.playingRole === 'Fast Bowler' || formData.playingRole === 'Spin Bowler') && (
+                {(formData.playingRole === 'All Rounder (Batting)' || formData.playingRole === 'All Rounder (Bowling)' || formData.playingRole === 'Bowler') && (
                   <div className="form-section animate-fade-in" style={{ gap: '2.5rem', display: 'flex', flexDirection: 'column', marginTop: '1rem', marginBottom: '1.5rem' }}>
-                    {/* Bowling Arm */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                      <label className="field-group-label" style={{ margin: 0 }}>Bowling Arm <span className="required">*</span></label>
-                      <div className="reg-type-cards">
-                        {['Right-Arm Bowler', 'Left-Arm Bowler'].map((arm) => (
-                          <div
-                            key={arm}
-                            className={`type-card ${formData.bowlingStyle === arm ? 'selected' : ''} ${errors.bowlingStyle ? 'input-error' : ''}`}
-                            onClick={() => handleSelectOption('bowlingStyle', arm)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                handleSelectOption('bowlingStyle', arm)
-                              }
-                            }}
-                          >
-                            <span className="type-card-title">{arm}</span>
-                          </div>
-                        ))}
+                    
+                    {/* Bowler Category (Only if playingRole is Bowler) */}
+                    {formData.playingRole === 'Bowler' && (
+                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="field-group-label" style={{ margin: 0 }}>Bowler Category <span className="required">*</span></label>
+                        <div className="reg-type-cards">
+                          {['Fast Bowler', 'Spin Bowler'].map((category) => (
+                            <div
+                              key={category}
+                              className={`type-card ${formData.bowlerType === category ? 'selected' : ''} ${errors.bowlerType ? 'input-error' : ''}`}
+                              onClick={() => handleSelectOption('bowlerType', category)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleSelectOption('bowlerType', category)
+                                }
+                              }}
+                            >
+                              <span className="type-card-title">{category}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {errors.bowlerType && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlerType}</span>}
                       </div>
-                      {errors.bowlingStyle && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlingStyle}</span>}
-                    </div>
+                    )}
 
-                    {/* Bowling Type */}
-                    {formData.bowlingStyle && (
+                    {/* Bowling Arm */}
+                    {(formData.playingRole !== 'Bowler' || formData.bowlerType) && (
+                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="field-group-label" style={{ margin: 0 }}>Bowling Arm <span className="required">*</span></label>
+                        <div className="reg-type-cards">
+                          {['Right-Arm Bowler', 'Left-Arm Bowler'].map((arm) => (
+                            <div
+                              key={arm}
+                              className={`type-card ${formData.bowlingStyle === arm ? 'selected' : ''} ${errors.bowlingStyle ? 'input-error' : ''}`}
+                              onClick={() => handleSelectOption('bowlingStyle', arm)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleSelectOption('bowlingStyle', arm)
+                                }
+                              }}
+                            >
+                              <span className="type-card-title">{arm}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {errors.bowlingStyle && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlingStyle}</span>}
+                      </div>
+                    )}
+
+                    {/* Bowling Type (For All-Rounders, or for Bowler who selected Fast Bowler) */}
+                    {formData.bowlingStyle && 
+                     (formData.playingRole !== 'Bowler' || formData.bowlerType === 'Fast Bowler') && (
                       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                         <label className="field-group-label" style={{ margin: 0 }}>Bowling Type <span className="required">*</span></label>
                         <div className="relegation-cards-grid">
-                          {['Fast Bowler', 'Medium Pace Bowler', 'Spin Bowler'].map((type) => (
+                          {(formData.playingRole === 'Bowler' 
+                            ? ['Fast Bowler', 'Medium Fast Bowler'] 
+                            : ['Fast Bowler', 'Medium Fast Bowler', 'Spin Bowler']
+                          ).map((type) => (
                             <div
                               key={type}
                               className={`type-card ${formData.bowlingSubtype === type ? 'selected' : ''} ${errors.bowlingSubtype ? 'input-error' : ''}`}
@@ -1096,8 +1154,10 @@ export function RegisterPage() {
                       </div>
                     )}
 
-                    {/* Spin Type */}
-                    {formData.bowlingStyle && formData.bowlingSubtype === 'Spin Bowler' && (
+                    {/* Spin Type (For All-Rounders who selected Spin Bowler, or for Bowler who selected Spin Bowler) */}
+                    {formData.bowlingStyle && 
+                     ((formData.playingRole !== 'Bowler' && formData.bowlingSubtype === 'Spin Bowler') || 
+                      (formData.playingRole === 'Bowler' && formData.bowlerType === 'Spin Bowler')) && (
                       <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                         <label className="field-group-label" style={{ margin: 0 }}>Spin Type <span className="required">*</span></label>
                         <div className="player-status-grid">
@@ -1695,17 +1755,28 @@ export function RegisterPage() {
                           <span className="review-line-val">{formData.battingHand || '—'}</span>
                         </div>
                         {/* Bowling details */}
-                        {(formData.playingRole === 'All-Rounder' || formData.playingRole === 'Fast Bowler' || formData.playingRole === 'Spin Bowler') ? (
+                        {(formData.playingRole === 'All Rounder (Batting)' || formData.playingRole === 'All Rounder (Bowling)' || formData.playingRole === 'Bowler') ? (
                           <>
-                            <div className="review-line-item">
-                              <span className="review-line-label">Bowling Arm</span>
-                              <span className="review-line-val">{formData.bowlingStyle || '—'}</span>
-                            </div>
-                            <div className="review-line-item">
-                              <span className="review-line-label">Bowling Type</span>
-                              <span className="review-line-val">{formData.bowlingSubtype || '—'}</span>
-                            </div>
-                            {formData.bowlingSubtype === 'Spin Bowler' && (
+                            {formData.playingRole === 'Bowler' && (
+                              <div className="review-line-item">
+                                <span className="review-line-label">Bowler Category</span>
+                                <span className="review-line-val">{formData.bowlerType || '—'}</span>
+                              </div>
+                            )}
+                            {(formData.playingRole !== 'Bowler' || formData.bowlerType) && (
+                              <div className="review-line-item">
+                                <span className="review-line-label">Bowling Arm</span>
+                                <span className="review-line-val">{formData.bowlingStyle || '—'}</span>
+                              </div>
+                            )}
+                            {(formData.playingRole !== 'Bowler' || formData.bowlerType === 'Fast Bowler') && (
+                              <div className="review-line-item">
+                                <span className="review-line-label">Bowling Type</span>
+                                <span className="review-line-val">{formData.bowlingSubtype || '—'}</span>
+                              </div>
+                            )}
+                            {((formData.playingRole !== 'Bowler' && formData.bowlingSubtype === 'Spin Bowler') ||
+                              (formData.playingRole === 'Bowler' && formData.bowlerType === 'Spin Bowler')) && (
                               <div className="review-line-item">
                                 <span className="review-line-label">Spin Type</span>
                                 <span className="review-line-val">{formData.spinType || '—'}</span>
@@ -1715,7 +1786,7 @@ export function RegisterPage() {
                         ) : (
                           <div className="review-line-item">
                             <span className="review-line-label">Bowling Style</span>
-                            <span className="review-line-val">N/A (Batter)</span>
+                            <span className="review-line-val">N/A (Batter / Wicketkeeper)</span>
                           </div>
                         )}
                         <div className="review-line-item">

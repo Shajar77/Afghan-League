@@ -1,7 +1,7 @@
 import aboutHeroImg from '../assets/about-hero-bg-new.jpg'
 import introImg from '../assets/gallery-8.webp'
 import acbLogo from '../assets/ACBlogo.webp'
-import aplLogo from '../assets/APL Logo - White.webp'
+import aplLogo from '../assets/Asset 2@2x.png'
 import './About.css'
 
 export function About() {

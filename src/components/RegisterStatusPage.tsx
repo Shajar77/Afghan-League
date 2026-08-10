@@ -57,19 +57,33 @@ export function RegisterStatusPage() {
           </p>
 
           <form onSubmit={handleSearch} className="status-search-form">
-            <div className="status-input-group">
-              <input 
-                type="text" 
-                placeholder="e.g. APL-2026-64297"
-                value={appId}
-                onChange={(e) => setAppId(e.target.value)}
-                className="status-search-input"
-                required
-              />
-              <button type="submit" className="status-search-btn">
-                Track Application
-              </button>
+            <div className="status-fields-stack">
+              <div className="status-field-group">
+                <input
+                  type="text"
+                  placeholder="e.g. APL-2026-64297"
+                  value={appId}
+                  onChange={(e) => setAppId(e.target.value)}
+                  className="status-search-input"
+                  required
+                />
+              </div>
+              <div className="status-field-group">
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  className="status-search-input"
+                  required
+                  maxLength={6}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                />
+                <p className="status-otp-hint">Enter the code sent to you in the verification email</p>
+              </div>
             </div>
+            <button type="submit" className="status-search-btn status-search-btn--full">
+              Track Application
+            </button>
           </form>
 
           {searched && statusResult && (
@@ -93,12 +107,7 @@ export function RegisterStatusPage() {
                   <span className="result-value status-badge-track">{statusResult.status}</span>
                 </div>
               </div>
-              <div className="result-remarks-box">
-                <span className="remarks-icon">ℹ</span>
-                <p className="remarks-text">
-                  <strong>Latest Remarks:</strong> {statusResult.remarks}
-                </p>
-              </div>
+
             </div>
           )}
 

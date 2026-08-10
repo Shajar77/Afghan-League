@@ -113,8 +113,8 @@ function App() {
     gsap.ticker.add(updateTicker)
     gsap.ticker.lagSmoothing(0)
 
-    // Store lenis reference on window object for router navigation scrolling
-    ;(window as any).lenis = lenis
+      // Store lenis reference on window object for router navigation scrolling
+      ; (window as any).lenis = lenis
 
     return () => {
       lenis.destroy()
@@ -125,7 +125,7 @@ function App() {
 
   const scrollToTop = () => {
     if ((window as any).lenis) {
-      ;(window as any).lenis.scrollTo(0, { immediate: true })
+      ; (window as any).lenis.scrollTo(0, { immediate: true })
     } else {
       window.scrollTo(0, 0)
     }
@@ -214,7 +214,7 @@ function App() {
             </div>
             <div className="hero-content">
               <h1 className="hero-title">A Legacy<br />in the Making!</h1>
-              <p className="hero-status-subtitle">REGISTRATIONS ARE OPEN</p>
+              <p className="hero-status-subtitle">REGISTRATIONS ARE OPEN NOW</p>
               <div className="hero-actions">
                 <a href="#register-player" className="btn-register-now hero-btn">
                   <span className="skew-unskew-text">PLAYER REGISTRATION</span>
@@ -740,7 +740,7 @@ function App() {
               <h4 className="footer-col-title">Resources</h4>
               <ul className="footer-links-list">
                 <li><a href="#acb-governance">ACB Governance</a></li>
-                <li><a href="#register-player">Player Register</a></li>
+                <li><a href="#register-player">Player Registration</a></li>
                 <li><a href="#league-faq">League FAQ</a></li>
                 <li><a href="#media-kit">Media Kit</a></li>
               </ul>
@@ -755,7 +755,7 @@ function App() {
             </p>
             <div className="footer-bottom-right-wrap">
               <div className="footer-social-list bottom-socials">
-                 <a href="https://www.facebook.com/APLT20Cricket/" target="_blank" rel="noopener noreferrer" className="social-circle facebook" aria-label="Facebook">
+                <a href="https://www.facebook.com/APLT20Cricket/" target="_blank" rel="noopener noreferrer" className="social-circle facebook" aria-label="Facebook">
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>

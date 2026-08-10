@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Calendar, CheckCircle2 } from 'lucide-react'
+import { COUNTRIES } from '../constants/countries'
+import { SearchableDropdown } from './SearchableDropdown'
+import frontProfileRef from '../assets/Front Profile.jpg.jpeg'
+import idRef from '../assets/ID.jpg.jpeg'
+import actionShotRef from '../assets/Action.jpg.jpeg'
+import rightProfileRef from '../assets/Right Profile.jpg.jpeg'
+import leftRef from '../assets/Left.jpg.jpeg'
 import './RegisterPage.css'
 
 interface FormData {
@@ -24,9 +31,12 @@ interface FormData {
   playingRole: string
   battingHand: string
   bowlingStyle: string
+  bowlingSubtype: string
+  spinType: string
   currentClub: string
   prevTeams: string
   playerStatus: string
+  representingCountry: string
   totalMatches: string
   profileLink: string
 
@@ -40,6 +50,8 @@ interface FormData {
   passportPhoto: File | null
   passportScan: File | null
   actionShot: File | null
+  rightProfilePhoto: File | null
+  leftProfilePhoto: File | null
 }
 
 const initialFormData: FormData = {
@@ -58,21 +70,26 @@ const initialFormData: FormData = {
   email: '',
   availability: ['full'],
   availabilityDetails: '',
-  playingRole: 'All-Rounder',
-  battingHand: 'Right-Handed',
+  playingRole: '',
+  battingHand: '',
   bowlingStyle: '',
+  bowlingSubtype: '',
+  spinType: '',
   currentClub: '',
   prevTeams: '',
   playerStatus: 'Afghanistan Domestic',
+  representingCountry: '',
   totalMatches: '',
   profileLink: '',
   category: 'Gold Player',
   basePrice: '$20,000',
-  acceptRelegation: '',
+  acceptRelegation: 'no',
   relegationLimit: '',
   passportPhoto: null,
   passportScan: null,
   actionShot: null,
+  rightProfilePhoto: null,
+  leftProfilePhoto: null,
 }
 
 const categoriesList = [
@@ -150,6 +167,8 @@ export function RegisterPage() {
           passportPhoto: null,
           passportScan: null,
           actionShot: null,
+          rightProfilePhoto: null,
+          leftProfilePhoto: null,
         }))
       } catch (e) {
         console.error('Failed to load draft from localStorage', e)
@@ -178,7 +197,7 @@ export function RegisterPage() {
   // Auto-save form data draft to localStorage on any input change
   useEffect(() => {
     if (!isLoaded) return // Skip auto-saving on initial render/mount to avoid race conditions
-    const { passportPhoto: _pPhoto, passportScan: _pScan, actionShot: _aShot, ...serializable } = formData
+    const { passportPhoto: _pPhoto, passportScan: _pScan, actionShot: _aShot, rightProfilePhoto: _rPhoto, leftProfilePhoto: _lPhoto, ...serializable } = formData
     if (!isSubmitted) {
       localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializable))
     }
@@ -234,6 +253,8 @@ export function RegisterPage() {
           }
           if (age < 15) {
             newErrors.dob = 'Player must be at least 15 years old to register'
+          } else if (age > 75) {
+            newErrors.dob = 'Please enter a valid Date of Birth'
           }
         }
       }
@@ -259,8 +280,28 @@ export function RegisterPage() {
     if (step === 2) {
       if (!formData.playingRole) newErrors.playingRole = 'Playing Role is required'
       if (!formData.battingHand) newErrors.battingHand = 'Batting Hand is required'
-      if (!formData.currentClub.trim()) newErrors.currentClub = 'Current Club / Team is required'
-      if (!formData.playerStatus) newErrors.playerStatus = 'Player Status is required'
+
+      const isBowlerOrAllRounder = formData.playingRole === 'All-Rounder' || formData.playingRole === 'Fast Bowler' || formData.playingRole === 'Spin Bowler'
+      if (isBowlerOrAllRounder) {
+        if (!formData.bowlingStyle) {
+          newErrors.bowlingStyle = 'Bowling Arm selection is required'
+        }
+        if (!formData.bowlingSubtype) {
+          newErrors.bowlingSubtype = 'Bowling Type selection is required'
+        }
+        if (formData.bowlingSubtype === 'Spin Bowler' && !formData.spinType) {
+          newErrors.spinType = 'Spin Type selection is required'
+        }
+      }
+
+      if (!formData.playerStatus) {
+        newErrors.playerStatus = 'Player Status is required'
+      } else if (
+        (formData.playerStatus === 'Overseas International' || formData.playerStatus === 'Overseas Domestic') &&
+        !formData.representingCountry
+      ) {
+        newErrors.representingCountry = 'Representing Country is required'
+      }
 
       if (formData.totalMatches) {
         const matchesVal = Number(formData.totalMatches)
@@ -336,7 +377,24 @@ export function RegisterPage() {
   }
 
   const handleSelectOption = <K extends keyof FormData>(fieldName: K, value: FormData[K], extraData: Partial<FormData> = {}) => {
-    setFormData(prev => ({ ...prev, [fieldName]: value, ...extraData }))
+    let finalExtraData = { ...extraData }
+    if (fieldName === 'playingRole' && (value === 'Batter' || value === 'Wicketkeeper-Batter')) {
+      finalExtraData = { ...finalExtraData, bowlingStyle: '', bowlingSubtype: '', spinType: '' }
+    }
+    if (fieldName === 'bowlingSubtype' && value !== 'Spin Bowler') {
+      finalExtraData = { ...finalExtraData, spinType: '' }
+    }
+    if (fieldName === 'playerStatus') {
+      const isNewOverseas = value === 'Overseas International' || value === 'Overseas Domestic'
+      if (!isNewOverseas) {
+        finalExtraData = { ...finalExtraData, representingCountry: '' }
+      }
+    }
+    if (fieldName === 'category') {
+      finalExtraData = { ...finalExtraData, acceptRelegation: 'no', relegationLimit: '' }
+    }
+
+    setFormData(prev => ({ ...prev, [fieldName]: value, ...finalExtraData }))
     if (errors[fieldName]) {
       setErrors(prev => {
         const copy = { ...prev }
@@ -366,7 +424,7 @@ export function RegisterPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot' | 'rightProfilePhoto' | 'leftProfilePhoto') => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
       const allowedTypes = fieldName === 'passportScan' ? ['jpg', 'jpeg', 'png', 'pdf'] : ['jpg', 'jpeg', 'png']
@@ -406,7 +464,7 @@ export function RegisterPage() {
     e.preventDefault()
   }
 
-  const handleDrop = (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot') => {
+  const handleDrop = (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot' | 'rightProfilePhoto' | 'leftProfilePhoto') => {
     e.preventDefault()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0]
@@ -468,13 +526,17 @@ export function RegisterPage() {
         scrollToFormTop()
         setCurrentStep(prev => prev + 1)
       } else {
+        // Guard: ensure all consents are checked before submitting
+        if (!consent1 || !consent2 || !consent3) {
+          setErrors({ consents: 'Please accept all three declarations before submitting.' })
+          return
+        }
         // Final Submit
         localStorage.removeItem('apl_player_registration_draft')
         localStorage.removeItem('apl_player_registration_step')
         localStorage.removeItem('apl_player_registration_file_meta')
         const uniqueSuffix = Date.now().toString().slice(-5)
-        const randVal = Math.floor(Math.random() * 900) + 100
-        setRefCode(`APL-2026-${uniqueSuffix}-${randVal}`)
+        setRefCode(`APL-2026-${uniqueSuffix}`)
         setIsSubmitted(true)
         if ((window as any).lenis) {
           ; (window as any).lenis.scrollTo(0, { immediate: true })
@@ -493,7 +555,7 @@ export function RegisterPage() {
   }
 
   const handleSaveDraft = () => {
-    const { passportPhoto: _passportPhoto, passportScan: _passportScan, actionShot: _actionShot, ...serializableData } = formData
+    const { passportPhoto: _passportPhoto, passportScan: _passportScan, actionShot: _actionShot, rightProfilePhoto: _rPhoto, leftProfilePhoto: _lPhoto, ...serializableData } = formData
     localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializableData))
     setDraftSaved(true)
     setTimeout(() => setDraftSaved(false), 3000)
@@ -979,35 +1041,89 @@ export function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Bowling Style & Current Club / Team */}
-                <div className="form-section">
-                  <div className="form-grid-2col">
-                    <div className="form-group">
-                      <label>Bowling Style</label>
-                      <input
-                        type="text"
-                        name="bowlingStyle"
-                        value={formData.bowlingStyle}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Right-arm leg spin"
-                      />
+                {/* Progressive Bowling Style */}
+                {(formData.playingRole === 'All-Rounder' || formData.playingRole === 'Fast Bowler' || formData.playingRole === 'Spin Bowler') && (
+                  <div className="form-section animate-fade-in" style={{ gap: '2.5rem', display: 'flex', flexDirection: 'column', marginTop: '1rem', marginBottom: '1.5rem' }}>
+                    {/* Bowling Arm */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                      <label className="field-group-label" style={{ margin: 0 }}>Bowling Arm <span className="required">*</span></label>
+                      <div className="reg-type-cards">
+                        {['Right-Arm Bowler', 'Left-Arm Bowler'].map((arm) => (
+                          <div
+                            key={arm}
+                            className={`type-card ${formData.bowlingStyle === arm ? 'selected' : ''} ${errors.bowlingStyle ? 'input-error' : ''}`}
+                            onClick={() => handleSelectOption('bowlingStyle', arm)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                handleSelectOption('bowlingStyle', arm)
+                              }
+                            }}
+                          >
+                            <span className="type-card-title">{arm}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {errors.bowlingStyle && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlingStyle}</span>}
                     </div>
 
-                    <div className="form-group">
-                      <label>Current Club / Team <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        name="currentClub"
-                        value={formData.currentClub}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Kabul Knights"
-                        className={errors.currentClub ? 'input-error' : ''}
-                        required
-                      />
-                      {errors.currentClub && <span className="error-message">{errors.currentClub}</span>}
-                    </div>
+                    {/* Bowling Type */}
+                    {formData.bowlingStyle && (
+                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="field-group-label" style={{ margin: 0 }}>Bowling Type <span className="required">*</span></label>
+                        <div className="relegation-cards-grid">
+                          {['Fast Bowler', 'Medium Pace Bowler', 'Spin Bowler'].map((type) => (
+                            <div
+                              key={type}
+                              className={`type-card ${formData.bowlingSubtype === type ? 'selected' : ''} ${errors.bowlingSubtype ? 'input-error' : ''}`}
+                              onClick={() => handleSelectOption('bowlingSubtype', type)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleSelectOption('bowlingSubtype', type)
+                                }
+                              }}
+                            >
+                              <span className="type-card-title">{type}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {errors.bowlingSubtype && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlingSubtype}</span>}
+                      </div>
+                    )}
+
+                    {/* Spin Type */}
+                    {formData.bowlingStyle && formData.bowlingSubtype === 'Spin Bowler' && (
+                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <label className="field-group-label" style={{ margin: 0 }}>Spin Type <span className="required">*</span></label>
+                        <div className="player-status-grid">
+                          {['Off Spinner', 'Leg Spinner', 'Left-arm Orthodox', 'Left-arm Unorthodox (Chinaman)'].map((spin) => (
+                            <div
+                              key={spin}
+                              className={`type-card ${formData.spinType === spin ? 'selected' : ''} ${errors.spinType ? 'input-error' : ''}`}
+                              onClick={() => handleSelectOption('spinType', spin)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleSelectOption('spinType', spin)
+                                }
+                              }}
+                            >
+                              <span className="type-card-title">{spin}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {errors.spinType && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.spinType}</span>}
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
                 {/* Previous Major Teams */}
                 <div className="form-section">
@@ -1052,6 +1168,24 @@ export function RegisterPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Player Status Country Select */}
+                {(formData.playerStatus === 'Overseas International' || formData.playerStatus === 'Overseas Domestic') && (
+                  <div className="form-section animate-fade-in">
+                    <div className="form-group">
+                      <label>Representing Country <span className="required">*</span></label>
+                      <SearchableDropdown
+                        value={formData.representingCountry}
+                        onChange={(val) => handleSelectOption('representingCountry', val)}
+                        options={COUNTRIES}
+                        placeholder="Search & select country..."
+                        error={errors.representingCountry}
+                        required
+                      />
+                      {errors.representingCountry && <span className="error-message">{errors.representingCountry}</span>}
+                    </div>
+                  </div>
+                )}
 
                 {/* Total T20 Matches & Profile Link */}
                 <div className="form-section">
@@ -1119,118 +1253,113 @@ export function RegisterPage() {
                 </div>
 
                 {/* Relegation Consent */}
-                <div className="form-section">
-                  <h3 className="section-title">Accept Relegation <span className="required">*</span></h3>
-                  <p className="section-subtitle">If you are not selected in your preferred category, do you accept being considered for lower categories?</p>
+                {formData.category && formData.category !== 'Emerging Under-23' && formData.category !== 'Silver Player' && (
+                  <>
+                    <div className="form-section">
+                      <h3 className="section-title">Accept Relegation <span className="required">*</span></h3>
+                      <p className="section-subtitle">If you are not selected in your preferred category, do you accept being considered for lower categories?</p>
 
-                  <div className="relegation-cards-grid">
-                    <div
-                      className={`type-card ${formData.acceptRelegation === 'yes' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
-                      onClick={() => {
-                        if (formData.acceptRelegation !== 'yes') {
-                          handleSelectOption('acceptRelegation', 'yes')
-                        }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          if (formData.acceptRelegation !== 'yes') {
-                            handleSelectOption('acceptRelegation', 'yes')
-                          }
-                        }
-                      }}
-                    >
-                      <span className="type-card-title">Yes</span>
-                    </div>
-                    <div
-                      className={`type-card ${formData.acceptRelegation === 'no' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
-                      onClick={() => {
-                        handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
-                        }
-                      }}
-                    >
-                      <span className="type-card-title">No</span>
-                    </div>
-                    <div
-                      className={`type-card ${formData.acceptRelegation === 'emerging' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
-                      onClick={() => {
-                        handleSelectOption('acceptRelegation', 'emerging', { relegationLimit: '' })
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleSelectOption('acceptRelegation', 'emerging', { relegationLimit: '' })
-                        }
-                      }}
-                    >
-                      <span className="type-card-title">Emerging (Does not Apply)</span>
-                    </div>
-                  </div>
-                  {errors.acceptRelegation && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.acceptRelegation}</span>}
-                </div>
+                      <div className="relegation-cards-grid">
+                        <div
+                          className={`type-card ${formData.acceptRelegation === 'yes' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
+                          onClick={() => {
+                            if (formData.acceptRelegation !== 'yes') {
+                              const autoLimit = formData.category === 'Gold Player' ? 'Silver' : formData.category === 'Diamond Player' ? 'Gold' : ''
+                              handleSelectOption('acceptRelegation', 'yes', { relegationLimit: autoLimit })
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              if (formData.acceptRelegation !== 'yes') {
+                                const autoLimit = formData.category === 'Gold Player' ? 'Silver' : formData.category === 'Diamond Player' ? 'Gold' : ''
+                                handleSelectOption('acceptRelegation', 'yes', { relegationLimit: autoLimit })
+                              }
+                            }
+                          }}
+                        >
+                          <span className="type-card-title">Yes</span>
+                        </div>
+                        <div
+                          className={`type-card ${formData.acceptRelegation === 'no' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
+                          onClick={() => {
+                            handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
+                            }
+                          }}
+                        >
+                          <span className="type-card-title">No</span>
+                        </div>
 
-                {formData.acceptRelegation === 'yes' && (
-                  <div className="form-section animate-fade-in">
-                    <h3 className="section-title">Relegation accepted till: <span className="required">*</span></h3>
-                    <p className="section-subtitle">Select the lowest category you accept being relegated to.</p>
-
-                    <div className="relegation-cards-grid">
-                       <div
-                        className={`type-card ${formData.relegationLimit === 'Diamond' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
-                        onClick={() => handleSelectOption('relegationLimit', 'Diamond')}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleSelectOption('relegationLimit', 'Diamond')
-                          }
-                        }}
-                      >
-                        <span className="type-card-title">Diamond</span>
                       </div>
-                      <div
-                        className={`type-card ${formData.relegationLimit === 'Gold' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
-                        onClick={() => handleSelectOption('relegationLimit', 'Gold')}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleSelectOption('relegationLimit', 'Gold')
-                          }
-                        }}
-                      >
-                        <span className="type-card-title">Gold</span>
-                      </div>
-                      <div
-                        className={`type-card ${formData.relegationLimit === 'Silver' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
-                        onClick={() => handleSelectOption('relegationLimit', 'Silver')}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleSelectOption('relegationLimit', 'Silver')
-                          }
-                        }}
-                      >
-                        <span className="type-card-title">Silver</span>
-                      </div>
+                      {errors.acceptRelegation && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.acceptRelegation}</span>}
                     </div>
-                    {errors.relegationLimit && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.relegationLimit}</span>}
-                  </div>
+
+                    {formData.acceptRelegation === 'yes' && (
+                      <div className="form-section animate-fade-in">
+                        <h3 className="section-title">Relegation accepted till: <span className="required">*</span></h3>
+                        <p className="section-subtitle">Select the lowest category you accept being relegated to.</p>
+
+                        <div className="relegation-cards-grid">
+                          {formData.category !== 'Gold Player' && formData.category !== 'Diamond Player' && (
+                            <div
+                              className={`type-card ${formData.relegationLimit === 'Diamond' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
+                              onClick={() => handleSelectOption('relegationLimit', 'Diamond')}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleSelectOption('relegationLimit', 'Diamond')
+                                }
+                              }}
+                            >
+                              <span className="type-card-title">Diamond</span>
+                            </div>
+                          )}
+                          {formData.category !== 'Gold Player' && (
+                            <div
+                              className={`type-card ${formData.relegationLimit === 'Gold' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
+                              onClick={() => handleSelectOption('relegationLimit', 'Gold')}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault()
+                                  handleSelectOption('relegationLimit', 'Gold')
+                                }
+                              }}
+                            >
+                              <span className="type-card-title">Gold</span>
+                            </div>
+                          )}
+                          <div
+                            className={`type-card ${formData.relegationLimit === 'Silver' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
+                            onClick={() => handleSelectOption('relegationLimit', 'Silver')}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                handleSelectOption('relegationLimit', 'Silver')
+                              }
+                            }}
+                          >
+                            <span className="type-card-title">Silver</span>
+                          </div>
+                        </div>
+                        {errors.relegationLimit && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.relegationLimit}</span>}
+                      </div>
+                    )}
+                  </>
                 )}
 
               </div>
@@ -1250,30 +1379,38 @@ export function RegisterPage() {
                       Upload a recent, clear, front-facing portrait photograph.
                     </p>
 
-                    <div
-                      className={`upload-dropzone ${formData.passportPhoto ? 'has-file' : ''} ${(!formData.passportPhoto && fileMeta.passportPhoto) ? 'has-file-warning' : ''} ${errors.passportPhoto ? 'dropzone-error' : ''}`}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'passportPhoto')}
-                      onClick={() => document.getElementById('passportPhotoInput')?.click()}
-                    >
-                      <input
-                        type="file"
-                        id="passportPhotoInput"
-                        accept=".jpg,.jpeg,.png"
-                        onChange={(e) => handleFileChange(e, 'passportPhoto')}
-                        style={{ display: 'none' }}
-                      />
-                      <div className="dropzone-inner">
-                        <span className="dropzone-title">
-                          {formData.passportPhoto ? `Selected: ${formData.passportPhoto.name}` :
-                           fileMeta.passportPhoto ? `Restored: ${fileMeta.passportPhoto.name} (⚠️ Re-upload required)` :
-                           'Click or drag a photo here'}
-                        </span>
-                        <span className="dropzone-subtitle">
-                          {formData.passportPhoto ? 'Click to change photo' :
-                           fileMeta.passportPhoto ? 'File must be re-selected' :
-                           'JPG or PNG, up to 5 MB'}
-                        </span>
+                    <div className="upload-row-layout">
+                      <div className="upload-dropzone-container">
+                        <div
+                          className={`upload-dropzone ${formData.passportPhoto ? 'has-file' : ''} ${(!formData.passportPhoto && fileMeta.passportPhoto) ? 'has-file-warning' : ''} ${errors.passportPhoto ? 'dropzone-error' : ''}`}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, 'passportPhoto')}
+                          onClick={() => document.getElementById('passportPhotoInput')?.click()}
+                          style={{ height: '100%' }}
+                        >
+                          <input
+                            type="file"
+                            id="passportPhotoInput"
+                            accept=".jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange(e, 'passportPhoto')}
+                            style={{ display: 'none' }}
+                          />
+                          <div className="dropzone-inner">
+                            <span className="dropzone-title">
+                              {formData.passportPhoto ? `Selected: ${formData.passportPhoto.name}` :
+                               fileMeta.passportPhoto ? `Restored: ${fileMeta.passportPhoto.name} (⚠️ Re-upload required)` :
+                               'Click or drag a photo here'}
+                            </span>
+                            <span className="dropzone-subtitle">
+                              {formData.passportPhoto ? 'Click to change photo' :
+                               fileMeta.passportPhoto ? 'File must be re-selected' :
+                               'JPG or PNG, up to 5 MB'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="upload-reference-container">
+                        <img src={frontProfileRef} alt="Player Profile Photo Reference" className="upload-reference-img" />
                       </div>
                     </div>
                     {errors.passportPhoto && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportPhoto}</span>}
@@ -1283,30 +1420,38 @@ export function RegisterPage() {
                   <div className="form-group" style={{ marginBottom: '2rem' }}>
                     <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Passport Image<span className="required">*</span></label>
 
-                    <div
-                      className={`upload-dropzone ${formData.passportScan ? 'has-file' : ''} ${(!formData.passportScan && fileMeta.passportScan) ? 'has-file-warning' : ''} ${errors.passportScan ? 'dropzone-error' : ''}`}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'passportScan')}
-                      onClick={() => document.getElementById('passportScanInput')?.click()}
-                    >
-                      <input
-                        type="file"
-                        id="passportScanInput"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={(e) => handleFileChange(e, 'passportScan')}
-                        style={{ display: 'none' }}
-                      />
-                      <div className="dropzone-inner">
-                        <span className="dropzone-title">
-                          {formData.passportScan ? `Selected: ${formData.passportScan.name}` :
-                           fileMeta.passportScan ? `Restored: ${fileMeta.passportScan.name} (⚠️ Re-upload required)` :
-                           'Click or drag a file here'}
-                        </span>
-                        <span className="dropzone-subtitle">
-                          {formData.passportScan ? 'Click to change file' :
-                           fileMeta.passportScan ? 'File must be re-selected' :
-                           'JPG, PNG, or PDF, up to 5 MB'}
-                        </span>
+                    <div className="upload-row-layout">
+                      <div className="upload-dropzone-container">
+                        <div
+                          className={`upload-dropzone ${formData.passportScan ? 'has-file' : ''} ${(!formData.passportScan && fileMeta.passportScan) ? 'has-file-warning' : ''} ${errors.passportScan ? 'dropzone-error' : ''}`}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, 'passportScan')}
+                          onClick={() => document.getElementById('passportScanInput')?.click()}
+                          style={{ height: '100%' }}
+                        >
+                          <input
+                            type="file"
+                            id="passportScanInput"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange(e, 'passportScan')}
+                            style={{ display: 'none' }}
+                          />
+                          <div className="dropzone-inner">
+                            <span className="dropzone-title">
+                              {formData.passportScan ? `Selected: ${formData.passportScan.name}` :
+                               fileMeta.passportScan ? `Restored: ${fileMeta.passportScan.name} (⚠️ Re-upload required)` :
+                               'Click or drag a file here'}
+                            </span>
+                            <span className="dropzone-subtitle">
+                              {formData.passportScan ? 'Click to change file' :
+                               fileMeta.passportScan ? 'File must be re-selected' :
+                               'JPG, PNG, or PDF, up to 5 MB'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="upload-reference-container">
+                        <img src={idRef} alt="Passport Document Reference" className="upload-reference-img" />
                       </div>
                     </div>
                     {errors.passportScan && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportScan}</span>}
@@ -1319,30 +1464,124 @@ export function RegisterPage() {
                       Upload a high-quality action photograph of you playing cricket.
                     </p>
 
-                    <div
-                      className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''} ${(!formData.actionShot && fileMeta.actionShot) ? 'has-file-warning' : ''}`}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, 'actionShot')}
-                      onClick={() => document.getElementById('actionShotInput')?.click()}
-                    >
-                      <input
-                        type="file"
-                        id="actionShotInput"
-                        accept=".jpg,.jpeg,.png"
-                        onChange={(e) => handleFileChange(e, 'actionShot')}
-                        style={{ display: 'none' }}
-                      />
-                      <div className="dropzone-inner">
-                        <span className="dropzone-title">
-                          {formData.actionShot ? `Selected: ${formData.actionShot.name}` :
-                           fileMeta.actionShot ? `Restored: ${fileMeta.actionShot.name} (⚠️ Re-upload optional)` :
-                           'Click or drag a photo here'}
-                        </span>
-                        <span className="dropzone-subtitle">
-                          {formData.actionShot ? 'Click to change photo' :
-                           fileMeta.actionShot ? 'File must be re-selected' :
-                           'JPG or PNG, up to 5 MB'}
-                        </span>
+                    <div className="upload-row-layout">
+                      <div className="upload-dropzone-container">
+                        <div
+                          className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''} ${(!formData.actionShot && fileMeta.actionShot) ? 'has-file-warning' : ''}`}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, 'actionShot')}
+                          onClick={() => document.getElementById('actionShotInput')?.click()}
+                          style={{ height: '100%' }}
+                        >
+                          <input
+                            type="file"
+                            id="actionShotInput"
+                            accept=".jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange(e, 'actionShot')}
+                            style={{ display: 'none' }}
+                          />
+                          <div className="dropzone-inner">
+                            <span className="dropzone-title">
+                              {formData.actionShot ? `Selected: ${formData.actionShot.name}` :
+                               fileMeta.actionShot ? `Restored: ${fileMeta.actionShot.name} (⚠️ Re-upload optional)` :
+                               'Click or drag a photo here'}
+                            </span>
+                            <span className="dropzone-subtitle">
+                              {formData.actionShot ? 'Click to change photo' :
+                               fileMeta.actionShot ? 'File must be re-selected' :
+                               'JPG or PNG, up to 5 MB'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="upload-reference-container">
+                        <img src={actionShotRef} alt="Action Shot Reference" className="upload-reference-img" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Profile Image */}
+                  <div className="form-group" style={{ marginTop: '2rem' }}>
+                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Right Profile Image <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
+                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Upload a right-side profile photograph of yourself.
+                    </p>
+
+                    <div className="upload-row-layout">
+                      <div className="upload-dropzone-container">
+                        <div
+                          className={`upload-dropzone ${formData.rightProfilePhoto ? 'has-file' : ''} ${(!formData.rightProfilePhoto && fileMeta.rightProfilePhoto) ? 'has-file-warning' : ''}`}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, 'rightProfilePhoto')}
+                          onClick={() => document.getElementById('rightProfilePhotoInput')?.click()}
+                          style={{ height: '100%' }}
+                        >
+                          <input
+                            type="file"
+                            id="rightProfilePhotoInput"
+                            accept=".jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange(e, 'rightProfilePhoto')}
+                            style={{ display: 'none' }}
+                          />
+                          <div className="dropzone-inner">
+                            <span className="dropzone-title">
+                              {formData.rightProfilePhoto ? `Selected: ${formData.rightProfilePhoto.name}` :
+                               fileMeta.rightProfilePhoto ? `Restored: ${fileMeta.rightProfilePhoto.name} (⚠️ Re-upload optional)` :
+                               'Click or drag a photo here'}
+                            </span>
+                            <span className="dropzone-subtitle">
+                              {formData.rightProfilePhoto ? 'Click to change photo' :
+                               fileMeta.rightProfilePhoto ? 'File must be re-selected' :
+                               'JPG or PNG, up to 5 MB'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="upload-reference-container">
+                        <img src={rightProfileRef} alt="Right Profile Photo Reference" className="upload-reference-img" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Left Profile Image */}
+                  <div className="form-group" style={{ marginTop: '2rem' }}>
+                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Left Profile Image <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
+                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+                      Upload a left-side profile photograph of yourself.
+                    </p>
+
+                    <div className="upload-row-layout">
+                      <div className="upload-dropzone-container">
+                        <div
+                          className={`upload-dropzone ${formData.leftProfilePhoto ? 'has-file' : ''} ${(!formData.leftProfilePhoto && fileMeta.leftProfilePhoto) ? 'has-file-warning' : ''}`}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, 'leftProfilePhoto')}
+                          onClick={() => document.getElementById('leftProfilePhotoInput')?.click()}
+                          style={{ height: '100%' }}
+                        >
+                          <input
+                            type="file"
+                            id="leftProfilePhotoInput"
+                            accept=".jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange(e, 'leftProfilePhoto')}
+                            style={{ display: 'none' }}
+                          />
+                          <div className="dropzone-inner">
+                            <span className="dropzone-title">
+                              {formData.leftProfilePhoto ? `Selected: ${formData.leftProfilePhoto.name}` :
+                               fileMeta.leftProfilePhoto ? `Restored: ${fileMeta.leftProfilePhoto.name} (⚠️ Re-upload optional)` :
+                               'Click or drag a photo here'}
+                            </span>
+                            <span className="dropzone-subtitle">
+                              {formData.leftProfilePhoto ? 'Click to change photo' :
+                               fileMeta.leftProfilePhoto ? 'File must be re-selected' :
+                               'JPG or PNG, up to 5 MB'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="upload-reference-container">
+                        <img src={leftRef} alt="Left Profile Photo Reference" className="upload-reference-img" />
                       </div>
                     </div>
                   </div>
@@ -1455,18 +1694,40 @@ export function RegisterPage() {
                           <span className="review-line-label">Batting Hand</span>
                           <span className="review-line-val">{formData.battingHand || '—'}</span>
                         </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Bowling Style</span>
-                          <span className="review-line-val">{formData.bowlingStyle || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Current Club</span>
-                          <span className="review-line-val">{formData.currentClub || '—'}</span>
-                        </div>
+                        {/* Bowling details */}
+                        {(formData.playingRole === 'All-Rounder' || formData.playingRole === 'Fast Bowler' || formData.playingRole === 'Spin Bowler') ? (
+                          <>
+                            <div className="review-line-item">
+                              <span className="review-line-label">Bowling Arm</span>
+                              <span className="review-line-val">{formData.bowlingStyle || '—'}</span>
+                            </div>
+                            <div className="review-line-item">
+                              <span className="review-line-label">Bowling Type</span>
+                              <span className="review-line-val">{formData.bowlingSubtype || '—'}</span>
+                            </div>
+                            {formData.bowlingSubtype === 'Spin Bowler' && (
+                              <div className="review-line-item">
+                                <span className="review-line-label">Spin Type</span>
+                                <span className="review-line-val">{formData.spinType || '—'}</span>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="review-line-item">
+                            <span className="review-line-label">Bowling Style</span>
+                            <span className="review-line-val">N/A (Batter)</span>
+                          </div>
+                        )}
                         <div className="review-line-item">
                           <span className="review-line-label">Player Status</span>
                           <span className="review-line-val">{formData.playerStatus || '—'}</span>
                         </div>
+                        {(formData.playerStatus === 'Overseas International' || formData.playerStatus === 'Overseas Domestic') && (
+                          <div className="review-line-item">
+                            <span className="review-line-label">Representing Country</span>
+                            <span className="review-line-val">{formData.representingCountry || '—'}</span>
+                          </div>
+                        )}
                         <div className="review-line-item">
                           <span className="review-line-label">Total T20 Matches</span>
                           <span className="review-line-val">{formData.totalMatches || '—'}</span>
@@ -1482,21 +1743,25 @@ export function RegisterPage() {
                           <span className="review-line-label">Category</span>
                           <span className="review-line-val">{formData.category || '—'}</span>
                         </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Accepts Relegation</span>
-                          <span className="review-line-val">
-                            {formData.acceptRelegation === 'yes' ? 'Yes' :
-                              formData.acceptRelegation === 'no' ? 'No' :
-                                formData.acceptRelegation === 'emerging' ? 'Emerging (Does not Apply)' :
-                                  '—'}
-                          </span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Lowest Acceptable Category</span>
-                          <span className="review-line-val">
-                            {formData.acceptRelegation === 'yes' ? (formData.relegationLimit || '—') : 'N/A'}
-                          </span>
-                        </div>
+                        {formData.category !== 'Silver Player' && formData.category !== 'Emerging Under-23' && (
+                          <>
+                            <div className="review-line-item">
+                              <span className="review-line-label">Accepts Relegation</span>
+                              <span className="review-line-val">
+                                {formData.acceptRelegation === 'yes' ? 'Yes' :
+                                  formData.acceptRelegation === 'no' ? 'No' :
+                                    formData.acceptRelegation === 'emerging' ? 'Emerging (Does not Apply)' :
+                                      '—'}
+                              </span>
+                            </div>
+                            <div className="review-line-item">
+                              <span className="review-line-label">Lowest Acceptable Category</span>
+                              <span className="review-line-val">
+                                {formData.acceptRelegation === 'yes' ? (formData.relegationLimit || '—') : 'N/A'}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -1515,6 +1780,14 @@ export function RegisterPage() {
                         <div className="review-line-item">
                           <span className="review-line-label">Action Shot</span>
                           <span className="review-line-val">{formData.actionShot ? formData.actionShot.name : '—'}</span>
+                        </div>
+                        <div className="review-line-item">
+                          <span className="review-line-label">Right Profile Photo</span>
+                          <span className="review-line-val">{formData.rightProfilePhoto ? formData.rightProfilePhoto.name : '—'}</span>
+                        </div>
+                        <div className="review-line-item">
+                          <span className="review-line-label">Left Profile Photo</span>
+                          <span className="review-line-val">{formData.leftProfilePhoto ? formData.leftProfilePhoto.name : '—'}</span>
                         </div>
                       </div>
                     </div>
@@ -1553,6 +1826,9 @@ export function RegisterPage() {
                       <label htmlFor="consent-3">I agree to the APL registration terms, verification process, and privacy policy.</label>
                     </div>
                   </div>
+                  {errors.consents && (
+                    <p className="error-message" style={{ marginTop: '1rem', display: 'block' }}>{errors.consents}</p>
+                  )}
 
                 </div>
               </div>

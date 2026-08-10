@@ -77,7 +77,7 @@ const initialFormData: FormData = {
   spinType: '',
   currentClub: '',
   prevTeams: '',
-  playerStatus: 'Afghanistan Domestic',
+  playerStatus: 'Afghanistan (Domestic)',
   representingCountry: '',
   totalMatches: '',
   profileLink: '',
@@ -297,7 +297,7 @@ export function RegisterPage() {
       if (!formData.playerStatus) {
         newErrors.playerStatus = 'Player Status is required'
       } else if (
-        (formData.playerStatus === 'Overseas International' || formData.playerStatus === 'Overseas Domestic') &&
+        (formData.playerStatus === 'Overseas (National)' || formData.playerStatus === 'Overseas (Domestic)') &&
         !formData.representingCountry
       ) {
         newErrors.representingCountry = 'Representing Country is required'
@@ -385,7 +385,7 @@ export function RegisterPage() {
       finalExtraData = { ...finalExtraData, spinType: '' }
     }
     if (fieldName === 'playerStatus') {
-      const isNewOverseas = value === 'Overseas International' || value === 'Overseas Domestic'
+      const isNewOverseas = value === 'Overseas (National)' || value === 'Overseas (Domestic)'
       if (!isNewOverseas) {
         finalExtraData = { ...finalExtraData, representingCountry: '' }
       }
@@ -1144,11 +1144,11 @@ export function RegisterPage() {
                   <label className="field-group-label">Player Status <span className="required">*</span></label>
                   <div className="player-status-grid">
                     {[
-                      'Afghanistan International',
-                      'Afghanistan Domestic',
-                      'Overseas International',
-                      'Overseas Domestic',
-                      'Domestic Emerging Player'
+                      'Afghanistan (National)',
+                      'Afghanistan (Domestic)',
+                      'Overseas (National)',
+                      'Overseas (Domestic)',
+                      'Emerging Player (Domestic)'
                     ].map((status) => (
                       <div
                         key={status}
@@ -1170,7 +1170,7 @@ export function RegisterPage() {
                 </div>
 
                 {/* Player Status Country Select */}
-                {(formData.playerStatus === 'Overseas International' || formData.playerStatus === 'Overseas Domestic') && (
+                {(formData.playerStatus === 'Overseas (National)' || formData.playerStatus === 'Overseas (Domestic)') && (
                   <div className="form-section animate-fade-in">
                     <div className="form-group">
                       <label>Representing Country <span className="required">*</span></label>
@@ -1722,7 +1722,7 @@ export function RegisterPage() {
                           <span className="review-line-label">Player Status</span>
                           <span className="review-line-val">{formData.playerStatus || '—'}</span>
                         </div>
-                        {(formData.playerStatus === 'Overseas International' || formData.playerStatus === 'Overseas Domestic') && (
+                        {(formData.playerStatus === 'Overseas (National)' || formData.playerStatus === 'Overseas (Domestic)') && (
                           <div className="review-line-item">
                             <span className="review-line-label">Representing Country</span>
                             <span className="review-line-val">{formData.representingCountry || '—'}</span>

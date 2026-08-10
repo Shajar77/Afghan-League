@@ -712,15 +712,27 @@
 
 .dropzone-title {
   font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #0d1e52;
 }
 
+@media (min-width: 768px) {
+  .dropzone-title {
+    font-size: 1rem;
+  }
+}
+
 .dropzone-subtitle {
   font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: #64748b;
+}
+
+@media (min-width: 768px) {
+  .dropzone-subtitle {
+    font-size: 0.82rem;
+  }
 }
 
 /* ── STEP 5: REVIEW ── */
@@ -1278,14 +1290,15 @@
 /* ── UPLOAD LAYOUT WITH REFERENCE IMAGES ── */
 .upload-row-layout {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.75rem;
   width: 100%;
 }
 
 .upload-dropzone-container {
   flex: 1;
-  width: 100%;
+  min-width: 0;
 }
 
 .upload-reference-container {
@@ -1296,21 +1309,40 @@
   border: 1px dashed #cbd5e1;
   border-radius: 12px;
   overflow: hidden;
-  width: 100%;
-  height: 180px;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+/* Make dropzone compact on mobile to fit side-by-side layout nicely */
+.upload-dropzone {
+  padding: 1.5rem 0.75rem !important;
+  min-height: 120px !important;
+}
+
+@media (min-width: 480px) {
+  .upload-row-layout {
+    gap: 1rem;
+  }
+  .upload-reference-container {
+    width: 140px;
+  }
+  .upload-dropzone {
+    padding: 2rem 1.25rem !important;
+    min-height: 140px !important;
+  }
 }
 
 @media (min-width: 768px) {
   .upload-row-layout {
-    flex-direction: row;
-    align-items: stretch;
     gap: 1.5rem;
   }
   
   .upload-reference-container {
     width: 200px;
-    height: auto;
-    min-height: 120px;
+  }
+
+  .upload-dropzone {
+    padding: 3rem 1.5rem !important;
   }
 }
 
@@ -1319,3 +1351,4 @@
   height: 100%;
   object-fit: cover;
 }
+

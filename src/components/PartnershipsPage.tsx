@@ -2,6 +2,7 @@ import { AnimatedCounter } from './AnimatedCounter'
 import introImg from '../assets/gallery-6.webp'
 import acbLogo from '../assets/ACBlogo.webp'
 import aplLogo from '../assets/Asset 2@2x.png'
+import { GetInvolvedSection } from './GetInvolvedSection'
 import './PartnershipsPage.css'
 import './About.css'
 
@@ -124,6 +125,10 @@ export function PartnershipsPage() {
           </div>
         </div>
       </section>
+
+      <div className="section-divider-line" />
+
+      <GetInvolvedSection />
 
       <div className="section-divider-line" />
 

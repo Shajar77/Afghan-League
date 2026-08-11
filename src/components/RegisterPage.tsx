@@ -46,6 +46,7 @@ interface FormData {
   basePrice: string
   acceptRelegation: 'yes' | 'no' | 'emerging' | ''
   relegationLimit: 'Diamond' | 'Gold' | 'Silver' | ''
+  considerIconPlayer: 'yes' | 'no' | ''
 
   // Step 4: Uploads
   passportPhoto: File | null
@@ -87,6 +88,7 @@ const initialFormData: FormData = {
   basePrice: '$20,000',
   acceptRelegation: 'no',
   relegationLimit: '',
+  considerIconPlayer: '',
   passportPhoto: null,
   passportScan: null,
   actionShot: null,
@@ -95,7 +97,6 @@ const initialFormData: FormData = {
 }
 
 const categoriesList = [
-  { id: 'Icon Player', label: 'Icon Player', desc: 'Marquee national talent', price: '$100,000' },
   { id: 'Platinum Player', label: 'Platinum Player', desc: 'Top-tier performers', price: '$50,000' },
   { id: 'Diamond Player', label: 'Diamond Player', desc: 'Established talent', price: '$35,000' },
   { id: 'Gold Player', label: 'Gold Player', desc: 'Strong domestic record', price: '$20,000' },
@@ -128,6 +129,7 @@ export function RegisterPage() {
   const [consent1, setConsent1] = useState<boolean>(false)
   const [consent2, setConsent2] = useState<boolean>(false)
   const [consent3, setConsent3] = useState<boolean>(false)
+  const [consent4, setConsent4] = useState<boolean>(false)
 
   useEffect(() => {
     // Disable native browser scroll restoration to prevent snapping to footer on refresh
@@ -338,6 +340,9 @@ export function RegisterPage() {
 
     if (step === 3) {
       if (!formData.category) newErrors.category = 'Player Category is required'
+      if (formData.category === 'Platinum Player' && !formData.considerIconPlayer) {
+        newErrors.considerIconPlayer = 'Please specify if you want to be considered for Icon Player nomination'
+      }
       if (!formData.acceptRelegation) {
         newErrors.acceptRelegation = 'Please specify if you accept category relegation'
       }
@@ -375,6 +380,7 @@ export function RegisterPage() {
     if (step === 4) {
       if (!formData.passportPhoto) newErrors.passportPhoto = 'Player Profile Photo is required'
       if (!formData.passportScan) newErrors.passportScan = 'Passport Image is required'
+      if (!formData.actionShot) newErrors.actionShot = 'Action Shot is required'
     }
 
     setErrors(newErrors)
@@ -551,8 +557,8 @@ export function RegisterPage() {
         setCurrentStep(prev => prev + 1)
       } else {
         // Guard: ensure all consents are checked before submitting
-        if (!consent1 || !consent2 || !consent3) {
-          setErrors({ consents: 'Please accept all three declarations before submitting.' })
+        if (!consent1 || !consent2 || !consent3 || !consent4) {
+          setErrors({ consents: 'Please accept all declarations before submitting.' })
           return
         }
         // Final Submit
@@ -629,7 +635,7 @@ export function RegisterPage() {
 
               <div className="success-detail-row">
                 <span className="detail-label">Draft Status</span>
-                <span className="detail-value status-badge">Under Review by ACB Cricket Operations</span>
+                <span className="detail-value status-badge">Under Review by APL Cricket Operations</span>
               </div>
 
               <div className="success-email-notice">
@@ -1290,26 +1296,65 @@ export function RegisterPage() {
 
                   <div className="categories-grid-cards">
                     {categoriesList.map((cat) => (
-                      <div
-                        key={cat.id}
-                        className={`category-large-card ${formData.category === cat.id ? 'selected' : ''}`}
-                        onClick={() => handleSelectOption('category', cat.id, { basePrice: cat.price })}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleSelectOption('category', cat.id, { basePrice: cat.price })
-                          }
-                        }}
-                      >
-                        <div className="cat-card-left">
-                          <h4 className="cat-card-title">{cat.label}</h4>
-                          <p className="cat-card-desc">{cat.desc}</p>
-                        </div>
-                      </div>
+                       <div
+                         key={cat.id}
+                         className={`category-large-card ${formData.category === cat.id ? 'selected' : ''}`}
+                         onClick={() => handleSelectOption('category', cat.id, { basePrice: cat.price, considerIconPlayer: '' })}
+                         role="button"
+                         tabIndex={0}
+                         onKeyDown={(e) => {
+                           if (e.key === 'Enter' || e.key === ' ') {
+                             e.preventDefault()
+                             handleSelectOption('category', cat.id, { basePrice: cat.price, considerIconPlayer: '' })
+                           }
+                         }}
+                       >
+                         <div className="cat-card-left">
+                           <h4 className="cat-card-title">{cat.label}</h4>
+                           <p className="cat-card-desc">{cat.desc}</p>
+                         </div>
+                       </div>
                     ))}
                   </div>
+
+                  {formData.category === 'Platinum Player' && (
+                    <div className="form-section animate-fade-in" style={{ marginTop: '2rem' }}>
+                      <h3 className="section-title">Icon Player Nomination <span className="required">*</span></h3>
+                      <p className="section-subtitle">Would you like to be considered for the Icon Player nomination?</p>
+                      
+                      <div className="relegation-cards-grid">
+                        <div
+                          className={`type-card ${formData.considerIconPlayer === 'yes' ? 'selected' : ''} ${errors.considerIconPlayer ? 'input-error' : ''}`}
+                          onClick={() => handleSelectOption('considerIconPlayer', 'yes')}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleSelectOption('considerIconPlayer', 'yes')
+                            }
+                          }}
+                        >
+                          <span>Yes</span>
+                        </div>
+                        <div
+                          className={`type-card ${formData.considerIconPlayer === 'no' ? 'selected' : ''} ${errors.considerIconPlayer ? 'input-error' : ''}`}
+                          onClick={() => handleSelectOption('considerIconPlayer', 'no')}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleSelectOption('considerIconPlayer', 'no')
+                            }
+                          }}
+                        >
+                          <span>No</span>
+                        </div>
+                      </div>
+                      {errors.considerIconPlayer && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.considerIconPlayer}</span>}
+                    </div>
+                  )}
                 </div>
 
                 {/* Relegation Consent */}
@@ -1517,9 +1562,9 @@ export function RegisterPage() {
                     {errors.passportScan && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportScan}</span>}
                   </div>
 
-                  {/* Action Shot (Optional) */}
+                  {/* Action Shot */}
                   <div className="form-group">
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Action Shot <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
+                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Action Shot <span className="required">*</span></label>
                     <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
                       Upload a high-quality action photograph of you playing cricket.
                     </p>
@@ -1527,7 +1572,7 @@ export function RegisterPage() {
                     <div className="upload-row-layout">
                       <div className="upload-dropzone-container">
                         <div
-                          className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''} ${(!formData.actionShot && fileMeta.actionShot) ? 'has-file-warning' : ''}`}
+                          className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''} ${(!formData.actionShot && fileMeta.actionShot) ? 'has-file-warning' : ''} ${errors.actionShot ? 'dropzone-error' : ''}`}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, 'actionShot')}
                           onClick={() => document.getElementById('actionShotInput')?.click()}
@@ -1543,7 +1588,7 @@ export function RegisterPage() {
                           <div className="dropzone-inner">
                             <span className="dropzone-title">
                               {formData.actionShot ? `Selected: ${formData.actionShot.name}` :
-                               fileMeta.actionShot ? `Restored: ${fileMeta.actionShot.name} (⚠️ Re-upload optional)` :
+                               fileMeta.actionShot ? `Restored: ${fileMeta.actionShot.name} (⚠️ Re-upload required)` :
                                'Click or drag a photo here'}
                             </span>
                             <span className="dropzone-subtitle">
@@ -1558,6 +1603,7 @@ export function RegisterPage() {
                         <img src={actionShotRef} alt="Action Shot Reference" className="upload-reference-img" />
                       </div>
                     </div>
+                    {errors.actionShot && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.actionShot}</span>}
                   </div>
 
                   {/* Right Profile Image */}
@@ -1833,6 +1879,14 @@ export function RegisterPage() {
                             </div>
                           </>
                         )}
+                        {formData.category === 'Platinum Player' && (
+                          <div className="review-line-item">
+                            <span className="review-line-label">Consider for Icon Nomination</span>
+                            <span className="review-line-val">
+                              {formData.considerIconPlayer === 'yes' ? 'Yes' : 'No'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1896,6 +1950,16 @@ export function RegisterPage() {
                       />
                       <label htmlFor="consent-3">I agree to the APL registration terms, verification process, and privacy policy.</label>
                     </div>
+
+                    <div className="consent-checkbox-line">
+                      <input
+                        type="checkbox"
+                        id="consent-4"
+                        checked={consent4}
+                        onChange={(e) => setConsent4(e.target.checked)}
+                      />
+                      <label htmlFor="consent-4">By submitting this application, I confirm my commitment to being available during the time window I have selected on the form.</label>
+                    </div>
                   </div>
                   {errors.consents && (
                     <p className="error-message" style={{ marginTop: '1rem', display: 'block' }}>{errors.consents}</p>
@@ -1923,7 +1987,7 @@ export function RegisterPage() {
                     type="button"
                     className="btn-submit-registration"
                     onClick={handleNext}
-                    disabled={!consent1 || !consent2 || !consent3}
+                    disabled={!consent1 || !consent2 || !consent3 || !consent4}
                   >
                     Submit Registration
                   </button>

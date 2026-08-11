@@ -1,11 +1,13 @@
-import { useEffect, useRef, Suspense, lazy } from 'react'
+import { useEffect, useRef, useState, Suspense, lazy } from 'react'
 import { Navbar } from './components/Navbar'
+import { GetInvolvedSection } from './components/GetInvolvedSection'
 import { MatchTicker } from './components/MatchTicker'
 import { FEATURES } from './constants/features'
 
 const About = lazy(() => import('./components/About').then(m => ({ default: m.About })))
 const Moments = lazy(() => import('./components/Moments').then(m => ({ default: m.Moments })))
 const News = lazy(() => import('./components/News').then(m => ({ default: m.News })))
+const BlogDetailPage = lazy(() => import('./components/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })))
 const GalleryPage = lazy(() => import('./components/GalleryPage').then(m => ({ default: m.GalleryPage })))
 const FixturesPage = lazy(() => import('./components/FixturesPage').then(m => ({ default: m.FixturesPage })))
 const PointsTable = lazy(() => import('./components/PointsTable').then(m => ({ default: m.PointsTable })))
@@ -15,6 +17,9 @@ const TeamsPage = lazy(() => import('./components/TeamsPage').then(m => ({ defau
 const ComingSoonPage = lazy(() => import('./components/ComingSoonPage').then(m => ({ default: m.ComingSoonPage })))
 const RegisterPage = lazy(() => import('./components/RegisterPage').then(m => ({ default: m.RegisterPage })))
 import { RegisterStatusPage } from './components/RegisterStatusPage'
+import { HomeNewsSection } from './components/HomeNewsSection'
+import { articles } from './constants/newsData'
+import type { Article } from './constants/newsData'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { VolumeX } from 'lucide-react'
 import { useAppStore } from './store/useAppStore'
@@ -94,6 +99,20 @@ function App() {
   const ballRef = useRef<HTMLDivElement>(null)
   const ballRef2 = useRef<HTMLDivElement>(null)
 
+  const [newsletterEmail, setNewsletterEmail] = useState('')
+  const [newsletterSuccess, setNewsletterSuccess] = useState(false)
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newsletterEmail.trim()) {
+      setNewsletterSuccess(true)
+      setNewsletterEmail('')
+      setTimeout(() => {
+        setNewsletterSuccess(false)
+      }, 5000)
+    }
+  }
+  const [blogDetailArticle, setBlogDetailArticle] = useState<Article | null>(null)
   // Initialize Lenis smooth scroll
   useEffect(() => {
     const lenis = new Lenis({
@@ -144,6 +163,16 @@ function App() {
       } else if (hash === '#news') {
         setCurrentPage('news')
         scrollToTop()
+      } else if (hash.startsWith('#blog/')) {
+        const blogId = hash.replace('#blog/', '')
+        const article = articles.find(a => a.id === blogId)
+        if (article) {
+          setBlogDetailArticle(article)
+          setCurrentPage('blog-detail')
+          scrollToTop()
+        } else {
+          setCurrentPage('home')
+        }
       } else if (hash === '#teams') {
         setCurrentPage('teams')
         scrollToTop()
@@ -319,6 +348,13 @@ function App() {
               </section>
             )}
 
+            {FEATURES.SHOW_NEWS && (
+              <>
+                <div className="section-divider-line" />
+                <HomeNewsSection />
+              </>
+            )}
+
             {/* Cricket Ball Seam Separator — above Points Table */}
             <div className="cricket-seam-separator">
               <div className="cricket-seam-track">
@@ -397,6 +433,8 @@ function App() {
                 </Suspense>
               </>
             )}
+
+
 
             {FEATURES.SHOW_LAUNCH_EVENT && (
               <>
@@ -637,6 +675,10 @@ function App() {
               </>
             )}
 
+            <GetInvolvedSection />
+
+            <div className="section-divider-line" />
+
             {/* Partners Section (ACBlogo) */}
             <section className="partners-section">
               <h2 className="section-heading partners-heading">Official <span>Partners</span></h2>
@@ -672,6 +714,8 @@ function App() {
           }>
             {currentPage === 'news' ? (
               <News />
+            ) : currentPage === 'blog-detail' && blogDetailArticle ? (
+              <BlogDetailPage article={blogDetailArticle} />
             ) : currentPage === 'teams' ? (
               <TeamsPage />
             ) : currentPage === 'gallery' ? (
@@ -703,6 +747,36 @@ function App() {
 
       <footer className="app-footer">
         <div className="footer-container">
+
+          {/* Newsletter Section */}
+          <div className="footer-newsletter">
+            <div className="newsletter-info">
+              <h5 className="newsletter-subtitle">STAY UPDATED</h5>
+              <p className="newsletter-desc">
+                Be the first to receive match updates, ticket alerts, and official league announcements.
+              </p>
+            </div>
+            <div className="newsletter-action-wrap">
+              <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
+                <input 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  className="newsletter-input" 
+                  required 
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                />
+                <button type="submit" className="btn-newsletter-subscribe">
+                  SUBMIT
+                </button>
+              </form>
+              {newsletterSuccess && (
+                <div className="newsletter-success-msg">✓ Thank you! Your email has been registered.</div>
+              )}
+            </div>
+          </div>
+
+          <div className="footer-divider" />
 
           {/* Main Footer Columns Grid */}
           <div className="footer-grid">

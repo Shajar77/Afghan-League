@@ -1,0 +1,115 @@
+.get-involved-section {
+  width: 100%;
+  margin-top: 4rem;
+  padding: 0 var(--page-padding);
+}
+
+.get-involved-inner {
+  max-width: 1520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.get-involved-content-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+}
+
+.get-involved-section .section-heading {
+  text-align: center;
+  align-self: center;
+  max-width: none;
+}
+
+.get-involved-section .section-description {
+  text-align: center;
+  align-self: center;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 700px;
+  margin-bottom: 2rem;
+}
+
+.get-involved-buttons-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.btn-gi-option,
+.btn-enquire-now {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  min-height: 48px;
+  width: 100%;
+  max-width: 240px; /* Lock maximum width on mobile */
+  transition: all 0.3s ease;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.btn-gi-option {
+  color: #0e1038;
+  padding: 0.5rem 1.2rem; /* Adjusted padding to be sleeker */
+  border: none;
+  background: var(--brand-gold);
+}
+
+.btn-gi-option:hover {
+  background: #ffdb3b;
+  transform: translateY(-1px);
+}
+
+.btn-enquire-now {
+  background: #ffffff;
+  color: #0e1038;
+  padding: 0.5rem 1.2rem; /* Adjusted padding to be sleeker */
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-enquire-now:hover {
+  transform: translateY(-2px);
+  background: #f0f3f9;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.btn-enquire-now:active {
+  transform: translateY(0);
+}
+
+/* Desktop Scale Up */
+@media (min-width: 768px) {
+  .get-involved-section {
+    margin-top: 8rem;
+  }
+
+  .get-involved-buttons-row {
+    flex-direction: row;
+    justify-content: center;
+    gap: 1.2rem;
+    width: auto;
+  }
+
+  .btn-gi-option,
+  .btn-enquire-now {
+    width: auto; /* Let padding determine the button width on desktop */
+    min-width: 190px; /* Reduced minimum width from 240px so buttons are narrower and sleek */
+    max-width: none;
+  }
+}

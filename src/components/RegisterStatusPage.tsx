@@ -3,12 +3,13 @@ import './RegisterStatusPage.css'
 
 export function RegisterStatusPage() {
   const [appId, setAppId] = useState('')
+  const [email, setEmail] = useState('')
   const [searched, setSearched] = useState(false)
   const [statusResult, setStatusResult] = useState<any>(null)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!appId.trim()) return
+    if (!appId.trim() || !email.trim()) return
 
     setSearched(true)
     let formattedId = appId.trim().toUpperCase().replace(/\s+/g, '')
@@ -25,7 +26,7 @@ export function RegisterStatusPage() {
         id: formattedId,
         status: 'Under Review',
         date: 'August 8, 2026',
-        assignee: 'ACB Cricket Operations',
+        assignee: 'APL Cricket Operations',
         remarks: 'Your document validation is complete. Reviewing draft category eligibility based on ESPNcricinfo / Cricbuzz matches history.'
       })
     } else {
@@ -53,7 +54,7 @@ export function RegisterStatusPage() {
         <div className="status-card">
           <h2 className="status-section-title">Check Application Status</h2>
           <p className="status-section-subtitle">
-            Enter your registration reference number below to check the current review status of your draft application.
+            Enter your registration reference number and registered email address to check the current status of your draft application.
           </p>
 
           <form onSubmit={handleSearch} className="status-search-form">
@@ -70,15 +71,14 @@ export function RegisterStatusPage() {
               </div>
               <div className="status-field-group">
                 <input
-                  type="text"
-                  placeholder="Enter OTP"
+                  type="email"
+                  placeholder="Enter Registered Email Address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="status-search-input"
                   required
-                  maxLength={6}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
                 />
-                <p className="status-otp-hint">Enter the code sent to you in the verification email</p>
+                <p className="status-otp-hint">Enter the email used during registration</p>
               </div>
             </div>
             <button type="submit" className="status-search-btn status-search-btn--full">

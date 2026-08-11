@@ -1,6 +1,7 @@
 import { useEffect, useRef, Suspense, lazy } from 'react'
 import { Navbar } from './components/Navbar'
 import { MatchTicker } from './components/MatchTicker'
+import { FEATURES } from './constants/features'
 
 const About = lazy(() => import('./components/About').then(m => ({ default: m.About })))
 const Moments = lazy(() => import('./components/Moments').then(m => ({ default: m.Moments })))
@@ -209,9 +210,11 @@ function App() {
             </div>
 
             {/* Matches Scorecard docked below the navbar (over the video background) */}
-            <div className="hero-matches-ticker-wrapper">
-              <MatchTicker />
-            </div>
+            {FEATURES.SHOW_MATCH_TICKER && (
+              <div className="hero-matches-ticker-wrapper">
+                <MatchTicker />
+              </div>
+            )}
             <div className="hero-content">
               <h1 className="hero-title">A Legacy<br />in the Making!</h1>
               <p className="hero-status-subtitle">REGISTRATIONS ARE OPEN NOW</p>
@@ -260,59 +263,61 @@ function App() {
           </section>
 
           <main className="app-main">
-            <section className="teams-section">
-              <h2 className="section-heading">Choose <br />your <span>team</span></h2>
-              <p className="section-description">Explore the official competing franchises and access their club pages.</p>
+            {FEATURES.SHOW_TEAMS && (
+              <section className="teams-section">
+                <h2 className="section-heading">Choose <br />your <span>team</span></h2>
+                <p className="section-description">Explore the official competing franchises and access their club pages.</p>
 
-              <div className="teams-layout">
-                {/* Left side: Teams Grid */}
-                <div className="teams-left">
-                  <div className="teams-grid">
-                    <a href="#team-kabul" className="team-card" title="Kabul Knights">
-                      <img src={londonSpiritLogo} alt="Kabul Knights Logo" className="team-logo-img" />
-                    </a>
-                    <a href="#team-kandahar" className="team-card" title="Kandahar Kings">
-                      <img src={birminghamPhoenixLogo} alt="Kandahar Kings Logo" className="team-logo-img" />
-                    </a>
-                    <a href="#team-balkh" className="team-card" title="Balkh Legends">
-                      <img src={manchesterSuperGiantsLogo} alt="Balkh Legends Logo" className="team-logo-img" />
-                    </a>
-                    <a href="#team-paktia" className="team-card" title="Paktia Panthers">
-                      <img src={sunrisersLeedsLogo} alt="Paktia Panthers Logo" className="team-logo-img" />
-                    </a>
-                    <a href="#team-amo" className="team-card" title="Amo Sharks">
-                      <img src={welshFireLogo} alt="Amo Sharks Logo" className="team-logo-img" />
-                    </a>
-                    <a href="#team-bandeamir" className="team-card" title="Band-e-Amir Dragons">
-                      <img src={southernBraveLogo} alt="Band-e-Amir Dragons Logo" className="team-logo-img" />
-                    </a>
+                <div className="teams-layout">
+                  {/* Left side: Teams Grid */}
+                  <div className="teams-left">
+                    <div className="teams-grid">
+                      <a href="#team-kabul" className="team-card" title="Kabul Knights">
+                        <img src={londonSpiritLogo} alt="Kabul Knights Logo" className="team-logo-img" />
+                      </a>
+                      <a href="#team-kandahar" className="team-card" title="Kandahar Kings">
+                        <img src={birminghamPhoenixLogo} alt="Kandahar Kings Logo" className="team-logo-img" />
+                      </a>
+                      <a href="#team-balkh" className="team-card" title="Balkh Legends">
+                        <img src={manchesterSuperGiantsLogo} alt="Balkh Legends Logo" className="team-logo-img" />
+                      </a>
+                      <a href="#team-paktia" className="team-card" title="Paktia Panthers">
+                        <img src={sunrisersLeedsLogo} alt="Paktia Panthers Logo" className="team-logo-img" />
+                      </a>
+                      <a href="#team-amo" className="team-card" title="Amo Sharks">
+                        <img src={welshFireLogo} alt="Amo Sharks Logo" className="team-logo-img" />
+                      </a>
+                      <a href="#team-bandeamir" className="team-card" title="Band-e-Amir Dragons">
+                        <img src={southernBraveLogo} alt="Band-e-Amir Dragons Logo" className="team-logo-img" />
+                      </a>
+                    </div>
                   </div>
-                </div>
 
-                {/* Right side: Video Widget */}
-                <div className="teams-right">
-                  <div className="teams-video-container">
-                    <div className="teams-video-wrapper">
-                      <video
-                        className="teams-video"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
-                      >
-                        <source src={aboutVideoWebm} type="video/webm" />
-                        <source src={aboutVideo} type="video/mp4" />
-                      </video>
-                      <div className="teams-video-overlay"></div>
-                      <div className="teams-video-logo-wrapper">
-                        <img src={aplLogo} alt="APL Logo Overlay" className="teams-video-logo" />
+                  {/* Right side: Video Widget */}
+                  <div className="teams-right">
+                    <div className="teams-video-container">
+                      <div className="teams-video-wrapper">
+                        <video
+                          className="teams-video"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          preload="metadata"
+                        >
+                          <source src={aboutVideoWebm} type="video/webm" />
+                          <source src={aboutVideo} type="video/mp4" />
+                        </video>
+                        <div className="teams-video-overlay"></div>
+                        <div className="teams-video-logo-wrapper">
+                          <img src={aplLogo} alt="APL Logo Overlay" className="teams-video-logo" />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </section>
+              </section>
+            )}
 
             {/* Cricket Ball Seam Separator — above Points Table */}
             <div className="cricket-seam-separator">
@@ -332,171 +337,177 @@ function App() {
               </div>
             </div>
 
-            {/* Points Table Section */}
-            <section className="points-table-section">
-              <h2 className="section-heading">Points <span>Table</span></h2>
-              <p className="section-description">Current APL 2026 season standings — updated after every match.</p>
-              <div className="points-table-wrapper">
-                <table className="points-table">
-                  <thead>
-                    <tr>
-                      <th className="pt-rank">POS</th>
-                      <th className="pt-club">TEAM</th>
-                      <th className="pt-col-pld" title="Matches Played">PLD</th>
-                      <th className="pt-col-won" title="Won">WON</th>
-                      <th className="pt-col-lost" title="Lost">LOST</th>
-                      <th className="pt-col-tied" title="Tied">TIED</th>
-                      <th className="pt-col-nr" title="No Result">N/R</th>
-                      <th className="pt-col-nrr" title="Net Run Rate">NRR</th>
-                      <th className="pt-pts" title="Points">PTS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { rank: 1, name: 'Kabul Knights', logo: londonSpiritLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
-                      { rank: 2, name: 'Kandahar Kings', logo: birminghamPhoenixLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
-                      { rank: 3, name: 'Balkh Legends', logo: manchesterSuperGiantsLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
-                      { rank: 4, name: 'Paktia Panthers', logo: sunrisersLeedsLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
-                      { rank: 5, name: 'Amo Sharks', logo: welshFireLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: false },
-                      { rank: 6, name: 'Band-e-Amir Dragons', logo: southernBraveLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: false },
-                    ].map((team) => (
-                      <tr key={team.rank} className={`pt-row ${team.top ? 'pt-row-top' : 'pt-row-lower'}`}>
-                        <td className={`pt-rank-cell ${team.top ? 'pt-rank-gold' : 'pt-rank-blue'}`}>{team.rank}</td>
-                        <td className="pt-club-cell">
-                          <img src={team.logo} alt={`${team.name} Logo`} className="pt-team-logo" />
-                          <span className="pt-team-name">{team.name}</span>
-                        </td>
-                        <td className="pt-stat pt-col-pld">{team.m}</td>
-                        <td className="pt-stat pt-stat-w pt-col-won">{team.w}</td>
-                        <td className="pt-stat pt-stat-l pt-col-lost">{team.l}</td>
-                        <td className="pt-stat pt-col-tied">{team.t}</td>
-                        <td className="pt-stat pt-col-nr">{team.nr}</td>
-                        <td className="pt-stat pt-nrr pt-col-nrr">{team.nrr}</td>
-                        <td className="pt-pts-cell">{team.pts}</td>
+            {FEATURES.SHOW_POINTS_TABLE && (
+              <section className="points-table-section">
+                <h2 className="section-heading">Points <span>Table</span></h2>
+                <p className="section-description">Current APL 2026 season standings — updated after every match.</p>
+                <div className="points-table-wrapper">
+                  <table className="points-table">
+                    <thead>
+                      <tr>
+                        <th className="pt-rank">POS</th>
+                        <th className="pt-club">TEAM</th>
+                        <th className="pt-col-pld" title="Matches Played">PLD</th>
+                        <th className="pt-col-won" title="Won">WON</th>
+                        <th className="pt-col-lost" title="Lost">LOST</th>
+                        <th className="pt-col-tied" title="Tied">TIED</th>
+                        <th className="pt-col-nr" title="No Result">N/R</th>
+                        <th className="pt-col-nrr" title="Net Run Rate">NRR</th>
+                        <th className="pt-pts" title="Points">PTS</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="pt-qualifier-note">
-                <span className="pt-qual-dot top" /> Top 4 qualify for playoffs
-              </p>
-            </section>
+                    </thead>
+                    <tbody>
+                      {[
+                        { rank: 1, name: 'Kabul Knights', logo: londonSpiritLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
+                        { rank: 2, name: 'Kandahar Kings', logo: birminghamPhoenixLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
+                        { rank: 3, name: 'Balkh Legends', logo: manchesterSuperGiantsLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
+                        { rank: 4, name: 'Paktia Panthers', logo: sunrisersLeedsLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: true },
+                        { rank: 5, name: 'Amo Sharks', logo: welshFireLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: false },
+                        { rank: 6, name: 'Band-e-Amir Dragons', logo: southernBraveLogo, m: 0, w: 0, l: 0, t: 0, nr: 0, nrr: '+0.000', pts: 0, top: false },
+                      ].map((team) => (
+                        <tr key={team.rank} className={`pt-row ${team.top ? 'pt-row-top' : 'pt-row-lower'}`}>
+                          <td className={`pt-rank-cell ${team.top ? 'pt-rank-gold' : 'pt-rank-blue'}`}>{team.rank}</td>
+                          <td className="pt-club-cell">
+                            <img src={team.logo} alt={`${team.name} Logo`} className="pt-team-logo" />
+                            <span className="pt-team-name">{team.name}</span>
+                          </td>
+                          <td className="pt-stat pt-col-pld">{team.m}</td>
+                          <td className="pt-stat pt-stat-w pt-col-won">{team.w}</td>
+                          <td className="pt-stat pt-stat-l pt-col-lost">{team.l}</td>
+                          <td className="pt-stat pt-col-tied">{team.t}</td>
+                          <td className="pt-stat pt-col-nr">{team.nr}</td>
+                          <td className="pt-stat pt-nrr pt-col-nrr">{team.nrr}</td>
+                          <td className="pt-pts-cell">{team.pts}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="pt-qualifier-note">
+                  <span className="pt-qual-dot top" /> Top 4 qualify for playoffs
+                </p>
+              </section>
+            )}
 
-            <div className="section-divider-line" />
+            {FEATURES.SHOW_MOMENTS && (
+              <>
+                <div className="section-divider-line" />
+                <Suspense fallback={<div className="skeleton-placeholder" style={{ minHeight: '300px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', margin: '2rem 0' }} />}>
+                  <Moments />
+                </Suspense>
+              </>
+            )}
 
-            <Suspense fallback={<div className="skeleton-placeholder" style={{ minHeight: '300px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', margin: '2rem 0' }} />}>
-              <Moments />
-            </Suspense>
+            {FEATURES.SHOW_LAUNCH_EVENT && (
+              <>
+                <div className="section-divider-line" />
+                <section className="launch-section">
+                  <h2 className="section-heading">Apl Grand <span>Launch</span> Event</h2>
+                  <p className="section-description">Relive the highlights and spectacular event celebrations from the league opening.</p>
 
-            <div className="section-divider-line" />
-
-            <section className="launch-section">
-              <h2 className="section-heading">Apl Grand <span>Launch</span> Event</h2>
-              <p className="section-description">Relive the highlights and spectacular event celebrations from the league opening.</p>
-
-              <div className="launch-grid-container">
-                {/* Left Panel: Main Large Video */}
-                <div className="launch-main-video-panel">
-                  <div className="launch-video-glow-container">
-                    <div className="launch-video-wrapper">
-                      <iframe
-                        id="launch-video-iframe"
-                        className="launch-video-iframe"
-                        src="https://www.youtube.com/embed/sq00E0Rmyjs?autoplay=1&mute=1&enablejsapi=1&rel=0&controls=1&playlist=sq00E0Rmyjs&loop=1"
-                        title="The APL Grand Launch Event"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        loading="lazy"
-                      ></iframe>
-                      {launchMuted && (
-                        <div className="launch-video-overlay" onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}>
-                          <div className="launch-unmute-button-container">
-                            <div className="launch-unmute-icon-ring">
-                              <VolumeX size={44} className="launch-unmute-icon" />
+                  <div className="launch-grid-container">
+                    {/* Left Panel: Main Large Video */}
+                    <div className="launch-main-video-panel">
+                      <div className="launch-video-glow-container">
+                        <div className="launch-video-wrapper">
+                          <iframe
+                            id="launch-video-iframe"
+                            className="launch-video-iframe"
+                            src="https://www.youtube.com/embed/sq00E0Rmyjs?autoplay=1&mute=1&enablejsapi=1&rel=0&controls=1&playlist=sq00E0Rmyjs&loop=1"
+                            title="The APL Grand Launch Event"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            loading="lazy"
+                          ></iframe>
+                          {launchMuted && (
+                            <div className="launch-video-overlay" onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}>
+                              <div className="launch-unmute-button-container">
+                                <div className="launch-unmute-icon-ring">
+                                  <VolumeX size={44} className="launch-unmute-icon" />
+                                </div>
+                                <h3 className="launch-unmute-title">TAP TO UNMUTE & WATCH</h3>
+                                <p className="launch-unmute-subtitle">APL GRAND LAUNCH CEREMONY</p>
+                              </div>
                             </div>
-                            <h3 className="launch-unmute-title">TAP TO UNMUTE & WATCH</h3>
-                            <p className="launch-unmute-subtitle">APL GRAND LAUNCH CEREMONY</p>
-                          </div>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    </div>
+
+                    {/* Right Panel: 3 Stacked Side Videos */}
+                    <div className="launch-side-videos-panel">
+                      <div className="side-video-card animate-side-card">
+                        <iframe
+                          id="side-video-1"
+                          className="side-video-iframe"
+                          src="https://www.youtube.com/embed/ePIpdbzDgM4?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=ePIpdbzDgM4&loop=1"
+                          title="APL Launch Highlights 1"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                        ></iframe>
+                        {side1Muted && (
+                          <div className="side-video-overlay" onClick={() => handleUnmute('side-video-1', setSide1Muted)}>
+                            <div className="side-unmute-button-container">
+                              <div className="side-unmute-icon-ring">
+                                <VolumeX size={24} className="side-unmute-icon" />
+                              </div>
+                              <h4 className="side-unmute-title">TAP TO UNMUTE</h4>
+                              <p className="side-unmute-subtitle">Players Reviews</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="side-video-card animate-side-card">
+                        <iframe
+                          id="side-video-2"
+                          className="side-video-iframe"
+                          src="https://www.youtube.com/embed/OPLRXDmteCE?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=OPLRXDmteCE&loop=1"
+                          title="APL Launch Highlights 2"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                        ></iframe>
+                        {side2Muted && (
+                          <div className="side-video-overlay" onClick={() => handleUnmute('side-video-2', setSide2Muted)}>
+                            <div className="side-unmute-button-container">
+                              <div className="side-unmute-icon-ring">
+                                <VolumeX size={24} className="side-unmute-icon" />
+                              </div>
+                              <h4 className="side-unmute-title">TAP TO UNMUTE</h4>
+                              <p className="side-unmute-subtitle">Moments of appreciation</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="side-video-card animate-side-card">
+                        <iframe
+                          id="side-video-3"
+                          className="side-video-iframe"
+                          src="https://www.youtube.com/embed/6PZfy6YCw88?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=6PZfy6YCw88&loop=1"
+                          title="APL Launch Highlights 3"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                          loading="lazy"
+                        ></iframe>
+                        {side3Muted && (
+                          <div className="side-video-overlay" onClick={() => handleUnmute('side-video-3', setSide3Muted)}>
+                            <div className="side-unmute-button-container">
+                              <div className="side-unmute-icon-ring">
+                                <VolumeX size={24} className="side-unmute-icon" />
+                              </div>
+                              <h4 className="side-unmute-title">TAP TO UNMUTE</h4>
+                              <p className="side-unmute-subtitle">APL celebrations</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Right Panel: 3 Stacked Side Videos */}
-                <div className="launch-side-videos-panel">
-                  <div className="side-video-card animate-side-card">
-                    <iframe
-                      id="side-video-1"
-                      className="side-video-iframe"
-                      src="https://www.youtube.com/embed/ePIpdbzDgM4?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=ePIpdbzDgM4&loop=1"
-                      title="APL Launch Highlights 1"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      loading="lazy"
-                    ></iframe>
-                    {side1Muted && (
-                      <div className="side-video-overlay" onClick={() => handleUnmute('side-video-1', setSide1Muted)}>
-                        <div className="side-unmute-button-container">
-                          <div className="side-unmute-icon-ring">
-                            <VolumeX size={24} className="side-unmute-icon" />
-                          </div>
-                          <h4 className="side-unmute-title">TAP TO UNMUTE</h4>
-                          <p className="side-unmute-subtitle">Players Reviews</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="side-video-card animate-side-card">
-                    <iframe
-                      id="side-video-2"
-                      className="side-video-iframe"
-                      src="https://www.youtube.com/embed/OPLRXDmteCE?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=OPLRXDmteCE&loop=1"
-                      title="APL Launch Highlights 2"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      loading="lazy"
-                    ></iframe>
-                    {side2Muted && (
-                      <div className="side-video-overlay" onClick={() => handleUnmute('side-video-2', setSide2Muted)}>
-                        <div className="side-unmute-button-container">
-                          <div className="side-unmute-icon-ring">
-                            <VolumeX size={24} className="side-unmute-icon" />
-                          </div>
-                          <h4 className="side-unmute-title">TAP TO UNMUTE</h4>
-                          <p className="side-unmute-subtitle">Moments of appreciation</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="side-video-card animate-side-card">
-                    <iframe
-                      id="side-video-3"
-                      className="side-video-iframe"
-                      src="https://www.youtube.com/embed/6PZfy6YCw88?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=6PZfy6YCw88&loop=1"
-                      title="APL Launch Highlights 3"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      loading="lazy"
-                    ></iframe>
-                    {side3Muted && (
-                      <div className="side-video-overlay" onClick={() => handleUnmute('side-video-3', setSide3Muted)}>
-                        <div className="side-unmute-button-container">
-                          <div className="side-unmute-icon-ring">
-                            <VolumeX size={24} className="side-unmute-icon" />
-                          </div>
-                          <h4 className="side-unmute-title">TAP TO UNMUTE</h4>
-                          <p className="side-unmute-subtitle">APL celebrations</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <div className="section-divider-line" />
+                </section>
+                <div className="section-divider-line" />
+              </>
+            )}
 
             <section className="vision-section">
               <h2 className="section-heading">The <span>Vision</span></h2>
@@ -560,67 +571,71 @@ function App() {
 
             <div className="section-divider-line" />
 
-            {/* Cricket Ball Seam Separator — below Gallery */}
-            <div className="cricket-seam-separator">
-              <div className="cricket-seam-track">
-                <div className="cricket-seam-stitch top-stitch"></div>
-                <div className="cricket-seam-center-white-line"></div>
-                <div className="cricket-seam-stitch bottom-stitch"></div>
-              </div>
-              <div ref={ballRef2} className="seam-ball-container">
-                <div className="seam-ball-sphere">
-                  <div className="seam-ball-inner-line left-line"></div>
-                  <div className="seam-ball-inner-split"></div>
-                  <div className="seam-ball-inner-line right-line"></div>
-                  <div className="seam-ball-gloss"></div>
-                  <div className="seam-ball-scuffs"></div>
+            {FEATURES.SHOW_MORE_ABOUT_APL && (
+              <>
+                {/* Cricket Ball Seam Separator — below Gallery */}
+                <div className="cricket-seam-separator">
+                  <div className="cricket-seam-track">
+                    <div className="cricket-seam-stitch top-stitch"></div>
+                    <div className="cricket-seam-center-white-line"></div>
+                    <div className="cricket-seam-stitch bottom-stitch"></div>
+                  </div>
+                  <div ref={ballRef2} className="seam-ball-container">
+                    <div className="seam-ball-sphere">
+                      <div className="seam-ball-inner-line left-line"></div>
+                      <div className="seam-ball-inner-split"></div>
+                      <div className="seam-ball-inner-line right-line"></div>
+                      <div className="seam-ball-gloss"></div>
+                      <div className="seam-ball-scuffs"></div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <section className="find-out-more-section">
-              <h2 className="section-heading">More about <span>APL</span></h2>
-              <p className="section-description">Dive deeper into the tournament structure, regulations, and historical records.</p>
-              <div className="fom-grid">
-                <div className="fom-card fom-card-r1-c1">
-                  <img src={fomImg1} alt="" className="fom-card-bg-img" loading="lazy" />
-                  <div className="fom-card-img-overlay"></div>
-                  <h3 className="fom-card-title">WHAT IS THE APL?</h3>
-                </div>
-                <div className="fom-card fom-card-r1-c2">
-                  <img src={fomImg2} alt="" className="fom-card-bg-img" loading="lazy" />
-                  <div className="fom-card-img-overlay"></div>
-                  <h3 className="fom-card-title">THE APL RULES EXPLAINED</h3>
-                </div>
-                <div className="fom-card fom-card-r2-c1">
-                  <img src={fomImg3} alt="" className="fom-card-bg-img" loading="lazy" />
-                  <div className="fom-card-img-overlay"></div>
-                  <h3 className="fom-card-title">HOW TO BUY TICKETS FOR THE APL?</h3>
-                </div>
-                <div className="fom-card fom-card-r2-c2">
-                  <img src={fomImg4} alt="" className="fom-card-bg-img" loading="lazy" />
-                  <div className="fom-card-img-overlay"></div>
-                  <h3 className="fom-card-title">WHO WILL PLAY IN THE APL IN 2026?</h3>
-                </div>
-                <div className="fom-card fom-card-r3-c1">
-                  <img src={fomImg5} alt="" className="fom-card-bg-img" loading="lazy" />
-                  <div className="fom-card-img-overlay"></div>
-                  <h3 className="fom-card-title">PAST WINNERS OF APL</h3>
-                </div>
-                <div className="fom-card fom-card-r3-c2">
-                  <img src={fomImg6} alt="" className="fom-card-bg-img" loading="lazy" />
-                  <div className="fom-card-img-overlay"></div>
-                  <h3 className="fom-card-title">WHEN IS THE APL FINAL?</h3>
-                </div>
-                <div className="fom-card fom-card-r3-c3">
-                  <img src={fomImg7} alt="" className="fom-card-bg-img" loading="lazy" />
-                  <div className="fom-card-img-overlay"></div>
-                  <h3 className="fom-card-title">WHAT IS THE APL ELIMINATOR?</h3>
-                </div>
-              </div>
-            </section>
+                <section className="find-out-more-section">
+                  <h2 className="section-heading">More about <span>APL</span></h2>
+                  <p className="section-description">Dive deeper into the tournament structure, regulations, and historical records.</p>
+                  <div className="fom-grid">
+                    <div className="fom-card fom-card-r1-c1">
+                      <img src={fomImg1} alt="" className="fom-card-bg-img" loading="lazy" />
+                      <div className="fom-card-img-overlay"></div>
+                      <h3 className="fom-card-title">WHAT IS THE APL?</h3>
+                    </div>
+                    <div className="fom-card fom-card-r1-c2">
+                      <img src={fomImg2} alt="" className="fom-card-bg-img" loading="lazy" />
+                      <div className="fom-card-img-overlay"></div>
+                      <h3 className="fom-card-title">THE APL RULES EXPLAINED</h3>
+                    </div>
+                    <div className="fom-card fom-card-r2-c1">
+                      <img src={fomImg3} alt="" className="fom-card-bg-img" loading="lazy" />
+                      <div className="fom-card-img-overlay"></div>
+                      <h3 className="fom-card-title">HOW TO BUY TICKETS FOR THE APL?</h3>
+                    </div>
+                    <div className="fom-card fom-card-r2-c2">
+                      <img src={fomImg4} alt="" className="fom-card-bg-img" loading="lazy" />
+                      <div className="fom-card-img-overlay"></div>
+                      <h3 className="fom-card-title">WHO WILL PLAY IN THE APL IN 2026?</h3>
+                    </div>
+                    <div className="fom-card fom-card-r3-c1">
+                      <img src={fomImg5} alt="" className="fom-card-bg-img" loading="lazy" />
+                      <div className="fom-card-img-overlay"></div>
+                      <h3 className="fom-card-title">PAST WINNERS OF APL</h3>
+                    </div>
+                    <div className="fom-card fom-card-r3-c2">
+                      <img src={fomImg6} alt="" className="fom-card-bg-img" loading="lazy" />
+                      <div className="fom-card-img-overlay"></div>
+                      <h3 className="fom-card-title">WHEN IS THE APL FINAL?</h3>
+                    </div>
+                    <div className="fom-card fom-card-r3-c3">
+                      <img src={fomImg7} alt="" className="fom-card-bg-img" loading="lazy" />
+                      <div className="fom-card-img-overlay"></div>
+                      <h3 className="fom-card-title">WHAT IS THE APL ELIMINATOR?</h3>
+                    </div>
+                  </div>
+                </section>
 
-            <div className="section-divider-line" />
+                <div className="section-divider-line" />
+              </>
+            )}
 
             {/* Partners Section (ACBlogo) */}
             <section className="partners-section">
@@ -705,10 +720,10 @@ function App() {
               <h4 className="footer-col-title">Navigation</h4>
               <ul className="footer-links-list">
                 <li><a href="#home">Home</a></li>
-                <li><a href="#fixtures">Fixtures & Results</a></li>
-                <li><a href="#points-table">Points Table</a></li>
-                <li><a href="#news">Latest News</a></li>
-                <li><a href="#gallery">Media Gallery</a></li>
+                {FEATURES.SHOW_FIXTURES && <li><a href="#fixtures">Fixtures & Results</a></li>}
+                {FEATURES.SHOW_POINTS_TABLE && <li><a href="#points-table">Points Table</a></li>}
+                {FEATURES.SHOW_NEWS && <li><a href="#news">Latest News</a></li>}
+                {FEATURES.SHOW_GALLERY && <li><a href="#gallery">Media Gallery</a></li>}
               </ul>
             </div>
 
@@ -716,33 +731,35 @@ function App() {
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Info & Support</h4>
               <ul className="footer-links-list">
-                <li><a href="#about">About APL</a></li>
-                <li><a href="#partnerships">Partnerships</a></li>
-                <li><a href="#contact-us">Contact Us</a></li>
+                {FEATURES.SHOW_ABOUT && <li><a href="#about">About APL</a></li>}
+                {FEATURES.SHOW_PARTNERSHIPS && <li><a href="#partnerships">Partnerships</a></li>}
+                {FEATURES.SHOW_CONTACT && <li><a href="#contact-us">Contact Us</a></li>}
               </ul>
             </div>
 
             {/* Column 4: Franchises Links */}
-            <div className="footer-col links-col">
-              <h4 className="footer-col-title">Franchises</h4>
-              <ul className="footer-links-list">
-                <li><a href="#teams">Kabul Knights</a></li>
-                <li><a href="#teams">Kandahar Kings</a></li>
-                <li><a href="#teams">Balkh Legends</a></li>
-                <li><a href="#teams">Paktia Panthers</a></li>
-                <li><a href="#teams">Amo Sharks</a></li>
-                <li><a href="#teams">Band-e-Amir Dragons</a></li>
-              </ul>
-            </div>
+            {FEATURES.SHOW_TEAMS && (
+              <div className="footer-col links-col">
+                <h4 className="footer-col-title">Franchises</h4>
+                <ul className="footer-links-list">
+                  <li><a href="#teams">Kabul Knights</a></li>
+                  <li><a href="#teams">Kandahar Kings</a></li>
+                  <li><a href="#teams">Balkh Legends</a></li>
+                  <li><a href="#teams">Paktia Panthers</a></li>
+                  <li><a href="#teams">Amo Sharks</a></li>
+                  <li><a href="#teams">Band-e-Amir Dragons</a></li>
+                </ul>
+              </div>
+            )}
 
             {/* Column 5: Resource Document Links */}
             <div className="footer-col links-col">
               <h4 className="footer-col-title">Resources</h4>
               <ul className="footer-links-list">
                 <li><a href="#acb-governance">ACB Governance</a></li>
-                <li><a href="#register-player">Player Registration</a></li>
-                <li><a href="#league-faq">League FAQ</a></li>
-                <li><a href="#media-kit">Media Kit</a></li>
+                {FEATURES.SHOW_REGISTRATION && <li><a href="#register-player">Player Registration</a></li>}
+                {FEATURES.SHOW_LEAGUE_FAQ && <li><a href="#league-faq">League FAQ</a></li>}
+                {FEATURES.SHOW_MEDIA_KIT && <li><a href="#media-kit">Media Kit</a></li>}
               </ul>
             </div>
 

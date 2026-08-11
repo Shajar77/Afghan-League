@@ -204,6 +204,17 @@
   gap: 0;
 }
 
+.top-row-nav {
+  display: none !important;
+}
+
+@media (min-width: 900px) {
+  .top-row-nav {
+    display: flex !important;
+    align-items: center;
+  }
+}
+
 .desktop-nav-link {
   font-family: var(--font-body);
   font-size: 0.78rem;

@@ -8,6 +8,7 @@ import gallery5 from '../assets/gallery-5.webp'
 import gallery6 from '../assets/gallery-6.webp'
 import gallery7 from '../assets/gallery-7.webp'
 import gallery8 from '../assets/gallery-8.webp'
+import { FEATURES } from '../constants/features'
 import './Moments.css'
 
 interface ReelItem {
@@ -15,6 +16,7 @@ interface ReelItem {
   img: string;
   title: string;
   videoUrl: string; // fallback / placeholder loop video
+  instagramId?: string; // Optional ID for direct Instagram Iframe embed
   likes: string;
   comments: string;
   isNew?: boolean;
@@ -26,6 +28,7 @@ const reelsData: ReelItem[] = [
     img: gallery1,
     title: 'The NO LOOK six trend 😱',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '14.2K',
     comments: '428',
     isNew: true,
@@ -35,6 +38,7 @@ const reelsData: ReelItem[] = [
     img: gallery2,
     title: 'An incredible no look six 😳',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '9.8K',
     comments: '312',
     isNew: true,
@@ -44,6 +48,7 @@ const reelsData: ReelItem[] = [
     img: gallery3,
     title: 'Sutherland v Kapp 🇦🇺🇿🇦',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '22.5K',
     comments: '891',
     isNew: true,
@@ -53,6 +58,7 @@ const reelsData: ReelItem[] = [
     img: gallery4,
     title: 'Grace Harris scores 🏏',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '18.4K',
     comments: '564',
     isNew: true,
@@ -62,6 +68,7 @@ const reelsData: ReelItem[] = [
     img: gallery5,
     title: 'Going down the ground again 🔥',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '31.1K',
     comments: '1.2K',
     isNew: true,
@@ -71,6 +78,7 @@ const reelsData: ReelItem[] = [
     img: gallery6,
     title: 'Batsman going down the ground in style!',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '12.6K',
     comments: '290',
     isNew: true,
@@ -80,6 +88,7 @@ const reelsData: ReelItem[] = [
     img: gallery7,
     title: "Matt Short's journey to 6️⃣0️⃣ runs",
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '15.9K',
     comments: '402',
     isNew: true,
@@ -89,15 +98,17 @@ const reelsData: ReelItem[] = [
     img: gallery8,
     title: 'How big is this six?! 😲 APL highlights',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '27.4K',
     comments: '715',
     isNew: true,
   },
   {
     id: 'reels-9',
-    img: gallery1, // wrap around for 9th reel
+    img: gallery1,
     title: 'Marcus Stoinis show 💥 classic shots',
     videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    instagramId: 'DSXpLK8jI83',
     likes: '19.8K',
     comments: '499',
     isNew: true,
@@ -249,54 +260,58 @@ export function Moments() {
         </div>
       </div>
 
-      <div style={{ height: '3.5rem' }} />
+      {FEATURES.SHOW_HIGHLIGHTS && (
+        <>
+          <div style={{ height: '3.5rem' }} />
 
-      {/* ── ROW 2: MATCH HIGHLIGHTS (LANDSCAPE VIDEOS) ── */}
-      <div className="moments-header">
-        <h2 className="section-heading">Match <span>Highlights</span></h2>
-        <p className="section-description">Catch up on full match reviews, top wickets, boundaries, and exclusive interviews.</p>
-      </div>
+          {/* ── ROW 2: MATCH HIGHLIGHTS (LANDSCAPE VIDEOS) ── */}
+          <div className="moments-header">
+            <h2 className="section-heading">Match <span>Highlights</span></h2>
+            <p className="section-description">Catch up on full match reviews, top wickets, boundaries, and exclusive interviews.</p>
+          </div>
 
-      <div
-        className="reels-scroll-container highlight-scroll-container"
-        ref={highlightScroll.ref}
-        onMouseDown={highlightScroll.onMouseDown}
-        onMouseLeave={highlightScroll.onMouseLeave}
-        onMouseUp={highlightScroll.onMouseUp}
-        onMouseMove={highlightScroll.onMouseMove}
-      >
-        <div className="reels-track highlight-track">
-          {highlightsData.map((hl) => (
-            <div
-              key={hl.id}
-              className="reel-card"
-              onClick={() => setActiveReel(hl)}
-            >
-              <div className="reel-img-wrapper">
-                <img src={hl.img} alt={hl.title} className="reel-thumbnail" loading="lazy" />
-                <div className="reel-card-overlay">
-                  <div className="reel-play-btn">
-                    <Play size={36} fill="currentColor" />
+          <div
+            className="reels-scroll-container highlight-scroll-container"
+            ref={highlightScroll.ref}
+            onMouseDown={highlightScroll.onMouseDown}
+            onMouseLeave={highlightScroll.onMouseLeave}
+            onMouseUp={highlightScroll.onMouseUp}
+            onMouseMove={highlightScroll.onMouseMove}
+          >
+            <div className="reels-track highlight-track">
+              {highlightsData.map((hl) => (
+                <div
+                  key={hl.id}
+                  className="reel-card"
+                  onClick={() => setActiveReel(hl)}
+                >
+                  <div className="reel-img-wrapper">
+                    <img src={hl.img} alt={hl.title} className="reel-thumbnail" loading="lazy" />
+                    <div className="reel-card-overlay">
+                      <div className="reel-play-btn">
+                        <Play size={36} fill="currentColor" />
+                      </div>
+                    </div>
+
+                    <div className="reel-details-overlay">
+                      <p className="reel-title-text">{hl.title}</p>
+                      <div className="reel-meta-row">
+                        <span className="reel-meta-item">
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" className="meta-icon" style={{ marginRight: '4px', verticalAlign: 'middle' }}>
+                            <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" />
+                            <polygon points="9.545 15.568 15.818 12 9.545 8.432" fill="#000000" />
+                          </svg>
+                          @afghanleague
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="reel-details-overlay">
-                  <p className="reel-title-text">{hl.title}</p>
-                  <div className="reel-meta-row">
-                    <span className="reel-meta-item">
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" className="meta-icon" style={{ marginRight: '4px', verticalAlign: 'middle' }}>
-                        <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.518 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.518 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" />
-                        <polygon points="9.545 15.568 15.818 12 9.545 8.432" fill="#000000" />
-                      </svg>
-                      @afghanleague
-                    </span>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Interactive Mobile-Style Video Player Modal */}
       {activeReel && (
@@ -304,15 +319,33 @@ export function Moments() {
           <div className="reel-modal-container" onClick={(e) => e.stopPropagation()}>
 
             <div className="reel-player-screen">
-              <video
-                src={activeReel.videoUrl}
-                className="reel-player-video"
-                autoPlay
-                loop
-                muted={isMuted}
-                playsInline
-                onClick={() => setIsMuted(!isMuted)}
-              />
+              {activeReel.instagramId ? (
+                <iframe
+                  src={`https://www.instagram.com/reel/${activeReel.instagramId}/embed/`}
+                  title={activeReel.title}
+                  className="reel-player-video"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency={true}
+                  allow="autoplay; encrypted-media"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    background: '#000000',
+                  }}
+                />
+              ) : (
+                <video
+                  src={activeReel.videoUrl}
+                  className="reel-player-video"
+                  autoPlay
+                  loop
+                  muted={isMuted}
+                  playsInline
+                  onClick={() => setIsMuted(!isMuted)}
+                />
+              )}
 
               <div className="reel-player-header">
                 <span className="player-brand-tag">@afghanistanpremierleague</span>

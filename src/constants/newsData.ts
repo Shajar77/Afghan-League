@@ -1,8 +1,8 @@
 import gallery5 from '../assets/gallery-5.webp'
 import gallery7 from '../assets/gallery-7.webp'
-import downloadImg from '../../download.jpeg'
-import downloadWebp from '../../download.webp'
-import download1Img from '../../download (1).jpeg'
+import downloadImg from '../assets/download.jpeg'
+import downloadWebp from '../assets/download.webp'
+import download1Img from '../assets/download (1).jpeg'
 
 export interface Article {
   id: string

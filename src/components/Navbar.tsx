@@ -131,7 +131,7 @@ export function Navbar() {
                   <div className="register-dropdown-menu">
                     <a 
                       href="#register-player" 
-                      className={`dropdown-item ${currentPage === 'player-register' ? 'active' : ''}`}
+                      className={`dropdown-item ${currentPage === 'register-player' || currentPage === 'player-register' ? 'active' : ''}`}
                       onClick={() => {
                         setRegisterDropdownOpen(false)
                       }}
@@ -301,7 +301,7 @@ export function Navbar() {
           {FEATURES.SHOW_REGISTRATION && (
             <li className="mobile-nav-item">
               <button
-                className={`mobile-nav-link ${currentPage === 'player-register' || currentPage === 'register-status' ? 'active' : ''}`}
+                className={`mobile-nav-link ${currentPage === 'register-player' || currentPage === 'player-register' || currentPage === 'register-status' ? 'active' : ''}`}
                 onClick={() => setMobileRegisterOpen(!mobileRegisterOpen)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', outline: 'none', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
               >
@@ -322,7 +322,7 @@ export function Navbar() {
                   <li style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)' }}>
                     <a
                       href="#register-player"
-                      className={`mobile-nav-link ${currentPage === 'player-register' ? 'active' : ''}`}
+                      className={`mobile-nav-link ${currentPage === 'register-player' || currentPage === 'player-register' ? 'active' : ''}`}
                       style={{
                         fontSize: '1.25rem',
                         padding: '0.75rem 2rem'

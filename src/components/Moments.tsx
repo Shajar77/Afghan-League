@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Play, X, Heart, MessageCircle } from 'lucide-react'
+import { Play, X } from 'lucide-react'
 import gallery1 from '../assets/gallery-1.webp'
 import gallery2 from '../assets/gallery-2.webp'
 import gallery3 from '../assets/gallery-3.webp'
@@ -8,6 +8,7 @@ import gallery5 from '../assets/gallery-5.webp'
 import gallery6 from '../assets/gallery-6.webp'
 import gallery7 from '../assets/gallery-7.webp'
 import gallery8 from '../assets/gallery-8.webp'
+import aplLogo from '../assets/Asset 2@2x.png'
 import { FEATURES } from '../constants/features'
 import './Moments.css'
 
@@ -26,7 +27,7 @@ const reelsData: ReelItem[] = [
   {
     id: 'reels-1',
     img: gallery1,
-    title: 'The NO LOOK six trend 😱',
+    title: 'APL Coming Soon! 🏏🔥 Get Ready For Greatness',
     videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522780/AQOUEdv6jIAM0dZDetSDGT-0n_58gu_LfDR79eAXOiwVHAeW5jajnliYdERs0u91cfr9SQ56hj1c0gLt6pkZFhypGcutnS8HlaM.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '14.2K',
@@ -36,7 +37,7 @@ const reelsData: ReelItem[] = [
   {
     id: 'reels-2',
     img: gallery2,
-    title: 'An incredible no look six 😳',
+    title: 'A New Chapter Begins! 🌟 Unstoppable Energy',
     videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522772/AQMFyPIzuqZE3Ezz-Pee-SVyZR9YIEDjMPi4zdjuFNEDtBCwgGDxo9ndvdC3AUwakHiujhGrdajiqbcipGZMx7WtoWqIMNzuVPc.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '9.8K',
@@ -46,7 +47,7 @@ const reelsData: ReelItem[] = [
   {
     id: 'reels-3',
     img: gallery3,
-    title: 'Sutherland v Kapp 🇦🇺🇿🇦',
+    title: 'Official APL Intro Video 🏆 Raw Passion & Power',
     videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522742/AQNU1-IH1tuQV4y3wPOFmSmWISfCbQ6OGYVlKc4jqDNB5RhlibBeYv7wInNgR2nMzdQLN5htxWJ94lMecD4-Ey1DQT4ihP5WCEw.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '22.5K',
@@ -56,7 +57,7 @@ const reelsData: ReelItem[] = [
   {
     id: 'reels-4',
     img: gallery4,
-    title: 'Grace Harris scores 🏏',
+    title: 'APL Grand Launch! 🎉 History In The Making',
     videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522733/AQOBFUPlalAK4qDm7t-25P0dK97eqp4tagVQFwl3vG-PHS3XYCoA_umieTmjrQ4zZN55F8kg1S7_SQdJkGDD5ghwWsIBA68g-528zBv3LXIrxA.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '18.4K',
@@ -66,21 +67,11 @@ const reelsData: ReelItem[] = [
   {
     id: 'reels-5',
     img: gallery5,
-    title: 'Going down the ground again 🔥',
+    title: 'APL Logo Reveal ✨ The Symbol Of Victory',
     videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522720/AQNN_K7xqm3C5SfTbJbdM3DT44ikkBwTOOnHo5RTigspDDMJgACWfaaUn7c3CW11YXbiw55Rq_8Lth54J9rllamdFqQDIXaud_c.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '31.1K',
     comments: '1.2K',
-    isNew: true,
-  },
-  {
-    id: 'reels-6',
-    img: gallery6,
-    title: 'Batsman going down the ground in style!',
-    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522780/AQOUEdv6jIAM0dZDetSDGT-0n_58gu_LfDR79eAXOiwVHAeW5jajnliYdERs0u91cfr9SQ56hj1c0gLt6pkZFhypGcutnS8HlaM.mp4',
-    instagramId: 'DSXpLK8jI83',
-    likes: '12.6K',
-    comments: '290',
     isNew: true,
   },
 ];
@@ -185,9 +176,7 @@ export function Moments() {
       modalVideoRef.current.load()
       const playPromise = modalVideoRef.current.play()
       if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.log("Autoplay check:", err)
-        })
+        playPromise.catch(() => {})
       }
     }
   }, [activeReel])
@@ -197,7 +186,7 @@ export function Moments() {
 
       {/* ── ROW 1: MOMENTS (REELS) ── */}
       <div className="moments-header">
-        <h2 className="section-heading"><span>Moments</span></h2>
+        <h2 className="section-heading">Latest <span>Reels</span></h2>
         <p className="section-description">Watch the latest highlights and trending reels directly from our Instagram feed.</p>
       </div>
 
@@ -318,11 +307,22 @@ export function Moments() {
         </>
       )}
 
-      {/* Interactive Mobile-Style Video Player Modal */}
+      {/* Interactive Video Player Modal at Section Level */}
       {activeReel && (
         <div className="reel-modal-backdrop" onClick={() => setActiveReel(null)}>
           <div className="reel-modal-container" onClick={(e) => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div className="reel-modal-header">
+              <div className="modal-header-logo-wrap">
+                <img src={aplLogo} alt="APL Logo" className="modal-header-logo" />
+              </div>
+              <button className="sidebar-close-btn" onClick={() => setActiveReel(null)} aria-label="Close Modal">
+                <X size={22} />
+              </button>
+            </div>
 
+            {/* Video Screen Container */}
             <div className="reel-player-screen">
               <video
                 ref={modalVideoRef}
@@ -335,106 +335,45 @@ export function Moments() {
                 onClick={() => setIsMuted(!isMuted)}
               />
 
-              <div className="reel-player-header">
-                <span className="player-brand-tag">@afghanistanpremierleague</span>
-                <button className="player-close-btn-in" onClick={() => setActiveReel(null)} aria-label="Close Player">
-                  <X size={20} />
+              <div className="reel-player-actions-overlay">
+                <button 
+                  className="overlay-btn-circle" 
+                  onClick={() => setIsMuted(!isMuted)} 
+                  aria-label={isMuted ? "Unmute Video" : "Mute Video"}
+                  style={{ color: isMuted ? '#94a3b8' : '#38bdf8' }}
+                >
+                  {isMuted ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                  )}
                 </button>
               </div>
+            </div>
 
-              <div className="reel-player-actions-overlay">
-                <div className="player-overlay-action">
-                  <button className="overlay-btn-circle" aria-label="Like Video">
-                    <Heart size={20} fill="#ff4b4b" color="#ff4b4b" />
-                  </button>
-                  <span className="overlay-btn-label">{activeReel.likes}</span>
-                </div>
-                <div className="player-overlay-action">
-                  <button className="overlay-btn-circle" aria-label="Comment on Video">
-                    <MessageCircle size={20} fill="currentColor" />
-                  </button>
-                  <span className="overlay-btn-label">{activeReel.comments}</span>
-                </div>
-                <div className="player-overlay-action">
-                  <button 
-                    className="overlay-btn-circle" 
-                    onClick={() => setIsMuted(!isMuted)} 
-                    aria-label={isMuted ? "Unmute Video" : "Mute Video"}
-                    style={{ color: isMuted ? '#94a3b8' : '#38bdf8' }}
-                  >
-                    {isMuted ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                    ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                    )}
-                  </button>
-                  <span className="overlay-btn-label" style={{ color: isMuted ? '#94a3b8' : '#38bdf8' }}>
-                    {isMuted ? 'Muted' : 'Sound'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="reel-player-caption-overlay">
+            {/* Bottom Panel: Caption & Action Button Below Video */}
+            <div className="reel-modal-bottom-panel">
+              <div className="reel-bottom-caption">
                 <p className="player-caption-text">{activeReel.title}</p>
                 <div className="player-music-track">
                   <span className="music-icon">🎵</span>
                   <span className="music-title-scroll">Original Audio - Afghanistan Premier League</span>
                 </div>
               </div>
-            </div>
 
-            <div className="reel-desktop-sidebar">
-              <div className="sidebar-header-row">
-                <div className="sidebar-brand-info">
-                  <div className="sidebar-brand-avatar">APL</div>
-                  <div>
-                    <h4 className="sidebar-brand-name">Afghanistan Premier League</h4>
-                    <p className="sidebar-brand-sub">Official Account</p>
-                  </div>
-                </div>
-                <button className="sidebar-close-btn" onClick={() => setActiveReel(null)} aria-label="Close Screen">
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="sidebar-scrollable-comments">
-                <div className="comment-item">
-                  <span className="comment-user">cricket_fan_99</span>
-                  <span className="comment-text">Absolutely massive shot! Outstanding talent in the APL this season 🇦🇫🔥</span>
-                </div>
-                <div className="comment-item">
-                  <span className="comment-user">khan_sahib</span>
-                  <span className="comment-text">No look sixes are the best trend. Phoebe Litchfield and Sutherland are brilliant!</span>
-                </div>
-                <div className="comment-item">
-                  <span className="comment-user">apl_insider</span>
-                  <span className="comment-text">Can't wait for the live matches to begin! Standings are getting intense.</span>
-                </div>
-                <div className="comment-item">
-                  <span className="comment-user">sports_lover</span>
-                  <span className="comment-text">Is there a live stream available on the site? 🏏</span>
-                </div>
-              </div>
-
-              <div className="sidebar-stats-footer">
-                <div className="sidebar-stats-row">
-                  <span className="stat-pill"><Heart size={16} fill="#ff4b4b" color="#ff4b4b" style={{ marginRight: '6px' }} /> {activeReel.likes}</span>
-                  <span className="stat-pill"><MessageCircle size={16} style={{ marginRight: '6px' }} /> {activeReel.comments}</span>
-                </div>
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="sidebar-view-insta-btn"
-                >
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                  </svg>
-                  View on Instagram
-                </a>
-              </div>
+              <a
+                href="https://www.instagram.com/theaplt20/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="sidebar-view-insta-btn"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+                View on Instagram
+              </a>
             </div>
 
           </div>

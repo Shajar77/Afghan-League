@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { buildApiUrl } from '../config/api'
 import './RegisterStatusPage.css'
 
 export function RegisterStatusPage() {
@@ -13,14 +14,7 @@ export function RegisterStatusPage() {
     e.preventDefault()
     if (!appId.trim() || !email.trim()) return
 
-    let formattedId = appId.trim().toUpperCase().replace(/\s+/g, '')
-
-    // Normalize flexible user inputs like "64297" or "2026-64297" into "APL-2026-64297"
-    if (/^\d{5}$/.test(formattedId)) {
-      formattedId = `APL-2026-${formattedId}`
-    } else if (/^2026-\d{5}$/.test(formattedId)) {
-      formattedId = `APL-${formattedId}`
-    }
+    const formattedId = appId.trim().toUpperCase().replace(/\s+/g, '')
 
     setIsLoading(true)
     setErrorMessage('')
@@ -28,14 +22,8 @@ export function RegisterStatusPage() {
     setStatusResult(null)
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'
-      const url = `${baseUrl}/player-registrations?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(email.trim().toLowerCase())}`
-      const token = import.meta.env.VITE_API_TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdG9yZWZyb250LmludGciLCJpYXQiOjE3ODM1MzMxMzksImV4cCI6MTc4MzYxOTUzOX0.k7IGms0gTrdZy0Qv7SgnQl-yp_eLpd5cjerpg8Yq6qAuIlGhXkBX0nBXHWQyw5jPxX6NOqFzavJ8gtK2CTGLOA'
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
+      const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(email.trim().toLowerCase())}`)
+      const response = await fetch(url)
       const json = await response.json()
 
       if (response.ok) {

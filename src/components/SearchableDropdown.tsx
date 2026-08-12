@@ -19,11 +19,13 @@ export function SearchableDropdown({
 }: SearchableDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm(value)
+      setHighlightedIndex(-1)
     }
   }, [value, isOpen])
 
@@ -44,6 +46,7 @@ export function SearchableDropdown({
   const handleInputFocus = () => {
     setIsOpen(true)
     setSearchTerm('')
+    setHighlightedIndex(-1)
   }
 
   const handleOptionClick = (option: string) => {
@@ -54,28 +57,61 @@ export function SearchableDropdown({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
+    setHighlightedIndex(0)
     if (!isOpen) setIsOpen(true)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        setIsOpen(true)
+        setHighlightedIndex(0)
+      }
+      return
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setHighlightedIndex(prev => (prev < filteredOptions.length - 1 ? prev + 1 : 0))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setHighlightedIndex(prev => (prev > 0 ? prev - 1 : filteredOptions.length - 1))
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
+        handleOptionClick(filteredOptions[highlightedIndex])
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false)
+    }
   }
 
   return (
     <div className="searchable-dropdown-container" ref={containerRef}>
       <input
         type="text"
+        role="combobox"
+        aria-expanded={isOpen}
+        aria-autocomplete="list"
         value={isOpen ? searchTerm : (value || '')}
         onChange={handleInputChange}
         onFocus={handleInputFocus}
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className={error ? 'input-error' : ''}
         required={required}
       />
       {isOpen && (
-        <div className="dropdown-options-list">
+        <div className="dropdown-options-list" role="listbox">
           {filteredOptions.length > 0 ? (
-            filteredOptions.map((option) => (
+            filteredOptions.map((option, idx) => (
               <div
                 key={option}
+                role="option"
+                aria-selected={value === option || highlightedIndex === idx}
                 onClick={() => handleOptionClick(option)}
-                className="dropdown-option-item"
+                className={`dropdown-option-item ${highlightedIndex === idx ? 'highlighted' : ''}`}
+                style={highlightedIndex === idx ? { backgroundColor: 'rgba(250, 167, 24, 0.2)' } : {}}
               >
                 {option}
               </div>

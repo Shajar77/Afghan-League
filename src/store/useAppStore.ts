@@ -1,13 +1,29 @@
 import { create } from 'zustand'
 
+export type PageName =
+  | 'home'
+  | 'about'
+  | 'news'
+  | 'blog-detail'
+  | 'teams'
+  | 'fixtures'
+  | 'points-table'
+  | 'moments'
+  | 'gallery'
+  | 'partnerships'
+  | 'contact'
+  | 'register-player'
+  | 'register-status'
+  | (string & {})
+
 interface AppState {
-  currentPage: string
+  currentPage: PageName
   mobileMenuOpen: boolean
   launchMuted: boolean
   side1Muted: boolean
   side2Muted: boolean
   side3Muted: boolean
-  setCurrentPage: (page: string) => void
+  setCurrentPage: (page: PageName) => void
   setMobileMenuOpen: (open: boolean) => void
   setLaunchMuted: (muted: boolean) => void
   setSide1Muted: (muted: boolean) => void

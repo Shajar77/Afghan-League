@@ -480,7 +480,12 @@ export function FixturesPage() {
                       const t2: TeamMeta = teamsMeta[match.team2] || { name: match.team2, shortName: 'TBD', logo: '', color: '#3b4eb8', invertLogo: false }
 
                       return (
-                        <div key={match.id} className="fixture-match-row">
+                        <div 
+                          key={match.id} 
+                          className="fixture-match-row"
+                          onClick={() => setActiveModalMatch(match)}
+                          style={{ cursor: 'pointer' }}
+                        >
                           {/* Side Ribbon Badge */}
                           {match.badge && (
                             <div className="fixture-side-ribbon">
@@ -526,7 +531,16 @@ export function FixturesPage() {
 
                           {/* RIGHT-CENTER: Score Column */}
                           <div className="fixture-score-col">
-                            <span className="score-tbp-val">TO BE PLAYED</span>
+                            {match.status === 'COMPLETED' || match.status === 'LIVE' ? (
+                              <div style={{ textAlign: 'center' }}>
+                                <span className="score-tbp-val" style={{ color: match.status === 'LIVE' ? '#ef4444' : '#faa718', fontWeight: 'bold' }}>
+                                  {match.score1} v {match.score2}
+                                </span>
+                                {match.status === 'LIVE' && <span style={{ display: 'block', fontSize: '0.7rem', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em' }}>● LIVE</span>}
+                              </div>
+                            ) : (
+                              <span className="score-tbp-val">TO BE PLAYED</span>
+                            )}
                           </div>
                         </div>
                       )
@@ -538,8 +552,15 @@ export function FixturesPage() {
                     <div className="fixture-watch-on">
                       <span className="watch-label">Watch on:</span>
                       <div className="watch-logos-stacked">
-                        <img src={skySportsLogo} alt="Sky Sports" className="watch-broadcaster-logo" />
-                        <img src={bbcLogo} alt="BBC" className="watch-broadcaster-logo" />
+                        {day.matches.flatMap(m => m.broadcasters).includes('Sky Sports') && (
+                          <img src={skySportsLogo} alt="Sky Sports" className="watch-broadcaster-logo" />
+                        )}
+                        {(day.matches.flatMap(m => m.broadcasters).includes('BBC Sport') || day.matches.flatMap(m => m.broadcasters).includes('BBC')) && (
+                          <img src={bbcLogo} alt="BBC" className="watch-broadcaster-logo" />
+                        )}
+                        {!day.matches.flatMap(m => m.broadcasters).some(b => b.includes('Sky') || b.includes('BBC')) && (
+                          <span style={{ fontSize: '0.8rem', color: '#a0aec0' }}>{day.matches[0].broadcasters.join(', ')}</span>
+                        )}
                       </div>
                     </div>
                   </div>

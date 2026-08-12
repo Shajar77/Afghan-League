@@ -1,119 +1,19 @@
 import { useState, useEffect } from 'react'
-import { Calendar, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { COUNTRIES } from '../constants/countries'
-import { SearchableDropdown } from './SearchableDropdown'
-import frontProfileRef from '../assets/Front Profile.jpg.jpeg'
-import idRef from '../assets/ID.jpg.jpeg'
-import actionShotRef from '../assets/Action.jpg.jpeg'
-import rightProfileRef from '../assets/Right Profile.jpg.jpeg'
-import leftRef from '../assets/Left.jpg.jpeg'
+import { API_BASE_URL, buildApiUrl, getApiToken, normalizeMediaUrl } from '../config/api'
+import type { FormData } from './registration/types'
+import {
+  initialFormData,
+  categoriesList,
+  validateFile
+} from './registration/types'
+import { Step1Personal } from './registration/Step1Personal'
+import { Step2Cricket } from './registration/Step2Cricket'
+import { Step3Category } from './registration/Step3Category'
+import { Step4Uploads } from './registration/Step4Uploads'
+import { Step5Review } from './registration/Step5Review'
 import './RegisterPage.css'
-
-interface FormData {
-  // Step 1: Personal
-  regType: 'player' | 'agent'
-  agentName: string
-  agentAgency: string
-  agentPhone: string
-  agentEmail: string
-  fullName: string
-  dob: string
-  nationality: string
-  passportNumber: string
-  countryResidence: string
-  city: string
-  phone: string
-  email: string
-  availability: string[]
-  availabilityDetails: string
-
-  // Step 2: Cricket
-  playingRole: string
-  battingHand: string
-  bowlerType: string
-  bowlingStyle: string
-  bowlingSubtype: string
-  spinType: string
-  currentClub: string
-  prevTeams: string
-  playerStatus: string
-  representingCountry: string
-  totalMatches: string
-  profileLink: string
-
-  // Step 3: Category
-  category: string
-  basePrice: string
-  acceptRelegation: 'yes' | 'no' | 'emerging' | ''
-  relegationLimit: 'Diamond' | 'Gold' | 'Silver' | ''
-  considerIconPlayer: 'yes' | 'no' | ''
-
-  // Step 4: Uploads
-  passportPhoto: File | null
-  passportScan: File | null
-  actionShot: File | null
-  rightProfilePhoto: File | null
-  leftProfilePhoto: File | null
-}
-
-const initialFormData: FormData = {
-  regType: 'player',
-  agentName: '',
-  agentAgency: '',
-  agentPhone: '',
-  agentEmail: '',
-  fullName: '',
-  dob: '',
-  nationality: '',
-  passportNumber: '',
-  countryResidence: '',
-  city: '',
-  phone: '',
-  email: '',
-  availability: ['full'],
-  availabilityDetails: '',
-  playingRole: '',
-  battingHand: '',
-  bowlerType: '',
-  bowlingStyle: '',
-  bowlingSubtype: '',
-  spinType: '',
-  currentClub: '',
-  prevTeams: '',
-  playerStatus: 'Afghanistan (Domestic)',
-  representingCountry: '',
-  totalMatches: '',
-  profileLink: '',
-  category: 'Gold Player',
-  basePrice: '$20,000',
-  acceptRelegation: 'no',
-  relegationLimit: '',
-  considerIconPlayer: '',
-  passportPhoto: null,
-  passportScan: null,
-  actionShot: null,
-  rightProfilePhoto: null,
-  leftProfilePhoto: null,
-}
-
-const categoriesList = [
-  { id: 'Platinum Player', label: 'Platinum Player', desc: 'Top-tier performers', price: '$50,000' },
-  { id: 'Diamond Player', label: 'Diamond Player', desc: 'Established talent', price: '$35,000' },
-  { id: 'Gold Player', label: 'Gold Player', desc: 'Strong domestic record', price: '$20,000' },
-  { id: 'Silver Player', label: 'Silver Player', desc: 'Rising performers', price: '$10,000' },
-  { id: 'Emerging Under-23', label: 'Emerging Under-23', desc: 'Afghan National Players Emerging Talent', price: '$5,000' }
-]
-
-const validateFile = (file: File, allowedTypes: string[], maxSizeMB: number): string | null => {
-  const fileExtension = file.name.split('.').pop()?.toLowerCase() || ''
-  if (!allowedTypes.includes(fileExtension)) {
-    return `Invalid format. Allowed formats: ${allowedTypes.join(', ').toUpperCase()}`
-  }
-  if (file.size > maxSizeMB * 1024 * 1024) {
-    return `File size exceeds the ${maxSizeMB} MB limit.`
-  }
-  return null
-}
 
 export function RegisterPage() {
   const [currentStep, setCurrentStep] = useState<number>(1)
@@ -136,10 +36,33 @@ export function RegisterPage() {
 
   const [apiCountries, setApiCountries] = useState<string[]>(COUNTRIES)
 
+  // --- API-driven form option states (each falls back to hardcoded values) ---
+  const [apiCategories, setApiCategories] = useState(categoriesList)
+  const [apiAvailabilities, setApiAvailabilities] = useState<{ key: string; label: string }[]>([
+    { key: 'full', label: 'Available for full season' },
+    { key: 'selected', label: 'Available for selected dates' },
+    { key: 'national', label: 'Subject to national-team commitments' },
+    { key: 'release', label: 'Subject to club or franchise release' },
+  ])
+  const apiPlayerStatuses = [
+    'Afghanistan (National)',
+    'Afghanistan (Domestic)',
+    'Overseas (National)',
+    'Overseas (Domestic)',
+    'Emerging Player (Domestic)',
+  ]
+  const apiPlayingRoles = [
+    'Batter',
+    'Wicketkeeper-Batter',
+    'Bowler',
+    'All Rounder (Batting)',
+    'All Rounder (Bowling)',
+  ]
+
   useEffect(() => {
     const fetchNationalities = async () => {
       try {
-        const url = `${import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'}/nationalities`
+        const url = buildApiUrl('/nationalities')
         const res = await fetch(url)
         if (res.ok) {
           const json = await res.json()
@@ -157,6 +80,70 @@ export function RegisterPage() {
       }
     }
     fetchNationalities()
+  }, [])
+
+  // Fetch player categories, availability, statuses, and playing roles from API
+  useEffect(() => {
+    const BASE = API_BASE_URL
+
+    // Price and description fallback maps (keyed by lowercase name)
+    const priceMap: Record<string, string> = {
+      'platinum': '$50,000', 'platinum player': '$50,000',
+      'diamond': '$35,000', 'diamond player': '$35,000',
+      'gold': '$20,000', 'gold player': '$20,000',
+      'silver': '$10,000', 'silver player': '$10,000',
+      'emerging': '$5,000', 'emerging under-23': '$5,000',
+    }
+    const descMap: Record<string, string> = {
+      'platinum': 'Top-tier performers', 'platinum player': 'Top-tier performers',
+      'diamond': 'Established talent', 'diamond player': 'Established talent',
+      'gold': 'Strong domestic record', 'gold player': 'Strong domestic record',
+      'silver': 'Rising performers', 'silver player': 'Rising performers',
+      'emerging': 'Afghan National Players Emerging Talent', 'emerging under-23': 'Afghan National Players Emerging Talent',
+    }
+
+    const extractList = (json: any): any[] => {
+      const data = Array.isArray(json) ? json : (json.data || [])
+      return Array.isArray(data) ? data : []
+    }
+    const toName = (item: any): string => typeof item === 'string' ? item : (item.name || '')
+
+    // Fetch player categories
+    fetch(`${BASE}/player-categories`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(json => {
+        const items = extractList(json)
+        if (items.length > 0) {
+          const mapped = items.map((item: any) => {
+            const name = toName(item)
+            const key = name.toLowerCase()
+            return {
+              id: name,
+              label: name,
+              desc: descMap[key] || (typeof item === 'object' ? item.description : '') || '',
+              price: priceMap[key] || (typeof item === 'object' ? item.price : '') || '',
+            }
+          }).filter(c => c.id)
+          if (mapped.length > 0) setApiCategories(mapped)
+        }
+      })
+      .catch(() => {})
+
+    // Fetch player availabilities
+    fetch(`${BASE}/player-availabilities`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(json => {
+        const items = extractList(json)
+        if (items.length > 0) {
+          const mapped = items.map((item: any) => {
+            const name = toName(item)
+            const key = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+            return { key, label: name }
+          }).filter(a => a.key)
+          if (mapped.length > 0) setApiAvailabilities(mapped)
+        }
+      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -367,48 +354,56 @@ export function RegisterPage() {
     }
 
     if (step === 3) {
+      const catKey = (formData.category || '').toLowerCase()
+      const isPlatinum = catKey.includes('platinum')
+      const isDiamond = catKey.includes('diamond')
+      const isGold = catKey.includes('gold')
+
       if (!formData.category) newErrors.category = 'Player Category is required'
-      if (formData.category === 'Platinum Player' && !formData.considerIconPlayer) {
+
+      if (isPlatinum && !formData.considerIconPlayer) {
         newErrors.considerIconPlayer = 'Please specify if you want to be considered for Icon Player nomination'
       }
-      if (!formData.acceptRelegation) {
-        newErrors.acceptRelegation = 'Please specify if you accept category relegation'
-      }
-      if (formData.acceptRelegation === 'yes') {
-        if (formData.category === 'Silver Player') {
-          newErrors.acceptRelegation = 'Relegation only applies to categories higher than Silver. Please select No or Emerging (Does not Apply).'
-        } else if (formData.category === 'Emerging Under-23') {
-          newErrors.acceptRelegation = 'Relegation does not apply to the Emerging Under-23 category. Please select Emerging (Does not Apply).'
-        } else if (!formData.relegationLimit) {
-          newErrors.relegationLimit = 'Please specify the lowest category you accept relegation to'
-        } else {
-          const ranks: Record<string, number> = {
-            'Icon Player': 5,
-            'Platinum Player': 4,
-            'Diamond Player': 3,
-            'Gold Player': 2,
-            'Silver Player': 1,
-            'Emerging Under-23': 0
-          }
-          const limitRanks: Record<string, number> = {
-            'Diamond': 3,
-            'Gold': 2,
-            'Silver': 1
-          }
-          const currentRank = ranks[formData.category] ?? 0
-          const limitRank = limitRanks[formData.relegationLimit] ?? 0
 
-          if (limitRank >= currentRank) {
-            newErrors.relegationLimit = `Relegation limit must be lower than your selected category (${formData.category}).`
+      if (isPlatinum || isDiamond || isGold) {
+        if (!formData.acceptRelegation) {
+          newErrors.acceptRelegation = 'Please specify if you accept category relegation'
+        }
+        if (formData.acceptRelegation === 'yes') {
+          if (!formData.relegationLimit) {
+            newErrors.relegationLimit = 'Please specify the lowest category you accept relegation to'
+          } else {
+            const validLimits: Record<string, string[]> = {
+              'gold': ['Silver'],
+              'diamond': ['Gold', 'Silver'],
+              'platinum': ['Diamond', 'Gold', 'Silver']
+            }
+            const key = isGold ? 'gold' : isDiamond ? 'diamond' : 'platinum'
+            const allowed = validLimits[key] || []
+            if (!allowed.includes(formData.relegationLimit)) {
+              newErrors.relegationLimit = 'Relegation limit must be lower than your selected category.'
+            }
           }
         }
       }
     }
 
     if (step === 4) {
-      if (!formData.passportPhoto) newErrors.passportPhoto = 'Player Profile Photo is required'
-      if (!formData.passportScan) newErrors.passportScan = 'Passport Image is required'
-      if (!formData.actionShot) newErrors.actionShot = 'Action Shot is required'
+      if (!formData.passportPhoto) {
+        newErrors.passportPhoto = fileMeta.passportPhoto
+          ? 'Photo was restored from draft metadata — please re-select the image file to upload.'
+          : 'Player Profile Photo is required'
+      }
+      if (!formData.passportScan) {
+        newErrors.passportScan = fileMeta.passportScan
+          ? 'Passport document was restored from draft metadata — please re-select the file to upload.'
+          : 'Passport Image is required'
+      }
+      if (!formData.actionShot) {
+        newErrors.actionShot = fileMeta.actionShot
+          ? 'Action shot was restored from draft metadata — please re-select the image file to upload.'
+          : 'Action Shot is required'
+      }
     }
 
     setErrors(newErrors)
@@ -566,7 +561,7 @@ export function RegisterPage() {
         ; (window as any).lenis.scrollTo(el, { immediate: true, offset: -90 })
       } else {
         const yOffset = -90 // clearance for sticky navbar
-        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset
+        const y = el.getBoundingClientRect().top + window.scrollY + yOffset
         window.scrollTo({ top: y, behavior: 'auto' })
       }
     } else {
@@ -602,12 +597,12 @@ export function RegisterPage() {
           if (formData.rightProfilePhoto) formDataUpload.append('right_profile', formData.rightProfilePhoto)
           if (formData.leftProfilePhoto) formDataUpload.append('left_profile', formData.leftProfilePhoto)
 
-          const token = import.meta.env.VITE_API_TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdG9yZWZyb250LmludGciLCJpYXQiOjE3ODM1MzMxMzksImV4cCI6MTc4MzYxOTUzOX0.k7IGms0gTrdZy0Qv7SgnQl-yp_eLpd5cjerpg8Yq6qAuIlGhXkBX0nBXHWQyw5jPxX6NOqFzavJ8gtK2CTGLOA'
-          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'}/uploads/player-images`, {
+          const token = getApiToken()
+          const uploadRes = await fetch(buildApiUrl('/uploads/player-images'), {
             method: 'POST',
-            headers: {
+            headers: token ? {
               'Authorization': `Bearer ${token}`
-            },
+            } : {},
             body: formDataUpload
           })
 
@@ -617,26 +612,59 @@ export function RegisterPage() {
           }
 
           const uploadJson = await uploadRes.json()
-          console.log('Upload response JSON:', JSON.stringify(uploadJson, null, 2))
           const urls = uploadJson.data || uploadJson
 
           const normalizeUrl = (val: string, fallback: string): string => {
             if (!val || typeof val !== 'string') return fallback
-            const trimmed = val.trim()
-            if (/^https?:\/\//i.test(trimmed)) return trimmed
-            if (trimmed.startsWith('/')) {
-              return `https://api-staging.chaptersquare.com${trimmed}`
-            }
-            return `https://api-staging.chaptersquare.com/${trimmed}`
+            return normalizeMediaUrl(val) || fallback
           }
 
-          const photoUrl = normalizeUrl(urls.photo || urls.photo_url || '', 'https://api-staging.chaptersquare.com/uploads/images/headshot_sample.jpg')
-          const passportUrl = normalizeUrl(urls.passport || urls.passport_url || '', 'https://api-staging.chaptersquare.com/uploads/images/passport_sample.jpg')
-          const actionShotUrl = normalizeUrl(urls.action_shot || urls.action_shot_url || '', 'https://api-staging.chaptersquare.com/uploads/images/action_sample.jpg')
-          const leftProfileUrl = normalizeUrl(urls.left_profile || urls.left_profile_url || '', 'https://api-staging.chaptersquare.com/uploads/images/left_prof_sample.jpg')
-          const rightProfileUrl = normalizeUrl(urls.right_profile || urls.right_profile_url || '', 'https://api-staging.chaptersquare.com/uploads/images/right_prof_sample.jpg')
+          // Required photos — fallback to sample only if server somehow omits them
+          const defaultBase = API_BASE_URL.replace(/\/api\/v\d+.*$/, '')
+          const photoUrl = normalizeUrl(urls.photo || urls.photo_url || '', `${defaultBase}/uploads/images/headshot_sample.jpg`)
+          const passportUrl = normalizeUrl(urls.passport || urls.passport_url || '', `${defaultBase}/uploads/images/passport_sample.jpg`)
+          const actionShotUrl = normalizeUrl(urls.action_shot || urls.action_shot_url || '', `${defaultBase}/uploads/images/action_sample.jpg`)
+          // Optional photos — only normalized if player actually uploaded them
+          const leftProfileUrl = formData.leftProfilePhoto ? normalizeUrl(urls.left_profile || urls.left_profile_url || '', '') : null
+          const rightProfileUrl = formData.rightProfilePhoto ? normalizeUrl(urls.right_profile || urls.right_profile_url || '', '') : null
 
           const profileLink = formData.profileLink.trim() ? normalizeUrl(formData.profileLink, 'https://www.espncricinfo.com') : 'https://www.espncricinfo.com'
+
+          const availabilityShortMap: Record<string, string> = {
+            'full': 'Full Season',
+            'selected': 'Selected Dates',
+            'national': 'National Commitments',
+            'release': 'Club Release',
+            'available for full season': 'Full Season',
+            'available for selected dates': 'Selected Dates',
+            'subject to national-team commitments': 'National Commitments',
+            'subject to club or franchise release': 'Club Release',
+          }
+
+          const formatAvailabilityString = (avail: any): string => {
+            const list = Array.isArray(avail) ? avail : [avail]
+            const formatted = list
+              .filter(Boolean)
+              .map(item => {
+                const str = String(item).trim()
+                const key = str.toLowerCase()
+                return availabilityShortMap[key] || str
+              })
+              .join(', ')
+            return formatted.length > 50 ? formatted.slice(0, 47) + '...' : (formatted || 'Full Season')
+          }
+
+          // Format availability details and relegation consent info
+          const relegationInfo = formData.acceptRelegation === 'yes'
+            ? `Accept Relegation: Yes (Till ${formData.relegationLimit || 'Any'})`
+            : `Accept Relegation: No`
+          const iconInfo = formData.considerIconPlayer ? ` Icon Nomination: ${formData.considerIconPlayer.toUpperCase()}.` : ''
+          const customAvailDetails = formData.availabilityDetails ? `Notes: ${formData.availabilityDetails}. ` : ''
+
+          const fullAvailabilityDetails = `${customAvailDetails}${relegationInfo}.${iconInfo}`.slice(0, 250)
+
+          const expRepCountry = formData.representingCountry ? ` Representing: ${formData.representingCountry}.` : ''
+          const fullPlayingExperience = `Current Club: ${formData.currentClub || 'None'}. Previous Teams: ${formData.prevTeams || 'None'}.${expRepCountry}`.slice(0, 250)
 
           // 2. Submit Player Registration details to player-registrations
           const regPayload = {
@@ -647,29 +675,53 @@ export function RegisterPage() {
             email: formData.email,
             batting_hand: formData.battingHand,
             bowling_arm: formData.bowlingStyle || 'Right-arm',
-            playing_experience: `Current Club: ${formData.currentClub || 'None'}. Previous Teams: ${formData.prevTeams || 'None'}.`,
-            previous_teams: formData.prevTeams || 'None',
+            playing_experience: fullPlayingExperience,
+            previous_teams: (formData.prevTeams || 'None').slice(0, 250),
             passport_number: formData.passportNumber,
-            availability_details: formData.availabilityDetails || 'Full Season availability.',
+            availability_details: fullAvailabilityDetails,
             passport_url: passportUrl,
             action_shot_url: actionShotUrl,
             photo_url: photoUrl,
-            right_profile_url: rightProfileUrl,
-            left_profile_url: leftProfileUrl,
+            ...(rightProfileUrl ? { right_profile_url: rightProfileUrl } : {}),
+            ...(leftProfileUrl ? { left_profile_url: leftProfileUrl } : {}),
             nationality: formData.nationality,
             country_of_residence: formData.countryResidence,
-            player_availability: formData.availability.join(', '),
+            player_availability: formatAvailabilityString(formData.availability),
             player_category: formData.category,
             playing_role: formData.playingRole,
             bowling_type: formData.bowlingSubtype || formData.bowlerType || formData.spinType || 'None',
             player_status: formData.playerStatus,
             twtenty_matches_count: formData.totalMatches ? parseInt(formData.totalMatches, 10) : 0,
-            submission_category: 'Draft Entry',
+            submission_category: formData.regType === 'player' ? 'Player' : 'Agent',
             bowler_category: formData.bowlerType || 'None',
-            profile_link: profileLink
+            profile_link: profileLink,
+            agent_full_name: formData.regType === 'agent' ? formData.agentName : '',
+            agent_company_name: formData.regType === 'agent' ? formData.agentAgency : '',
+            agent_phone_number: formData.regType === 'agent' ? formData.agentPhone : '',
+            agent_email_address: formData.regType === 'agent' ? formData.agentEmail : '',
+
+            // Explicit extra keys for API schema
+            accept_relegation: formData.acceptRelegation || 'no',
+            relegation_limit: formData.relegationLimit || 'None',
+            consider_icon_player: formData.considerIconPlayer || 'no',
+            representing_country: formData.representingCountry || ''
           }
 
-          const regRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'}/player-registrations`, {
+          console.group('📁 [APL Registration File Uploads Payload]')
+          console.log('Passport Photo File:', formData.passportPhoto?.name || 'N/A', '-> URL:', passportUrl)
+          console.log('Passport Scan File:', formData.passportScan?.name || 'N/A', '-> URL:', passportUrl)
+          console.log('Action Shot File:', formData.actionShot?.name || 'N/A', '-> URL:', actionShotUrl)
+          console.log('Right Profile Photo File:', formData.rightProfilePhoto?.name || 'N/A', '-> URL:', rightProfileUrl || 'N/A')
+          console.log('Left Profile Photo File:', formData.leftProfilePhoto?.name || 'N/A', '-> URL:', leftProfileUrl || 'N/A')
+          console.groupEnd()
+
+          console.group('🚀 [APL Registration Submit Payload]')
+          console.log('Target API Endpoint:', buildApiUrl('/player-registrations'))
+          console.log('Full JSON Payload Object:', regPayload)
+          console.log('Raw Formatted JSON String:\n' + JSON.stringify(regPayload, null, 2))
+          console.groupEnd()
+
+          const regRes = await fetch(buildApiUrl('/player-registrations'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -679,32 +731,46 @@ export function RegisterPage() {
 
           if (!regRes.ok) {
             const errJson = await regRes.json().catch(() => ({}))
-            console.error('Registration server error details STRINGIFIED:', JSON.stringify(errJson, null, 2))
-            let details = ''
-            
-            const extractMessage = (obj: any): string => {
+            console.error('Backend registration response 400 details:', errJson)
+
+            const formatErrorObj = (obj: any): string => {
               if (!obj) return ''
               if (typeof obj === 'string') return obj
-              if (Array.isArray(obj)) return obj.map(extractMessage).join(', ')
+              if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj)
+              if (Array.isArray(obj)) {
+                return obj.map(item => formatErrorObj(item)).filter(Boolean).join(', ')
+              }
               if (typeof obj === 'object') {
-                if (obj.errors) return extractMessage(obj.errors)
-                if (obj.message) return extractMessage(obj.message)
-                if (obj.msg) return extractMessage(obj.msg)
-                return Object.entries(obj)
-                  .map(([k, v]) => `${k}: ${extractMessage(v)}`)
-                  .join(', ')
+                if (obj.field && (obj.message || obj.error)) {
+                  return `${String(obj.field).replace(/_/g, ' ').toUpperCase()}: ${obj.message || obj.error}`
+                }
+                const entries = Object.entries(obj)
+                  .map(([key, val]) => {
+                    const formattedKey = key.replace(/_/g, ' ').toUpperCase()
+                    const formattedVal = formatErrorObj(val)
+                    if (!formattedVal) return ''
+                    return `${formattedKey}: ${formattedVal}`
+                  })
+                  .filter(Boolean)
+                return entries.join(' | ')
               }
               return String(obj)
             }
 
-            if (errJson.errors) {
-              details = extractMessage(errJson.errors)
+            let details = ''
+            if (errJson.details) {
+              details = formatErrorObj(errJson.details)
+            } else if (errJson.errors) {
+              details = formatErrorObj(errJson.errors)
             } else if (errJson.error) {
-              details = extractMessage(errJson.error)
-            } else if (errJson.message) {
-              details = extractMessage(errJson.message)
+              details = formatErrorObj(errJson.error)
+            } else if (errJson.message && errJson.message !== 'Validation failed') {
+              details = errJson.message
+            } else {
+              details = formatErrorObj(errJson)
             }
-            throw new Error(details || JSON.stringify(errJson) || 'Player registration submission failed.')
+
+            throw new Error(details || 'Validation failed. Please check your inputs and try again.')
           }
 
           const regJson = await regRes.json()
@@ -758,6 +824,7 @@ export function RegisterPage() {
     setConsent1(false)
     setConsent2(false)
     setConsent3(false)
+    setConsent4(false)
     setCurrentStep(1)
     setIsSubmitted(false)
     setErrors({})
@@ -870,1259 +937,66 @@ export function RegisterPage() {
 
             {/* STEP 1: PERSONAL INFORMATION */}
             {currentStep === 1 && (
-              <div className="form-step-content animate-fade-in">
-                {/* Registration Type */}
-                <div className="form-section">
-                  <h3 className="section-title">Registration Type</h3>
-                  <p className="section-subtitle">Who is submitting this registration?</p>
-
-                  <div className="reg-type-cards">
-                    <div
-                      className={`type-card ${formData.regType === 'player' ? 'selected' : ''}`}
-                      onClick={() => handleSelectOption('regType', 'player')}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleSelectOption('regType', 'player')
-                        }
-                      }}
-                    >
-                      <span className="type-card-title">I am the Player</span>
-                    </div>
-                    <div
-                      className={`type-card ${formData.regType === 'agent' ? 'selected' : ''}`}
-                      onClick={() => handleSelectOption('regType', 'agent')}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleSelectOption('regType', 'agent')
-                        }
-                      }}
-                    >
-                      <span className="type-card-title">I am an Agent / Authorized Representative</span>
-                    </div>
-                  </div>
-                </div>
-
-                {formData.regType === 'agent' && (
-                  <div className="form-section">
-                    <h3 className="section-title">Agent Details</h3>
-                    <p className="section-subtitle">Information about the player's representative.</p>
-
-                    <div className="form-grid-2col">
-                      <div className="form-group">
-                        <label>Agent Full Name <span className="required">*</span></label>
-                        <input
-                          type="text"
-                          name="agentName"
-                          value={formData.agentName}
-                          onChange={handleInputChange}
-                          placeholder="e.g. John Doe"
-                          className={errors.agentName ? 'input-error' : ''}
-                          required
-                        />
-                        {errors.agentName && <span className="error-message">{errors.agentName}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label>Agency / Company Name</label>
-                        <input
-                          type="text"
-                          name="agentAgency"
-                          value={formData.agentAgency}
-                          onChange={handleInputChange}
-                          placeholder="e.g. Apex Sports Management"
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label>Agent Phone Number <span className="required">*</span></label>
-                        <input
-                          type="tel"
-                          name="agentPhone"
-                          value={formData.agentPhone}
-                          onChange={handleInputChange}
-                          placeholder="e.g. +93 70 987 6543"
-                          className={errors.agentPhone ? 'input-error' : ''}
-                          required
-                        />
-                        {errors.agentPhone && <span className="error-message">{errors.agentPhone}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label>Agent Email Address <span className="required">*</span></label>
-                        <input
-                          type="email"
-                          name="agentEmail"
-                          value={formData.agentEmail}
-                          onChange={handleInputChange}
-                          placeholder="e.g. agent@agency.com"
-                          className={errors.agentEmail ? 'input-error' : ''}
-                          required
-                        />
-                        {errors.agentEmail && <span className="error-message">{errors.agentEmail}</span>}
-                      </div>
-                    </div>
-
-                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '1rem 0 0 0', fontStyle: 'italic' }}>
-                      Agent details may be reused, but complete player information and documents must be submitted separately for every player.
-                    </p>
-                  </div>
-                )}
-
-                {/* Player Information */}
-                <div className="form-section">
-                  <h3 className="section-title">Player Information</h3>
-                  <p className="section-subtitle">Tell us about the player being registered.</p>
-
-                  <div className="form-grid-2col">
-                    <div className="form-group">
-                      <label>Full Legal Name <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Rashid Khan"
-                        className={errors.fullName ? 'input-error' : ''}
-                        required
-                      />
-                      {errors.fullName && <span className="error-message">{errors.fullName}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>Date of Birth <span className="required">*</span></label>
-                      <div className="date-input-wrapper">
-                        <input
-                          type="date"
-                          name="dob"
-                          value={formData.dob}
-                          onChange={handleInputChange}
-                          className={errors.dob ? 'input-error' : ''}
-                          required
-                        />
-                        <Calendar size={18} className="calendar-icon" />
-                      </div>
-                      {errors.dob && <span className="error-message">{errors.dob}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>Nationality <span className="required">*</span></label>
-                      <SearchableDropdown
-                        value={formData.nationality}
-                        onChange={(val) => handleSelectOption('nationality', val)}
-                        options={apiCountries}
-                        placeholder="Search & select country..."
-                        error={errors.nationality}
-                        required
-                      />
-                      {errors.nationality && <span className="error-message">{errors.nationality}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>Passport Number <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        name="passportNumber"
-                        value={formData.passportNumber}
-                        onChange={handleInputChange}
-                        placeholder="e.g. O1838204A"
-                        className={errors.passportNumber ? 'input-error' : ''}
-                        required
-                      />
-                      {errors.passportNumber && <span className="error-message">{errors.passportNumber}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>Country of Residence <span className="required">*</span></label>
-                      <SearchableDropdown
-                        value={formData.countryResidence}
-                        onChange={(val) => handleSelectOption('countryResidence', val)}
-                        options={apiCountries}
-                        placeholder="Search & select country..."
-                        error={errors.countryResidence}
-                        required
-                      />
-                      {errors.countryResidence && <span className="error-message">{errors.countryResidence}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>City <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Kabul"
-                        className={errors.city ? 'input-error' : ''}
-                        required
-                      />
-                      {errors.city && <span className="error-message">{errors.city}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>Phone / WhatsApp Number <span className="required">*</span></label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        placeholder="e.g. +93 70 123 4567"
-                        className={errors.phone ? 'input-error' : ''}
-                        required
-                      />
-                      {errors.phone && <span className="error-message">{errors.phone}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>Email Address <span className="required">*</span></label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        placeholder="e.g. player@domain.com"
-                        className={errors.email ? 'input-error' : ''}
-                        required
-                      />
-                      {errors.email && <span className="error-message">{errors.email}</span>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Player Availability */}
-                <div className="form-section">
-                  <h3 className="section-title">Player Availability <span className="required">*</span></h3>
-
-                  <div className={`availability-grid ${errors.availability ? 'dropzone-error' : ''}`}>
-                    <div
-                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('full') : formData.availability === 'full') ? 'selected' : ''}`}
-                      onClick={() => handleToggleAvailability('full')}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleToggleAvailability('full')
-                        }
-                      }}
-                    >
-                      <span className="avail-card-title">Available for full season</span>
-                    </div>
-                    <div
-                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('selected') : formData.availability === 'selected') ? 'selected' : ''}`}
-                      onClick={() => handleToggleAvailability('selected')}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleToggleAvailability('selected')
-                        }
-                      }}
-                    >
-                      <span className="avail-card-title">Available for selected dates</span>
-                    </div>
-                    <div
-                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('national') : formData.availability === 'national') ? 'selected' : ''}`}
-                      onClick={() => handleToggleAvailability('national')}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleToggleAvailability('national')
-                        }
-                      }}
-                    >
-                      <span className="avail-card-title">Subject to national-team commitments</span>
-                    </div>
-                    <div
-                      className={`avail-card ${(Array.isArray(formData.availability) ? formData.availability.includes('release') : formData.availability === 'release') ? 'selected' : ''}`}
-                      onClick={() => handleToggleAvailability('release')}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleToggleAvailability('release')
-                        }
-                      }}
-                    >
-                      <span className="avail-card-title">Subject to club or franchise release</span>
-                    </div>
-                  </div>
-                  {errors.availability && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.availability}</span>}
-
-                  <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                    <label>Availability Details</label>
-                    <textarea
-                      name="availabilityDetails"
-                      value={formData.availabilityDetails}
-                      onChange={handleInputChange}
-                      placeholder="Mention unavailable dates or existing commitments."
-                      rows={4}
-                    />
-                  </div>
-                </div>
-              </div>
+              <Step1Personal
+                formData={formData}
+                errors={errors}
+                apiCountries={apiCountries}
+                apiAvailabilities={apiAvailabilities}
+                handleInputChange={handleInputChange}
+                handleSelectOption={handleSelectOption}
+                handleToggleAvailability={handleToggleAvailability}
+              />
             )}
 
             {/* STEP 2: CRICKET INFORMATION */}
             {currentStep === 2 && (
-              <div className="form-step-content animate-fade-in">
-
-                {/* Playing Role */}
-                <div className="form-section">
-                  <h3 className="section-title">Cricket Profile</h3>
-                  <p className="section-subtitle">Details about the player's playing style and history.</p>
-
-                  <label className="field-group-label">Playing Role <span className="required">*</span></label>
-                  <div className="playing-role-grid">
-                    {['Batter', 'Wicketkeeper-Batter', 'Bowler', 'All Rounder (Batting)', 'All Rounder (Bowling)'].map((role) => (
-                      <div
-                        key={role}
-                        className={`type-card ${formData.playingRole === role ? 'selected' : ''} ${errors.playingRole ? 'input-error' : ''}`}
-                        onClick={() => handleSelectOption('playingRole', role)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleSelectOption('playingRole', role)
-                          }
-                        }}
-                      >
-                        <span className="type-card-title">{role}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Batting Hand */}
-                <div className="form-section">
-                  <label className="field-group-label">Batting Hand <span className="required">*</span></label>
-                  <div className="reg-type-cards">
-                    {['Right-Handed', 'Left-Handed'].map((hand) => (
-                      <div
-                        key={hand}
-                        className={`type-card ${formData.battingHand === hand ? 'selected' : ''}`}
-                        onClick={() => handleSelectOption('battingHand', hand)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleSelectOption('battingHand', hand)
-                          }
-                        }}
-                      >
-                        <span className="type-card-title">{hand}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Progressive Bowling Style */}
-                {(formData.playingRole === 'All Rounder (Batting)' || formData.playingRole === 'All Rounder (Bowling)' || formData.playingRole === 'Bowler') && (
-                  <div className="form-section animate-fade-in" style={{ gap: '2.5rem', display: 'flex', flexDirection: 'column', marginTop: '1rem', marginBottom: '1.5rem' }}>
-                    
-                    {/* Bowler Category (Only if playingRole is Bowler) */}
-                    {formData.playingRole === 'Bowler' && (
-                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="field-group-label" style={{ margin: 0 }}>Bowler Category <span className="required">*</span></label>
-                        <div className="reg-type-cards">
-                          {['Fast Bowler', 'Spin Bowler'].map((category) => (
-                            <div
-                              key={category}
-                              className={`type-card ${formData.bowlerType === category ? 'selected' : ''} ${errors.bowlerType ? 'input-error' : ''}`}
-                              onClick={() => handleSelectOption('bowlerType', category)}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  handleSelectOption('bowlerType', category)
-                                }
-                              }}
-                            >
-                              <span className="type-card-title">{category}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {errors.bowlerType && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlerType}</span>}
-                      </div>
-                    )}
-
-                    {/* Bowling Arm */}
-                    {(formData.playingRole !== 'Bowler' || formData.bowlerType) && (
-                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="field-group-label" style={{ margin: 0 }}>Bowling Arm <span className="required">*</span></label>
-                        <div className="reg-type-cards">
-                          {['Right-Arm Bowler', 'Left-Arm Bowler'].map((arm) => (
-                            <div
-                              key={arm}
-                              className={`type-card ${formData.bowlingStyle === arm ? 'selected' : ''} ${errors.bowlingStyle ? 'input-error' : ''}`}
-                              onClick={() => handleSelectOption('bowlingStyle', arm)}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  handleSelectOption('bowlingStyle', arm)
-                                }
-                              }}
-                            >
-                              <span className="type-card-title">{arm}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {errors.bowlingStyle && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlingStyle}</span>}
-                      </div>
-                    )}
-
-                    {/* Bowling Type (For All-Rounders, or for Bowler who selected Fast Bowler) */}
-                    {formData.bowlingStyle && 
-                     (formData.playingRole !== 'Bowler' || formData.bowlerType === 'Fast Bowler') && (
-                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="field-group-label" style={{ margin: 0 }}>Bowling Type <span className="required">*</span></label>
-                        <div className="relegation-cards-grid">
-                          {(formData.playingRole === 'Bowler' 
-                            ? ['Fast Bowler', 'Medium Fast Bowler'] 
-                            : ['Fast Bowler', 'Medium Fast Bowler', 'Spin Bowler']
-                          ).map((type) => (
-                            <div
-                              key={type}
-                              className={`type-card ${formData.bowlingSubtype === type ? 'selected' : ''} ${errors.bowlingSubtype ? 'input-error' : ''}`}
-                              onClick={() => handleSelectOption('bowlingSubtype', type)}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  handleSelectOption('bowlingSubtype', type)
-                                }
-                              }}
-                            >
-                              <span className="type-card-title">{type}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {errors.bowlingSubtype && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.bowlingSubtype}</span>}
-                      </div>
-                    )}
-
-                    {/* Spin Type (For All-Rounders who selected Spin Bowler, or for Bowler who selected Spin Bowler) */}
-                    {formData.bowlingStyle && 
-                     ((formData.playingRole !== 'Bowler' && formData.bowlingSubtype === 'Spin Bowler') || 
-                      (formData.playingRole === 'Bowler' && formData.bowlerType === 'Spin Bowler')) && (
-                      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <label className="field-group-label" style={{ margin: 0 }}>Spin Type <span className="required">*</span></label>
-                        <div className="player-status-grid">
-                          {['Off Spinner', 'Leg Spinner', 'Left-arm Orthodox', 'Left-arm Unorthodox (Chinaman)'].map((spin) => (
-                            <div
-                              key={spin}
-                              className={`type-card ${formData.spinType === spin ? 'selected' : ''} ${errors.spinType ? 'input-error' : ''}`}
-                              onClick={() => handleSelectOption('spinType', spin)}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  handleSelectOption('spinType', spin)
-                                }
-                              }}
-                            >
-                              <span className="type-card-title">{spin}</span>
-                            </div>
-                          ))}
-                        </div>
-                        {errors.spinType && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.spinType}</span>}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Previous Major Teams */}
-                <div className="form-section">
-                  <div className="form-group">
-                    <label>Previous Major Teams</label>
-                    <input
-                      type="text"
-                      name="prevTeams"
-                      value={formData.prevTeams}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Afghanistan National Team, Sunrisers Leeds"
-                    />
-                  </div>
-                </div>
-
-                {/* Player Status */}
-                <div className="form-section">
-                  <label className="field-group-label">Player Status <span className="required">*</span></label>
-                  <div className="player-status-grid">
-                    {[
-                      'Afghanistan (National)',
-                      'Afghanistan (Domestic)',
-                      'Overseas (National)',
-                      'Overseas (Domestic)',
-                      'Emerging Player (Domestic)'
-                    ].map((status) => (
-                      <div
-                        key={status}
-                        className={`type-card ${formData.playerStatus === status ? 'selected' : ''}`}
-                        onClick={() => handleSelectOption('playerStatus', status)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            handleSelectOption('playerStatus', status)
-                          }
-                        }}
-                      >
-                        <span className="type-card-title">{status}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Player Status Country Select */}
-                {(formData.playerStatus === 'Overseas (National)' || formData.playerStatus === 'Overseas (Domestic)') && (
-                  <div className="form-section animate-fade-in">
-                    <div className="form-group">
-                      <label>Representing Country <span className="required">*</span></label>
-                      <SearchableDropdown
-                        value={formData.representingCountry}
-                        onChange={(val) => handleSelectOption('representingCountry', val)}
-                        options={apiCountries}
-                        placeholder="Search & select country..."
-                        error={errors.representingCountry}
-                        required
-                      />
-                      {errors.representingCountry && <span className="error-message">{errors.representingCountry}</span>}
-                    </div>
-                  </div>
-                )}
-
-                {/* Total T20 Matches & Profile Link */}
-                <div className="form-section">
-                  <div className="form-grid-2col">
-                    <div className="form-group">
-                      <label>Total T20 Matches</label>
-                      <input
-                        type="number"
-                        name="totalMatches"
-                        value={formData.totalMatches}
-                        onChange={handleInputChange}
-                        placeholder="e.g. 120"
-                        className={errors.totalMatches ? 'input-error' : ''}
-                      />
-                      {errors.totalMatches && <span className="error-message">{errors.totalMatches}</span>}
-                    </div>
-
-                    <div className="form-group">
-                      <label>ESPNcricinfo or Cricbuzz Profile Link <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
-                      <input
-                        type="url"
-                        name="profileLink"
-                        value={formData.profileLink}
-                        onChange={handleInputChange}
-                        placeholder="https://..."
-                        className={errors.profileLink ? 'input-error' : ''}
-                      />
-                      {errors.profileLink && <span className="error-message">{errors.profileLink}</span>}
-                    </div>
-                  </div>
-                </div>
-
-              </div>
+              <Step2Cricket
+                formData={formData}
+                errors={errors}
+                apiPlayingRoles={apiPlayingRoles}
+                apiPlayerStatuses={apiPlayerStatuses}
+                apiCountries={apiCountries}
+                handleInputChange={handleInputChange}
+                handleSelectOption={handleSelectOption}
+              />
             )}
 
             {/* STEP 3: CATEGORY */}
             {currentStep === 3 && (
-              <div className="form-step-content animate-fade-in">
-                <div className="form-section">
-                  <h3 className="section-title">Select Player Category</h3>
-                  <p className="section-subtitle">Choose the category you are registering for. *</p>
-
-                  <div className="categories-grid-cards">
-                    {categoriesList.map((cat) => (
-                       <div
-                         key={cat.id}
-                         className={`category-large-card ${formData.category === cat.id ? 'selected' : ''}`}
-                         onClick={() => handleSelectOption('category', cat.id, { basePrice: cat.price, considerIconPlayer: '' })}
-                         role="button"
-                         tabIndex={0}
-                         onKeyDown={(e) => {
-                           if (e.key === 'Enter' || e.key === ' ') {
-                             e.preventDefault()
-                             handleSelectOption('category', cat.id, { basePrice: cat.price, considerIconPlayer: '' })
-                           }
-                         }}
-                       >
-                         <div className="cat-card-left">
-                           <h4 className="cat-card-title">{cat.label}</h4>
-                           <p className="cat-card-desc">{cat.desc}</p>
-                         </div>
-                       </div>
-                    ))}
-                  </div>
-
-                  {formData.category === 'Platinum Player' && (
-                    <div className="form-section animate-fade-in" style={{ marginTop: '2rem' }}>
-                      <h3 className="section-title">Icon Player Nomination <span className="required">*</span></h3>
-                      <p className="section-subtitle">Would you like to be considered for the Icon Player nomination?</p>
-                      
-                      <div className="relegation-cards-grid">
-                        <div
-                          className={`type-card ${formData.considerIconPlayer === 'yes' ? 'selected' : ''} ${errors.considerIconPlayer ? 'input-error' : ''}`}
-                          onClick={() => handleSelectOption('considerIconPlayer', 'yes')}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              handleSelectOption('considerIconPlayer', 'yes')
-                            }
-                          }}
-                        >
-                          <span>Yes</span>
-                        </div>
-                        <div
-                          className={`type-card ${formData.considerIconPlayer === 'no' ? 'selected' : ''} ${errors.considerIconPlayer ? 'input-error' : ''}`}
-                          onClick={() => handleSelectOption('considerIconPlayer', 'no')}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              handleSelectOption('considerIconPlayer', 'no')
-                            }
-                          }}
-                        >
-                          <span>No</span>
-                        </div>
-                      </div>
-                      {errors.considerIconPlayer && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.considerIconPlayer}</span>}
-                    </div>
-                  )}
-                </div>
-
-                {/* Relegation Consent */}
-                {formData.category && formData.category !== 'Emerging Under-23' && formData.category !== 'Silver Player' && (
-                  <>
-                    <div className="form-section">
-                      <h3 className="section-title">Accept Relegation <span className="required">*</span></h3>
-                      <p className="section-subtitle">If you are not selected in your preferred category, do you accept being considered for lower categories?</p>
-
-                      <div className="relegation-cards-grid">
-                        <div
-                          className={`type-card ${formData.acceptRelegation === 'yes' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
-                          onClick={() => {
-                            if (formData.acceptRelegation !== 'yes') {
-                              const autoLimit = formData.category === 'Gold Player' ? 'Silver' : formData.category === 'Diamond Player' ? 'Gold' : ''
-                              handleSelectOption('acceptRelegation', 'yes', { relegationLimit: autoLimit })
-                            }
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              if (formData.acceptRelegation !== 'yes') {
-                                const autoLimit = formData.category === 'Gold Player' ? 'Silver' : formData.category === 'Diamond Player' ? 'Gold' : ''
-                                handleSelectOption('acceptRelegation', 'yes', { relegationLimit: autoLimit })
-                              }
-                            }
-                          }}
-                        >
-                          <span className="type-card-title">Yes</span>
-                        </div>
-                        <div
-                          className={`type-card ${formData.acceptRelegation === 'no' ? 'selected' : ''} ${errors.acceptRelegation ? 'input-error' : ''}`}
-                          onClick={() => {
-                            handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              handleSelectOption('acceptRelegation', 'no', { relegationLimit: '' })
-                            }
-                          }}
-                        >
-                          <span className="type-card-title">No</span>
-                        </div>
-
-                      </div>
-                      {errors.acceptRelegation && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.acceptRelegation}</span>}
-                    </div>
-
-                    {formData.acceptRelegation === 'yes' && (
-                      <div className="form-section animate-fade-in">
-                        <h3 className="section-title">Relegation accepted till: <span className="required">*</span></h3>
-                        <p className="section-subtitle">Select the lowest category you accept being relegated to.</p>
-
-                        <div className="relegation-cards-grid">
-                          {formData.category !== 'Gold Player' && formData.category !== 'Diamond Player' && (
-                            <div
-                              className={`type-card ${formData.relegationLimit === 'Diamond' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
-                              onClick={() => handleSelectOption('relegationLimit', 'Diamond')}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  handleSelectOption('relegationLimit', 'Diamond')
-                                }
-                              }}
-                            >
-                              <span className="type-card-title">Diamond</span>
-                            </div>
-                          )}
-                          {formData.category !== 'Gold Player' && (
-                            <div
-                              className={`type-card ${formData.relegationLimit === 'Gold' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
-                              onClick={() => handleSelectOption('relegationLimit', 'Gold')}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
-                                  handleSelectOption('relegationLimit', 'Gold')
-                                }
-                              }}
-                            >
-                              <span className="type-card-title">Gold</span>
-                            </div>
-                          )}
-                          <div
-                            className={`type-card ${formData.relegationLimit === 'Silver' ? 'selected' : ''} ${errors.relegationLimit ? 'input-error' : ''}`}
-                            onClick={() => handleSelectOption('relegationLimit', 'Silver')}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault()
-                                handleSelectOption('relegationLimit', 'Silver')
-                              }
-                            }}
-                          >
-                            <span className="type-card-title">Silver</span>
-                          </div>
-                        </div>
-                        {errors.relegationLimit && <span className="error-message" style={{ marginTop: '0.5rem', display: 'block' }}>{errors.relegationLimit}</span>}
-                      </div>
-                    )}
-                  </>
-                )}
-
-              </div>
+              <Step3Category
+                formData={formData}
+                errors={errors}
+                apiCategories={apiCategories}
+                handleSelectOption={handleSelectOption}
+              />
             )}
 
             {/* STEP 4: UPLOADS */}
             {currentStep === 4 && (
-              <div className="form-step-content animate-fade-in">
-                <div className="form-section">
-                  <h3 className="section-title">Uploads</h3>
-                  <p className="section-subtitle">Accepted formats: JPG or PNG for images, plus PDF for documents. Max 5 MB per file.</p>
-
-                  {/* Player Profile Photo */}
-                  <div className="form-group" style={{ marginBottom: '2rem' }}>
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Player Profile Photo <span className="required">*</span></label>
-                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
-                      Upload a recent, clear, front-facing portrait photograph.
-                    </p>
-
-                    <div className="upload-row-layout">
-                      <div className="upload-dropzone-container">
-                        <div
-                          className={`upload-dropzone ${formData.passportPhoto ? 'has-file' : ''} ${(!formData.passportPhoto && fileMeta.passportPhoto) ? 'has-file-warning' : ''} ${errors.passportPhoto ? 'dropzone-error' : ''}`}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, 'passportPhoto')}
-                          onClick={() => document.getElementById('passportPhotoInput')?.click()}
-                          style={{ height: '100%' }}
-                        >
-                          <input
-                            type="file"
-                            id="passportPhotoInput"
-                            accept=".jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange(e, 'passportPhoto')}
-                            style={{ display: 'none' }}
-                          />
-                          <div className="dropzone-inner">
-                            <span className="dropzone-title">
-                              {formData.passportPhoto ? `Selected: ${formData.passportPhoto.name}` :
-                               fileMeta.passportPhoto ? `Restored: ${fileMeta.passportPhoto.name} (⚠️ Re-upload required)` :
-                               'Click or drag a photo here'}
-                            </span>
-                            <span className="dropzone-subtitle">
-                              {formData.passportPhoto ? 'Click to change photo' :
-                               fileMeta.passportPhoto ? 'File must be re-selected' :
-                               'JPG or PNG, up to 5 MB'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="upload-reference-container">
-                        <img src={frontProfileRef} alt="Player Profile Photo Reference" className="upload-reference-img" />
-                      </div>
-                    </div>
-                    {errors.passportPhoto && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportPhoto}</span>}
-                  </div>
-
-                  {/* Passport Copy */}
-                  <div className="form-group" style={{ marginBottom: '2rem' }}>
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Passport Image<span className="required">*</span></label>
-
-                    <div className="upload-row-layout">
-                      <div className="upload-dropzone-container">
-                        <div
-                          className={`upload-dropzone ${formData.passportScan ? 'has-file' : ''} ${(!formData.passportScan && fileMeta.passportScan) ? 'has-file-warning' : ''} ${errors.passportScan ? 'dropzone-error' : ''}`}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, 'passportScan')}
-                          onClick={() => document.getElementById('passportScanInput')?.click()}
-                          style={{ height: '100%' }}
-                        >
-                          <input
-                            type="file"
-                            id="passportScanInput"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange(e, 'passportScan')}
-                            style={{ display: 'none' }}
-                          />
-                          <div className="dropzone-inner">
-                            <span className="dropzone-title">
-                              {formData.passportScan ? `Selected: ${formData.passportScan.name}` :
-                               fileMeta.passportScan ? `Restored: ${fileMeta.passportScan.name} (⚠️ Re-upload required)` :
-                               'Click or drag a file here'}
-                            </span>
-                            <span className="dropzone-subtitle">
-                              {formData.passportScan ? 'Click to change file' :
-                               fileMeta.passportScan ? 'File must be re-selected' :
-                               'JPG, PNG, or PDF, up to 5 MB'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="upload-reference-container">
-                        <img src={idRef} alt="Passport Document Reference" className="upload-reference-img" />
-                      </div>
-                    </div>
-                    {errors.passportScan && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportScan}</span>}
-                  </div>
-
-                  {/* Action Shot */}
-                  <div className="form-group">
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Action Shot <span className="required">*</span></label>
-                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
-                      Upload a high-quality action photograph of you playing cricket.
-                    </p>
-
-                    <div className="upload-row-layout">
-                      <div className="upload-dropzone-container">
-                        <div
-                          className={`upload-dropzone ${formData.actionShot ? 'has-file' : ''} ${(!formData.actionShot && fileMeta.actionShot) ? 'has-file-warning' : ''} ${errors.actionShot ? 'dropzone-error' : ''}`}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, 'actionShot')}
-                          onClick={() => document.getElementById('actionShotInput')?.click()}
-                          style={{ height: '100%' }}
-                        >
-                          <input
-                            type="file"
-                            id="actionShotInput"
-                            accept=".jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange(e, 'actionShot')}
-                            style={{ display: 'none' }}
-                          />
-                          <div className="dropzone-inner">
-                            <span className="dropzone-title">
-                              {formData.actionShot ? `Selected: ${formData.actionShot.name}` :
-                               fileMeta.actionShot ? `Restored: ${fileMeta.actionShot.name} (⚠️ Re-upload required)` :
-                               'Click or drag a photo here'}
-                            </span>
-                            <span className="dropzone-subtitle">
-                              {formData.actionShot ? 'Click to change photo' :
-                               fileMeta.actionShot ? 'File must be re-selected' :
-                               'JPG or PNG, up to 5 MB'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="upload-reference-container">
-                        <img src={actionShotRef} alt="Action Shot Reference" className="upload-reference-img" />
-                      </div>
-                    </div>
-                    {errors.actionShot && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.actionShot}</span>}
-                  </div>
-
-                  {/* Right Profile Image */}
-                  <div className="form-group" style={{ marginTop: '2rem' }}>
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Right Profile Image <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
-                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
-                      Upload a right-side profile photograph of yourself.
-                    </p>
-
-                    <div className="upload-row-layout">
-                      <div className="upload-dropzone-container">
-                        <div
-                          className={`upload-dropzone ${formData.rightProfilePhoto ? 'has-file' : ''} ${(!formData.rightProfilePhoto && fileMeta.rightProfilePhoto) ? 'has-file-warning' : ''}`}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, 'rightProfilePhoto')}
-                          onClick={() => document.getElementById('rightProfilePhotoInput')?.click()}
-                          style={{ height: '100%' }}
-                        >
-                          <input
-                            type="file"
-                            id="rightProfilePhotoInput"
-                            accept=".jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange(e, 'rightProfilePhoto')}
-                            style={{ display: 'none' }}
-                          />
-                          <div className="dropzone-inner">
-                            <span className="dropzone-title">
-                              {formData.rightProfilePhoto ? `Selected: ${formData.rightProfilePhoto.name}` :
-                               fileMeta.rightProfilePhoto ? `Restored: ${fileMeta.rightProfilePhoto.name} (⚠️ Re-upload optional)` :
-                               'Click or drag a photo here'}
-                            </span>
-                            <span className="dropzone-subtitle">
-                              {formData.rightProfilePhoto ? 'Click to change photo' :
-                               fileMeta.rightProfilePhoto ? 'File must be re-selected' :
-                               'JPG or PNG, up to 5 MB'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="upload-reference-container">
-                        <img src={rightProfileRef} alt="Right Profile Photo Reference" className="upload-reference-img" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Left Profile Image */}
-                  <div className="form-group" style={{ marginTop: '2rem' }}>
-                    <label className="field-group-label" style={{ marginBottom: '0.2rem' }}>Left Profile Image <span className="optional-text" style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 'normal' }}>(Optional)</span></label>
-                    <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
-                      Upload a left-side profile photograph of yourself.
-                    </p>
-
-                    <div className="upload-row-layout">
-                      <div className="upload-dropzone-container">
-                        <div
-                          className={`upload-dropzone ${formData.leftProfilePhoto ? 'has-file' : ''} ${(!formData.leftProfilePhoto && fileMeta.leftProfilePhoto) ? 'has-file-warning' : ''}`}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, 'leftProfilePhoto')}
-                          onClick={() => document.getElementById('leftProfilePhotoInput')?.click()}
-                          style={{ height: '100%' }}
-                        >
-                          <input
-                            type="file"
-                            id="leftProfilePhotoInput"
-                            accept=".jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange(e, 'leftProfilePhoto')}
-                            style={{ display: 'none' }}
-                          />
-                          <div className="dropzone-inner">
-                            <span className="dropzone-title">
-                              {formData.leftProfilePhoto ? `Selected: ${formData.leftProfilePhoto.name}` :
-                               fileMeta.leftProfilePhoto ? `Restored: ${fileMeta.leftProfilePhoto.name} (⚠️ Re-upload optional)` :
-                               'Click or drag a photo here'}
-                            </span>
-                            <span className="dropzone-subtitle">
-                              {formData.leftProfilePhoto ? 'Click to change photo' :
-                               fileMeta.leftProfilePhoto ? 'File must be re-selected' :
-                               'JPG or PNG, up to 5 MB'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="upload-reference-container">
-                        <img src={leftRef} alt="Left Profile Photo Reference" className="upload-reference-img" />
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
+              <Step4Uploads
+                formData={formData}
+                errors={errors}
+                fileMeta={fileMeta}
+                handleDragOver={handleDragOver}
+                handleDrop={handleDrop}
+                handleFileChange={handleFileChange}
+              />
             )}
 
             {/* STEP 5: REVIEW */}
             {currentStep === 5 && (
-              <div className="form-step-content animate-fade-in">
-                <div className="form-section">
-                  <h3 className="section-title">Final Review & Consent</h3>
-                  <p className="section-subtitle">Please review your registration before submitting.</p>
-
-                  <div className="review-mockup-wrap">
-
-                    {/* AGENT DETAILS */}
-                    {formData.regType === 'agent' && (
-                      <div className="review-section-block">
-                        <span className="review-section-title-line">AGENT DETAILS</span>
-                        <div className="review-lines-wrap">
-                          <div className="review-line-item">
-                            <span className="review-line-label">Agent Full Name</span>
-                            <span className="review-line-val">{formData.agentName || '—'}</span>
-                          </div>
-                          <div className="review-line-item">
-                            <span className="review-line-label">Agency / Company Name</span>
-                            <span className="review-line-val">{formData.agentAgency || '—'}</span>
-                          </div>
-                          <div className="review-line-item">
-                            <span className="review-line-label">Agent Phone Number</span>
-                            <span className="review-line-val">{formData.agentPhone || '—'}</span>
-                          </div>
-                          <div className="review-line-item">
-                            <span className="review-line-label">Agent Email Address</span>
-                            <span className="review-line-val">{formData.agentEmail || '—'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* PERSONAL INFORMATION */}
-                    <div className="review-section-block">
-                      <span className="review-section-title-line">PLAYER PERSONAL INFORMATION</span>
-                      <div className="review-lines-wrap">
-                        <div className="review-line-item">
-                          <span className="review-line-label">Full Name</span>
-                          <span className="review-line-val">{formData.fullName || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Date of Birth</span>
-                          <span className="review-line-val">{formData.dob || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Nationality</span>
-                          <span className="review-line-val">{formData.nationality || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Passport Number</span>
-                          <span className="review-line-val">{formData.passportNumber || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Country of Residence</span>
-                          <span className="review-line-val">{formData.countryResidence || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">City</span>
-                          <span className="review-line-val">{formData.city || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Phone</span>
-                          <span className="review-line-val">{formData.phone || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Email</span>
-                          <span className="review-line-val">{formData.email || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Availability</span>
-                          <span className="review-line-val">
-                            {Array.isArray(formData.availability) ? (
-                              formData.availability.map(key => {
-                                if (key === 'full') return 'Available for full season'
-                                if (key === 'selected') return 'Available for selected dates'
-                                if (key === 'national') return 'Subject to national-team commitments'
-                                if (key === 'release') return 'Subject to club or franchise release'
-                                return key
-                              }).join(', ') || 'None selected'
-                            ) : (
-                              formData.availability === 'full' ? 'Available for full season' :
-                                formData.availability === 'selected' ? 'Available for selected dates' :
-                                  formData.availability === 'national' ? 'Subject to national-team commitments' :
-                                    'Subject to club or franchise release'
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* CRICKET PROFILE */}
-                    <div className="review-section-block">
-                      <span className="review-section-title-line">CRICKET PROFILE</span>
-                      <div className="review-lines-wrap">
-                        <div className="review-line-item">
-                          <span className="review-line-label">Playing Role</span>
-                          <span className="review-line-val">{formData.playingRole || '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Batting Hand</span>
-                          <span className="review-line-val">{formData.battingHand || '—'}</span>
-                        </div>
-                        {/* Bowling details */}
-                        {(formData.playingRole === 'All Rounder (Batting)' || formData.playingRole === 'All Rounder (Bowling)' || formData.playingRole === 'Bowler') ? (
-                          <>
-                            {formData.playingRole === 'Bowler' && (
-                              <div className="review-line-item">
-                                <span className="review-line-label">Bowler Category</span>
-                                <span className="review-line-val">{formData.bowlerType || '—'}</span>
-                              </div>
-                            )}
-                            {(formData.playingRole !== 'Bowler' || formData.bowlerType) && (
-                              <div className="review-line-item">
-                                <span className="review-line-label">Bowling Arm</span>
-                                <span className="review-line-val">{formData.bowlingStyle || '—'}</span>
-                              </div>
-                            )}
-                            {(formData.playingRole !== 'Bowler' || formData.bowlerType === 'Fast Bowler') && (
-                              <div className="review-line-item">
-                                <span className="review-line-label">Bowling Type</span>
-                                <span className="review-line-val">{formData.bowlingSubtype || '—'}</span>
-                              </div>
-                            )}
-                            {((formData.playingRole !== 'Bowler' && formData.bowlingSubtype === 'Spin Bowler') ||
-                              (formData.playingRole === 'Bowler' && formData.bowlerType === 'Spin Bowler')) && (
-                              <div className="review-line-item">
-                                <span className="review-line-label">Spin Type</span>
-                                <span className="review-line-val">{formData.spinType || '—'}</span>
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="review-line-item">
-                            <span className="review-line-label">Bowling Style</span>
-                            <span className="review-line-val">N/A (Batter / Wicketkeeper)</span>
-                          </div>
-                        )}
-                        <div className="review-line-item">
-                          <span className="review-line-label">Player Status</span>
-                          <span className="review-line-val">{formData.playerStatus || '—'}</span>
-                        </div>
-                        {(formData.playerStatus === 'Overseas (National)' || formData.playerStatus === 'Overseas (Domestic)') && (
-                          <div className="review-line-item">
-                            <span className="review-line-label">Representing Country</span>
-                            <span className="review-line-val">{formData.representingCountry || '—'}</span>
-                          </div>
-                        )}
-                        <div className="review-line-item">
-                          <span className="review-line-label">Total T20 Matches</span>
-                          <span className="review-line-val">{formData.totalMatches || '—'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* SELECTED CATEGORY & RELEGATION */}
-                    <div className="review-section-block">
-                      <span className="review-section-title-line">SELECTED CATEGORY & RELEGATION PREFERENCE</span>
-                      <div className="review-lines-wrap">
-                        <div className="review-line-item">
-                          <span className="review-line-label">Category</span>
-                          <span className="review-line-val">{formData.category || '—'}</span>
-                        </div>
-                        {formData.category !== 'Silver Player' && formData.category !== 'Emerging Under-23' && (
-                          <>
-                            <div className="review-line-item">
-                              <span className="review-line-label">Accepts Relegation</span>
-                              <span className="review-line-val">
-                                {formData.acceptRelegation === 'yes' ? 'Yes' :
-                                  formData.acceptRelegation === 'no' ? 'No' :
-                                    formData.acceptRelegation === 'emerging' ? 'Emerging (Does not Apply)' :
-                                      '—'}
-                              </span>
-                            </div>
-                            <div className="review-line-item">
-                              <span className="review-line-label">Lowest Acceptable Category</span>
-                              <span className="review-line-val">
-                                {formData.acceptRelegation === 'yes' ? (formData.relegationLimit || '—') : 'N/A'}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                        {formData.category === 'Platinum Player' && (
-                          <div className="review-line-item">
-                            <span className="review-line-label">Consider for Icon Nomination</span>
-                            <span className="review-line-val">
-                              {formData.considerIconPlayer === 'yes' ? 'Yes' : 'No'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* UPLOADED DOCUMENTS */}
-                    <div className="review-section-block">
-                      <span className="review-section-title-line">PLAYER PHOTO & UPLOADED DOCUMENTS</span>
-                      <div className="review-lines-wrap">
-                        <div className="review-line-item">
-                          <span className="review-line-label">Profile Photo</span>
-                          <span className="review-line-val">{formData.passportPhoto ? formData.passportPhoto.name : '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Passport Image</span>
-                          <span className="review-line-val">{formData.passportScan ? formData.passportScan.name : '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Action Shot</span>
-                          <span className="review-line-val">{formData.actionShot ? formData.actionShot.name : '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Right Profile Photo</span>
-                          <span className="review-line-val">{formData.rightProfilePhoto ? formData.rightProfilePhoto.name : '—'}</span>
-                        </div>
-                        <div className="review-line-item">
-                          <span className="review-line-label">Left Profile Photo</span>
-                          <span className="review-line-val">{formData.leftProfilePhoto ? formData.leftProfilePhoto.name : '—'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Consents */}
-                  <div className="review-consents-wrap">
-                    <div className="consent-checkbox-line">
-                      <input
-                        type="checkbox"
-                        id="consent-1"
-                        checked={consent1}
-                        onChange={(e) => setConsent1(e.target.checked)}
-                      />
-                      <label htmlFor="consent-1">I confirm that all submitted information is accurate.</label>
-                    </div>
-
-                    <div className="consent-checkbox-line">
-                      <input
-                        type="checkbox"
-                        id="consent-2"
-                        checked={consent2}
-                        onChange={(e) => setConsent2(e.target.checked)}
-                      />
-                      <label htmlFor="consent-2">I confirm that the player has authorized this registration.</label>
-                    </div>
-
-                    <div className="consent-checkbox-line">
-                      <input
-                        type="checkbox"
-                        id="consent-3"
-                        checked={consent3}
-                        onChange={(e) => setConsent3(e.target.checked)}
-                      />
-                      <label htmlFor="consent-3">I agree to the APL registration terms, verification process, and privacy policy.</label>
-                    </div>
-
-                    <div className="consent-checkbox-line">
-                      <input
-                        type="checkbox"
-                        id="consent-4"
-                        checked={consent4}
-                        onChange={(e) => setConsent4(e.target.checked)}
-                      />
-                      <label htmlFor="consent-4">By submitting this application, I confirm my commitment to being available during the time window I have selected on the form.</label>
-                    </div>
-                  </div>
-                  {errors.consents && (
-                    <p className="error-message" style={{ marginTop: '1rem', display: 'block' }}>{errors.consents}</p>
-                  )}
-
-                </div>
-              </div>
+              <Step5Review
+                formData={formData}
+                errors={errors}
+                consent1={consent1}
+                setConsent1={setConsent1}
+                consent2={consent2}
+                setConsent2={setConsent2}
+                consent3={consent3}
+                setConsent3={setConsent3}
+                consent4={consent4}
+                setConsent4={setConsent4}
+              />
             )}
           </div>
 

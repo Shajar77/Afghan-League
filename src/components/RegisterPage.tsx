@@ -131,6 +131,34 @@ export function RegisterPage() {
   const [consent3, setConsent3] = useState<boolean>(false)
   const [consent4, setConsent4] = useState<boolean>(false)
 
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const [apiCountries, setApiCountries] = useState<string[]>(COUNTRIES)
+
+  useEffect(() => {
+    const fetchNationalities = async () => {
+      try {
+        const url = `${import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'}/nationalities`
+        const res = await fetch(url)
+        if (res.ok) {
+          const json = await res.json()
+          const data = Array.isArray(json) ? json : (json.data || [])
+          if (Array.isArray(data)) {
+            const names = data.map((item: any) => typeof item === 'string' ? item : item.name).filter(Boolean)
+            if (names.length > 0) {
+              setApiCountries(names.sort((a: string, b: string) => a.localeCompare(b)))
+              return
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch nationalities, falling back to static list', err)
+      }
+    }
+    fetchNationalities()
+  }, [])
+
   useEffect(() => {
     // Disable native browser scroll restoration to prevent snapping to footer on refresh
     let previousScrollRestoration: ScrollRestoration = 'auto'
@@ -550,7 +578,7 @@ export function RegisterPage() {
     }
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (validateStep(currentStep)) {
       if (currentStep < 5) {
         scrollToFormTop()
@@ -561,17 +589,147 @@ export function RegisterPage() {
           setErrors({ consents: 'Please accept all declarations before submitting.' })
           return
         }
-        // Final Submit
-        localStorage.removeItem('apl_player_registration_draft')
-        localStorage.removeItem('apl_player_registration_step')
-        localStorage.removeItem('apl_player_registration_file_meta')
-        const uniqueSuffix = Date.now().toString().slice(-5)
-        setRefCode(`APL-2026-${uniqueSuffix}`)
-        setIsSubmitted(true)
-        if ((window as any).lenis) {
-          ; (window as any).lenis.scrollTo(0, { immediate: true })
-        } else {
-          window.scrollTo(0, 0)
+
+        setIsSubmitting(true)
+        setSubmitError(null)
+
+        try {
+          // 1. Upload player images in bulk to uploads/player-images
+          const formDataUpload = new FormData()
+          if (formData.passportScan) formDataUpload.append('passport', formData.passportScan)
+          if (formData.actionShot) formDataUpload.append('action_shot', formData.actionShot)
+          if (formData.passportPhoto) formDataUpload.append('photo', formData.passportPhoto)
+          if (formData.rightProfilePhoto) formDataUpload.append('right_profile', formData.rightProfilePhoto)
+          if (formData.leftProfilePhoto) formDataUpload.append('left_profile', formData.leftProfilePhoto)
+
+          const token = import.meta.env.VITE_API_TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdG9yZWZyb250LmludGciLCJpYXQiOjE3ODM1MzMxMzksImV4cCI6MTc4MzYxOTUzOX0.k7IGms0gTrdZy0Qv7SgnQl-yp_eLpd5cjerpg8Yq6qAuIlGhXkBX0nBXHWQyw5jPxX6NOqFzavJ8gtK2CTGLOA'
+          const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'}/uploads/player-images`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formDataUpload
+          })
+
+          if (!uploadRes.ok) {
+            const errJson = await uploadRes.json().catch(() => ({}))
+            throw new Error(errJson.message || 'Image upload failed. Please verify MIME types and try again.')
+          }
+
+          const uploadJson = await uploadRes.json()
+          console.log('Upload response JSON:', JSON.stringify(uploadJson, null, 2))
+          const urls = uploadJson.data || uploadJson
+
+          const normalizeUrl = (val: string, fallback: string): string => {
+            if (!val || typeof val !== 'string') return fallback
+            const trimmed = val.trim()
+            if (/^https?:\/\//i.test(trimmed)) return trimmed
+            if (trimmed.startsWith('/')) {
+              return `https://api-staging.chaptersquare.com${trimmed}`
+            }
+            return `https://api-staging.chaptersquare.com/${trimmed}`
+          }
+
+          const photoUrl = normalizeUrl(urls.photo || urls.photo_url || '', 'https://api-staging.chaptersquare.com/uploads/images/headshot_sample.jpg')
+          const passportUrl = normalizeUrl(urls.passport || urls.passport_url || '', 'https://api-staging.chaptersquare.com/uploads/images/passport_sample.jpg')
+          const actionShotUrl = normalizeUrl(urls.action_shot || urls.action_shot_url || '', 'https://api-staging.chaptersquare.com/uploads/images/action_sample.jpg')
+          const leftProfileUrl = normalizeUrl(urls.left_profile || urls.left_profile_url || '', 'https://api-staging.chaptersquare.com/uploads/images/left_prof_sample.jpg')
+          const rightProfileUrl = normalizeUrl(urls.right_profile || urls.right_profile_url || '', 'https://api-staging.chaptersquare.com/uploads/images/right_prof_sample.jpg')
+
+          const profileLink = formData.profileLink.trim() ? normalizeUrl(formData.profileLink, 'https://www.espncricinfo.com') : 'https://www.espncricinfo.com'
+
+          // 2. Submit Player Registration details to player-registrations
+          const regPayload = {
+            full_name: formData.fullName,
+            dob: formData.dob,
+            city: formData.city,
+            phone: formData.phone,
+            email: formData.email,
+            batting_hand: formData.battingHand,
+            bowling_arm: formData.bowlingStyle || 'Right-arm',
+            playing_experience: `Current Club: ${formData.currentClub || 'None'}. Previous Teams: ${formData.prevTeams || 'None'}.`,
+            previous_teams: formData.prevTeams || 'None',
+            passport_number: formData.passportNumber,
+            availability_details: formData.availabilityDetails || 'Full Season availability.',
+            passport_url: passportUrl,
+            action_shot_url: actionShotUrl,
+            photo_url: photoUrl,
+            right_profile_url: rightProfileUrl,
+            left_profile_url: leftProfileUrl,
+            nationality: formData.nationality,
+            country_of_residence: formData.countryResidence,
+            player_availability: formData.availability.join(', '),
+            player_category: formData.category,
+            playing_role: formData.playingRole,
+            bowling_type: formData.bowlingSubtype || formData.bowlerType || formData.spinType || 'None',
+            player_status: formData.playerStatus,
+            twtenty_matches_count: formData.totalMatches ? parseInt(formData.totalMatches, 10) : 0,
+            submission_category: 'Draft Entry',
+            bowler_category: formData.bowlerType || 'None',
+            profile_link: profileLink
+          }
+
+          const regRes = await fetch(`${import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'}/player-registrations`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(regPayload)
+          })
+
+          if (!regRes.ok) {
+            const errJson = await regRes.json().catch(() => ({}))
+            console.error('Registration server error details STRINGIFIED:', JSON.stringify(errJson, null, 2))
+            let details = ''
+            
+            const extractMessage = (obj: any): string => {
+              if (!obj) return ''
+              if (typeof obj === 'string') return obj
+              if (Array.isArray(obj)) return obj.map(extractMessage).join(', ')
+              if (typeof obj === 'object') {
+                if (obj.errors) return extractMessage(obj.errors)
+                if (obj.message) return extractMessage(obj.message)
+                if (obj.msg) return extractMessage(obj.msg)
+                return Object.entries(obj)
+                  .map(([k, v]) => `${k}: ${extractMessage(v)}`)
+                  .join(', ')
+              }
+              return String(obj)
+            }
+
+            if (errJson.errors) {
+              details = extractMessage(errJson.errors)
+            } else if (errJson.error) {
+              details = extractMessage(errJson.error)
+            } else if (errJson.message) {
+              details = extractMessage(errJson.message)
+            }
+            throw new Error(details || JSON.stringify(errJson) || 'Player registration submission failed.')
+          }
+
+          const regJson = await regRes.json()
+          const regData = regJson.data || regJson
+
+          // Extract confirmation code returned by backend, else fallback to standard local generator
+          const registrationCode = regData.registration_code || regData.code || `APL-2026-${Date.now().toString().slice(-5)}`
+
+          // Success: Clean up local draft states
+          localStorage.removeItem('apl_player_registration_draft')
+          localStorage.removeItem('apl_player_registration_step')
+          localStorage.removeItem('apl_player_registration_file_meta')
+
+          setRefCode(registrationCode)
+          setIsSubmitted(true)
+          if ((window as any).lenis) {
+            ; (window as any).lenis.scrollTo(0, { immediate: true })
+          } else {
+            window.scrollTo(0, 0)
+          }
+        } catch (err: any) {
+          console.error('Submission failed:', err)
+          setSubmitError(err.message || 'An error occurred during submission. Please try again.')
+        } finally {
+          setIsSubmitting(false)
         }
       }
     }
@@ -854,13 +1012,12 @@ export function RegisterPage() {
 
                     <div className="form-group">
                       <label>Nationality <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        name="nationality"
+                      <SearchableDropdown
                         value={formData.nationality}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Afghanistan"
-                        className={errors.nationality ? 'input-error' : ''}
+                        onChange={(val) => handleSelectOption('nationality', val)}
+                        options={apiCountries}
+                        placeholder="Search & select country..."
+                        error={errors.nationality}
                         required
                       />
                       {errors.nationality && <span className="error-message">{errors.nationality}</span>}
@@ -882,13 +1039,12 @@ export function RegisterPage() {
 
                     <div className="form-group">
                       <label>Country of Residence <span className="required">*</span></label>
-                      <input
-                        type="text"
-                        name="countryResidence"
+                      <SearchableDropdown
                         value={formData.countryResidence}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Afghanistan"
-                        className={errors.countryResidence ? 'input-error' : ''}
+                        onChange={(val) => handleSelectOption('countryResidence', val)}
+                        options={apiCountries}
+                        placeholder="Search & select country..."
+                        error={errors.countryResidence}
                         required
                       />
                       {errors.countryResidence && <span className="error-message">{errors.countryResidence}</span>}
@@ -1243,7 +1399,7 @@ export function RegisterPage() {
                       <SearchableDropdown
                         value={formData.representingCountry}
                         onChange={(val) => handleSelectOption('representingCountry', val)}
-                        options={COUNTRIES}
+                        options={apiCountries}
                         placeholder="Search & select country..."
                         error={errors.representingCountry}
                         required
@@ -1972,13 +2128,42 @@ export function RegisterPage() {
 
           {/* Form Action Buttons */}
           <div className="form-card-footer">
+            {submitError && (
+              <div 
+                className="error-message-banner animate-fade-in" 
+                style={{ 
+                  padding: '1rem', 
+                  background: 'rgba(239, 68, 68, 0.1)', 
+                  border: '1px solid #ef4444', 
+                  borderRadius: '4px', 
+                  color: '#f87171', 
+                  marginBottom: '1.5rem', 
+                  fontSize: '0.95rem',
+                  width: '100%',
+                  textAlign: 'center'
+                }}
+              >
+                {submitError}
+              </div>
+            )}
+
             {currentStep === 5 ? (
               <div className="review-footer-buttons">
                 <div className="review-top-buttons-row">
-                  <button type="button" className="btn-secondary" onClick={handlePrev}>
+                  <button 
+                    type="button" 
+                    className="btn-secondary" 
+                    onClick={handlePrev}
+                    disabled={isSubmitting}
+                  >
                     Back
                   </button>
-                  <button type="button" className="btn-save-draft-review" onClick={handleSaveDraft}>
+                  <button 
+                    type="button" 
+                    className="btn-save-draft-review" 
+                    onClick={handleSaveDraft}
+                    disabled={isSubmitting}
+                  >
                     Save as Draft
                   </button>
                 </div>
@@ -1987,9 +2172,9 @@ export function RegisterPage() {
                     type="button"
                     className="btn-submit-registration"
                     onClick={handleNext}
-                    disabled={!consent1 || !consent2 || !consent3 || !consent4}
+                    disabled={isSubmitting || !consent1 || !consent2 || !consent3 || !consent4}
                   >
-                    Submit Registration
+                    {isSubmitting ? 'Submitting Registration...' : 'Submit Registration'}
                   </button>
                 </div>
               </div>

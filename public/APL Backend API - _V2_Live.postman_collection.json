@@ -1,0 +1,693 @@
+{
+  "info": {
+    "_postman_id": "0de00133-d7de-485b-b119-64c5b564aeb9",
+    "name": "APL Backend API - Live",
+    "description": "Complete API collection for the APL T20 frontend team. Includes all endpoints: Auth, Nationalities, Sponsors, Teams, Uploads, Categories, Availabilities, and Registrations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "7218296",
+    "_collection_link": "https://go.postman.co/collection/7218296-0de00133-d7de-485b-b119-64c5b564aeb9?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let jsonData = pm.response.json();",
+                  "if (jsonData.data) {",
+                  "    if (jsonData.data.access_token) pm.collectionVariables.set(\"jwt_token\", jsonData.data.access_token);",
+                  "    else if (jsonData.data.token) pm.collectionVariables.set(\"jwt_token\", jsonData.data.token);",
+                  "    if (jsonData.data.refresh_token) pm.collectionVariables.set(\"refresh_token\", jsonData.data.refresh_token);",
+                  "    console.log(\"Tokens captured securely.\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@apl-t20.com\",\n  \"password\": \"AdminPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let jsonData = pm.response.json();",
+                  "if (jsonData.data) {",
+                  "    if (jsonData.data.access_token) pm.collectionVariables.set(\"jwt_token\", jsonData.data.access_token);",
+                  "    if (jsonData.data.refresh_token) pm.collectionVariables.set(\"refresh_token\", jsonData.data.refresh_token);",
+                  "    console.log(\"Tokens refreshed.\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Nationalities",
+      "item": [
+        {
+          "name": "Get All Nationalities (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/nationalities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "nationalities"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Nationality (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pakistan\",\n  \"country_code\": \"PAK\",\n  \"flag_url\": \"https://example.com/flags/pak.png\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/nationalities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "nationalities"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sponsors",
+      "item": [
+        {
+          "name": "Get All Sponsors (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sponsors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sponsors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Sponsor (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Red Bull\",\n  \"logo_url\": \"https://example.com/images/redbull-logo.png\",\n  \"tier\": \"official_partner\",\n  \"website_url\": \"https://redbull.com\",\n  \"display_order\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sponsors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sponsors"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "Get All Teams (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/teams",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teams"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Team (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Karachi Kings\",\n  \"slug\": \"karachi-kings\",\n  \"city\": \"Karachi\",\n  \"logo_url\": \"https://example.com/images/kk-logo.png\",\n  \"primary_color\": \"#0000FF\",\n  \"home_venue\": \"National Stadium\",\n  \"description\": \"The premier franchise representing Karachi.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/teams",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "teams"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Upload Image (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/uploads/image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "uploads",
+                "image"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Player Categories",
+      "item": [
+        {
+          "name": "Get All Categories (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/player-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Platinum\",\n  \"description\": \"Top tier marquee players.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/player-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-categories"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Player Status",
+      "item": [
+        {
+          "name": "Get Player Status (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/player-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Player Status(Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Platinum\",\n  \"description\": \"Top tier marquee players.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/player-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-categories"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Playing Role",
+      "item": [
+        {
+          "name": "Get Playing Role(Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/player-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Playing Role(Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Platinum\",\n  \"description\": \"Top tier marquee players.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/player-categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-categories"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Player Availability",
+      "item": [
+        {
+          "name": "Get All Availabilities (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/player-availabilities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-availabilities"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Availability (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{jwt_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Full Season\",\n  \"description\": \"Available for the entire duration of the tournament.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/player-availabilities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-availabilities"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Player Registrations",
+      "item": [
+        {
+          "name": "Register Player",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Babar Azam\",\n  \"dob\": \"1994-10-15\",\n  \"city\": \"Lahore\",\n  \"phone\": \"+92 300 1234567\",\n  \"email\": \"babar.azam.test1@example.com\",\n  \"batting_hand\": \"Right-hand bat\",\n  \"bowling_arm\": \"Right-arm\",\n  \"playing_experience\": \"Extensive international and franchise league experience.\",\n  \"previous_teams\": \"Karachi Kings, Peshawar Zalmi, Somerset\",\n  \"passport_number\": \"AB1234567\",\n  \"availability_details\": \"Available for the entire tournament duration including playoffs.\",\n  \"passport_url\": \"https://api-staging.chaptersquare.com/uploads/images/passport_sample.jpg\",\n  \"action_shot_url\": \"https://api-staging.chaptersquare.com/uploads/images/action_sample.jpg\",\n  \"photo_url\": \"https://api-staging.chaptersquare.com/uploads/images/headshot_sample.jpg\",\n  \"right_profile_url\": \"https://api-staging.chaptersquare.com/uploads/images/right_prof_sample.jpg\",\n  \"left_profile_url\": \"https://api-staging.chaptersquare.com/uploads/images/left_prof_sample.jpg\",\n  \"nationality\": \"Pakistan\",\n  \"country_of_residence\": \"Pakistan\",\n  \"player_availability\": \"Full Availability\",\n  \"player_category\": \"Platinum\",\n  \"playing_role\": \"Batsman\",\n  \"bowling_type\": \"Off-break\",\n  \"player_status\": \"Active\",\n  \"twtenty_matches_count\": 290,\n  \"submission_category\": \"Draft Entry\",\n  \"bowler_category\": \"Spin\",\n  \"profile_link\": \"https://www.espncricinfo.com/cricketers/babar-azam-348144\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/player-registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Registration Status",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"John Doe\",\n  \"dob\": \"1995-05-15\",\n  \"gender\": \"Male\",\n  \"nationality_id\": 1,\n  \"city_province\": \"Karachi, Sindh\",\n  \"phone\": \"+923001234567\",\n  \"email\": \"johndoe@example.com\",\n  \"playing_role\": \"Batsman\",\n  \"batting_style\": \"Right-hand bat\",\n  \"bowling_style\": \"Right-arm offbreak\",\n  \"playing_experience\": \"Played 3 seasons in domestic cricket.\",\n  \"current_club\": \"Karachi Gymkhana\",\n  \"passport_number\": \"AB1234567\",\n  \"country_of_residence_id\": 1,\n  \"availability_id\": 1,\n  \"availability_details\": \"Available starting mid-season after national duties.\",\n  \"category_id\": 1,\n  \"id_document_url\": \"http://localhost:3000/uploads/images/passport.jpg\",\n  \"cv_url\": \"http://localhost:3000/uploads/docs/cv.pdf\",\n  \"photo_url\": \"http://localhost:3000/uploads/images/profile-pic.jpg\",\n  \"highlight_video_url\": \"https://youtube.com/watch?v=example\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/player-registrations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-registrations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Player Images (Protected)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdG9yZWZyb250LmludGciLCJpYXQiOjE3ODM1MzMxMzksImV4cCI6MTc4MzYxOTUzOX0.k7IGms0gTrdZy0Qv7SgnQl-yp_eLpd5cjerpg8Yq6qAuIlGhXkBX0nBXHWQyw5jPxX6NOqFzavJ8gtK2CTGLOA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "passport",
+                  "type": "file",
+                  "uuid": "18215ea1-66d4-4ceb-806f-b4795f218332",
+                  "src": "/C:/Users/Administrator/Downloads/background.png"
+                },
+                {
+                  "key": "action_shot",
+                  "type": "file",
+                  "uuid": "d39de159-277e-42c1-a1b4-014b2d3f5ce6",
+                  "src": "/C:/Users/Administrator/Downloads/background.png"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "uuid": "e865b9cf-b148-41f3-8568-04641ee9a6a9",
+                  "src": "/C:/Users/Administrator/Downloads/background.png"
+                },
+                {
+                  "key": "right_profile",
+                  "type": "file",
+                  "uuid": "f9b10ce0-2707-4632-aa64-ed385f909402",
+                  "src": "/C:/Users/Administrator/Downloads/background.png"
+                },
+                {
+                  "key": "left_profile",
+                  "type": "file",
+                  "uuid": "60fccf55-a476-43bb-a78f-fa9fb9c8e43e",
+                  "src": "/C:/Users/Administrator/Downloads/background.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/uploads/player-images",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "uploads",
+                "player-images"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

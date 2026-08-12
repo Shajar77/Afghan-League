@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { Play, X, Heart, MessageCircle, Share2 } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Play, X, Heart, MessageCircle } from 'lucide-react'
 import gallery1 from '../assets/gallery-1.webp'
 import gallery2 from '../assets/gallery-2.webp'
 import gallery3 from '../assets/gallery-3.webp'
@@ -27,7 +27,7 @@ const reelsData: ReelItem[] = [
     id: 'reels-1',
     img: gallery1,
     title: 'The NO LOOK six trend 😱',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522780/AQOUEdv6jIAM0dZDetSDGT-0n_58gu_LfDR79eAXOiwVHAeW5jajnliYdERs0u91cfr9SQ56hj1c0gLt6pkZFhypGcutnS8HlaM.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '14.2K',
     comments: '428',
@@ -37,7 +37,7 @@ const reelsData: ReelItem[] = [
     id: 'reels-2',
     img: gallery2,
     title: 'An incredible no look six 😳',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522772/AQMFyPIzuqZE3Ezz-Pee-SVyZR9YIEDjMPi4zdjuFNEDtBCwgGDxo9ndvdC3AUwakHiujhGrdajiqbcipGZMx7WtoWqIMNzuVPc.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '9.8K',
     comments: '312',
@@ -47,7 +47,7 @@ const reelsData: ReelItem[] = [
     id: 'reels-3',
     img: gallery3,
     title: 'Sutherland v Kapp 🇦🇺🇿🇦',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522742/AQNU1-IH1tuQV4y3wPOFmSmWISfCbQ6OGYVlKc4jqDNB5RhlibBeYv7wInNgR2nMzdQLN5htxWJ94lMecD4-Ey1DQT4ihP5WCEw.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '22.5K',
     comments: '891',
@@ -57,7 +57,7 @@ const reelsData: ReelItem[] = [
     id: 'reels-4',
     img: gallery4,
     title: 'Grace Harris scores 🏏',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522733/AQOBFUPlalAK4qDm7t-25P0dK97eqp4tagVQFwl3vG-PHS3XYCoA_umieTmjrQ4zZN55F8kg1S7_SQdJkGDD5ghwWsIBA68g-528zBv3LXIrxA.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '18.4K',
     comments: '564',
@@ -67,7 +67,7 @@ const reelsData: ReelItem[] = [
     id: 'reels-5',
     img: gallery5,
     title: 'Going down the ground again 🔥',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522720/AQNN_K7xqm3C5SfTbJbdM3DT44ikkBwTOOnHo5RTigspDDMJgACWfaaUn7c3CW11YXbiw55Rq_8Lth54J9rllamdFqQDIXaud_c.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '31.1K',
     comments: '1.2K',
@@ -77,40 +77,10 @@ const reelsData: ReelItem[] = [
     id: 'reels-6',
     img: gallery6,
     title: 'Batsman going down the ground in style!',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522780/AQOUEdv6jIAM0dZDetSDGT-0n_58gu_LfDR79eAXOiwVHAeW5jajnliYdERs0u91cfr9SQ56hj1c0gLt6pkZFhypGcutnS8HlaM.mp4',
     instagramId: 'DSXpLK8jI83',
     likes: '12.6K',
     comments: '290',
-    isNew: true,
-  },
-  {
-    id: 'reels-7',
-    img: gallery7,
-    title: "Matt Short's journey to 6️⃣0️⃣ runs",
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
-    instagramId: 'DSXpLK8jI83',
-    likes: '15.9K',
-    comments: '402',
-    isNew: true,
-  },
-  {
-    id: 'reels-8',
-    img: gallery8,
-    title: 'How big is this six?! 😲 APL highlights',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
-    instagramId: 'DSXpLK8jI83',
-    likes: '27.4K',
-    comments: '715',
-    isNew: true,
-  },
-  {
-    id: 'reels-9',
-    img: gallery1,
-    title: 'Marcus Stoinis show 💥 classic shots',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
-    instagramId: 'DSXpLK8jI83',
-    likes: '19.8K',
-    comments: '499',
     isNew: true,
   },
 ];
@@ -120,7 +90,7 @@ const highlightsData: ReelItem[] = [
     id: 'hl-1',
     img: gallery5,
     title: 'Kabul Knights vs Kandahar Kings — Match 1 Highlights',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522720/AQNN_K7xqm3C5SfTbJbdM3DT44ikkBwTOOnHo5RTigspDDMJgACWfaaUn7c3CW11YXbiw55Rq_8Lth54J9rllamdFqQDIXaud_c.mp4',
     likes: '45.1K',
     comments: '1.2K',
   },
@@ -128,7 +98,7 @@ const highlightsData: ReelItem[] = [
     id: 'hl-2',
     img: gallery6,
     title: 'Balkh Legends vs Paktia Panthers — Super Over Drama',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522780/AQOUEdv6jIAM0dZDetSDGT-0n_58gu_LfDR79eAXOiwVHAeW5jajnliYdERs0u91cfr9SQ56hj1c0gLt6pkZFhypGcutnS8HlaM.mp4',
     likes: '38.6K',
     comments: '942',
   },
@@ -136,7 +106,7 @@ const highlightsData: ReelItem[] = [
     id: 'hl-3',
     img: gallery7,
     title: 'Amo Sharks vs Band-e-Amir Dragons — Match 3 Summary',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522772/AQMFyPIzuqZE3Ezz-Pee-SVyZR9YIEDjMPi4zdjuFNEDtBCwgGDxo9ndvdC3AUwakHiujhGrdajiqbcipGZMx7WtoWqIMNzuVPc.mp4',
     likes: '29.3K',
     comments: '618',
   },
@@ -144,7 +114,7 @@ const highlightsData: ReelItem[] = [
     id: 'hl-4',
     img: gallery8,
     title: 'Everest Sports Ventures Broadcast — Behind the Scenes setup',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522742/AQNU1-IH1tuQV4y3wPOFmSmWISfCbQ6OGYVlKc4jqDNB5RhlibBeYv7wInNgR2nMzdQLN5htxWJ94lMecD4-Ey1DQT4ihP5WCEw.mp4',
     likes: '18.9K',
     comments: '402',
   },
@@ -152,7 +122,7 @@ const highlightsData: ReelItem[] = [
     id: 'hl-5',
     img: gallery4,
     title: 'Boundary Line Wonders — Top 5 Catches of APL Week 1',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522733/AQOBFUPlalAK4qDm7t-25P0dK97eqp4tagVQFwl3vG-PHS3XYCoA_umieTmjrQ4zZN55F8kg1S7_SQdJkGDD5ghwWsIBA68g-528zBv3LXIrxA.mp4',
     likes: '55.2K',
     comments: '2.1K',
   },
@@ -160,7 +130,7 @@ const highlightsData: ReelItem[] = [
     id: 'hl-6',
     img: gallery3,
     title: 'APL Fan Zone — Spectators, Celebrations and Stadium Atmosphere',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cricket-batsman-hitting-a-ball-running-on-field-40899-large.mp4',
+    videoUrl: 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,vc_h264/v1786522720/AQNN_K7xqm3C5SfTbJbdM3DT44ikkBwTOOnHo5RTigspDDMJgACWfaaUn7c3CW11YXbiw55Rq_8Lth54J9rllamdFqQDIXaud_c.mp4',
     likes: '34.8K',
     comments: '883',
   },
@@ -204,10 +174,23 @@ function useDragScroll() {
 
 export function Moments() {
   const [activeReel, setActiveReel] = useState<ReelItem | null>(null)
-  const [isMuted, setIsMuted] = useState(false)
+  const [isMuted, setIsMuted] = useState(true)
 
   const reelScroll = useDragScroll()
   const highlightScroll = useDragScroll()
+  const modalVideoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    if (activeReel && modalVideoRef.current) {
+      modalVideoRef.current.load()
+      const playPromise = modalVideoRef.current.play()
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.log("Autoplay check:", err)
+        })
+      }
+    }
+  }, [activeReel])
 
   return (
     <section className="moments-section">
@@ -234,7 +217,18 @@ export function Moments() {
               onClick={() => setActiveReel(reel)}
             >
               <div className="reel-img-wrapper">
-                <img src={reel.img} alt={reel.title} className="reel-thumbnail" loading="lazy" />
+                <video
+                  src={reel.videoUrl}
+                  className="reel-thumbnail"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onCanPlay={(e) => {
+                    e.currentTarget.play().catch(() => {})
+                  }}
+                />
                 <div className="reel-card-overlay">
                   <div className="reel-play-btn">
                     <Play size={36} fill="currentColor" />
@@ -286,7 +280,18 @@ export function Moments() {
                   onClick={() => setActiveReel(hl)}
                 >
                   <div className="reel-img-wrapper">
-                    <img src={hl.img} alt={hl.title} className="reel-thumbnail" loading="lazy" />
+                    <video
+                      src={hl.videoUrl}
+                      className="reel-thumbnail"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onCanPlay={(e) => {
+                        e.currentTarget.play().catch(() => {})
+                      }}
+                    />
                     <div className="reel-card-overlay">
                       <div className="reel-play-btn">
                         <Play size={36} fill="currentColor" />
@@ -319,33 +324,16 @@ export function Moments() {
           <div className="reel-modal-container" onClick={(e) => e.stopPropagation()}>
 
             <div className="reel-player-screen">
-              {activeReel.instagramId ? (
-                <iframe
-                  src={`https://www.instagram.com/reel/${activeReel.instagramId}/embed/`}
-                  title={activeReel.title}
-                  className="reel-player-video"
-                  frameBorder="0"
-                  scrolling="no"
-                  allowTransparency={true}
-                  allow="autoplay; encrypted-media"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                    background: '#000000',
-                  }}
-                />
-              ) : (
-                <video
-                  src={activeReel.videoUrl}
-                  className="reel-player-video"
-                  autoPlay
-                  loop
-                  muted={isMuted}
-                  playsInline
-                  onClick={() => setIsMuted(!isMuted)}
-                />
-              )}
+              <video
+                ref={modalVideoRef}
+                src={activeReel.videoUrl}
+                className="reel-player-video"
+                autoPlay
+                loop
+                muted={isMuted}
+                playsInline
+                onClick={() => setIsMuted(!isMuted)}
+              />
 
               <div className="reel-player-header">
                 <span className="player-brand-tag">@afghanistanpremierleague</span>
@@ -368,9 +356,21 @@ export function Moments() {
                   <span className="overlay-btn-label">{activeReel.comments}</span>
                 </div>
                 <div className="player-overlay-action">
-                  <button className="overlay-btn-circle" aria-label="Share Video">
-                    <Share2 size={20} />
+                  <button 
+                    className="overlay-btn-circle" 
+                    onClick={() => setIsMuted(!isMuted)} 
+                    aria-label={isMuted ? "Unmute Video" : "Mute Video"}
+                    style={{ color: isMuted ? '#94a3b8' : '#38bdf8' }}
+                  >
+                    {isMuted ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                    )}
                   </button>
+                  <span className="overlay-btn-label" style={{ color: isMuted ? '#94a3b8' : '#38bdf8' }}>
+                    {isMuted ? 'Muted' : 'Sound'}
+                  </span>
                 </div>
               </div>
 

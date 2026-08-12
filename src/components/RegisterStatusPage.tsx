@@ -6,12 +6,13 @@ export function RegisterStatusPage() {
   const [email, setEmail] = useState('')
   const [searched, setSearched] = useState(false)
   const [statusResult, setStatusResult] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!appId.trim() || !email.trim()) return
 
-    setSearched(true)
     let formattedId = appId.trim().toUpperCase().replace(/\s+/g, '')
 
     // Normalize flexible user inputs like "64297" or "2026-64297" into "APL-2026-64297"
@@ -21,16 +22,44 @@ export function RegisterStatusPage() {
       formattedId = `APL-${formattedId}`
     }
 
-    if (formattedId.startsWith('APL-')) {
-      setStatusResult({
-        id: formattedId,
-        status: 'Under Review',
-        date: 'August 8, 2026',
-        assignee: 'APL Cricket Operations',
-        remarks: 'Your document validation is complete. Reviewing draft category eligibility based on ESPNcricinfo / Cricbuzz matches history.'
+    setIsLoading(true)
+    setErrorMessage('')
+    setSearched(false)
+    setStatusResult(null)
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'
+      const url = `${baseUrl}/player-registrations?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(email.trim().toLowerCase())}`
+      const token = import.meta.env.VITE_API_TOKEN || 'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzdG9yZWZyb250LmludGciLCJpYXQiOjE3ODM1MzMxMzksImV4cCI6MTc4MzYxOTUzOX0.k7IGms0gTrdZy0Qv7SgnQl-yp_eLpd5cjerpg8Yq6qAuIlGhXkBX0nBXHWQyw5jPxX6NOqFzavJ8gtK2CTGLOA'
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
-    } else {
-      setStatusResult(null)
+      const json = await response.json()
+
+      if (response.ok) {
+        const record = json.data || json
+        setStatusResult({
+          id: record.registration_code || record.code || formattedId,
+          status: record.status || 'Under Review',
+          date: record.created_at ? new Date(record.created_at).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }) : 'August 8, 2026',
+          assignee: record.assignee || 'APL Cricket Operations',
+          remarks: record.remarks || 'Your document validation is complete. Reviewing draft category eligibility based on ESPNcricinfo / matches history.'
+        })
+      } else {
+        setErrorMessage(json.message || 'Reference Code or Email not found.')
+      }
+    } catch (err) {
+      console.error('Tracking API error:', err)
+      setErrorMessage('Could not connect to the tracking server. Please try again later.')
+    } finally {
+      setIsLoading(false)
+      setSearched(true)
     }
   }
 
@@ -81,44 +110,48 @@ export function RegisterStatusPage() {
                 <p className="status-otp-hint">Enter the email used during registration</p>
               </div>
             </div>
-            <button type="submit" className="status-search-btn status-search-btn--full">
-              Track Application
-            </button>
-          </form>
-
-          {searched && statusResult && (
-            <div className="status-result-box success animate-fade-in">
-              <h3 className="result-header">Application Found</h3>
-              <div className="result-detail-grid">
-                <div className="result-row">
-                  <span className="result-label">Application Reference</span>
-                  <span className="result-value code-value">{statusResult.id}</span>
-                </div>
-                <div className="result-row">
-                  <span className="result-label">Submission Date</span>
-                  <span className="result-value">{statusResult.date}</span>
-                </div>
-                <div className="result-row">
-                  <span className="result-label">Reviewing Authority</span>
-                  <span className="result-value">{statusResult.assignee}</span>
-                </div>
-                <div className="result-row">
-                  <span className="result-label">Current Status</span>
-                  <span className="result-value status-badge-track">{statusResult.status}</span>
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {searched && !statusResult && (
-            <div className="status-result-box error animate-fade-in">
-              <h3 className="result-header text-red">Reference Code Not Found</h3>
-              <p className="error-desc">
-                We couldn't find any record matching the ID "<strong>{appId}</strong>". Please make sure it matches the pattern <strong>APL-2026-XXXXX</strong>.
-              </p>
-            </div>
-          )}
+             <button 
+               type="submit" 
+               className="status-search-btn status-search-btn--full"
+               disabled={isLoading}
+             >
+               {isLoading ? 'Tracking Application...' : 'Track Application'}
+             </button>
+           </form>
+ 
+           {searched && statusResult && (
+             <div className="status-result-box success animate-fade-in">
+               <h3 className="result-header">Application Found</h3>
+               <div className="result-detail-grid">
+                 <div className="result-row">
+                   <span className="result-label">Application Reference</span>
+                   <span className="result-value code-value">{statusResult.id}</span>
+                 </div>
+                 <div className="result-row">
+                   <span className="result-label">Submission Date</span>
+                   <span className="result-value">{statusResult.date}</span>
+                 </div>
+                 <div className="result-row">
+                   <span className="result-label">Reviewing Authority</span>
+                   <span className="result-value">{statusResult.assignee}</span>
+                 </div>
+                 <div className="result-row">
+                   <span className="result-label">Current Status</span>
+                   <span className="result-value status-badge-track">{statusResult.status}</span>
+                 </div>
+               </div>
+ 
+             </div>
+           )}
+ 
+           {searched && errorMessage && (
+             <div className="status-result-box error animate-fade-in">
+               <h3 className="result-header text-red">Search Failed</h3>
+               <p className="error-desc">
+                 {errorMessage}
+               </p>
+             </div>
+           )}
 
           <div className="status-footer-action">
             <p className="no-id-text">Don't have an Application Reference ID?</p>

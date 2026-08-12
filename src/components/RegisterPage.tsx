@@ -707,20 +707,6 @@ export function RegisterPage() {
             representing_country: formData.representingCountry || ''
           }
 
-          console.group('📁 [APL Registration File Uploads Payload]')
-          console.log('Passport Photo File:', formData.passportPhoto?.name || 'N/A', '-> URL:', passportUrl)
-          console.log('Passport Scan File:', formData.passportScan?.name || 'N/A', '-> URL:', passportUrl)
-          console.log('Action Shot File:', formData.actionShot?.name || 'N/A', '-> URL:', actionShotUrl)
-          console.log('Right Profile Photo File:', formData.rightProfilePhoto?.name || 'N/A', '-> URL:', rightProfileUrl || 'N/A')
-          console.log('Left Profile Photo File:', formData.leftProfilePhoto?.name || 'N/A', '-> URL:', leftProfileUrl || 'N/A')
-          console.groupEnd()
-
-          console.group('🚀 [APL Registration Submit Payload]')
-          console.log('Target API Endpoint:', buildApiUrl('/player-registrations'))
-          console.log('Full JSON Payload Object:', regPayload)
-          console.log('Raw Formatted JSON String:\n' + JSON.stringify(regPayload, null, 2))
-          console.groupEnd()
-
           const regRes = await fetch(buildApiUrl('/player-registrations'), {
             method: 'POST',
             headers: {

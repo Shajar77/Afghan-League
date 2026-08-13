@@ -631,14 +631,24 @@ export function RegisterPage() {
           const profileLink = formData.profileLink.trim() ? normalizeUrl(formData.profileLink, 'https://www.espncricinfo.com') : 'https://www.espncricinfo.com'
 
           const availabilityShortMap: Record<string, string> = {
+            // Standard / Short codes
             'full': 'Full Season',
             'selected': 'Selected Dates',
-            'national': 'National Commitments',
+            'national': 'National Commitment',
             'release': 'Club Release',
+            
+            // Spaced strings
             'available for full season': 'Full Season',
             'available for selected dates': 'Selected Dates',
-            'subject to national-team commitments': 'National Commitments',
+            'subject to national-team commitments': 'National Commitment',
             'subject to club or franchise release': 'Club Release',
+            
+            // Underscore strings (dynamic API key variants)
+            'available_for_full_season': 'Full Season',
+            'available_for_selected_dates': 'Selected Dates',
+            'subject_to_national_team_commitments': 'National Commitment',
+            'subject_to_club_or_franchise_release': 'Club Release',
+            'subject_to_national_team_commitmen': 'National Commitment'
           }
 
           const formatAvailabilityString = (avail: any): string => {
@@ -650,6 +660,7 @@ export function RegisterPage() {
                 const key = str.toLowerCase()
                 return availabilityShortMap[key] || str
               })
+              .filter((val, idx, self) => self.indexOf(val) === idx) // Remove duplicate mapped names
               .join(', ')
             return formatted.length > 50 ? formatted.slice(0, 47) + '...' : (formatted || 'Full Season')
           }
@@ -706,6 +717,7 @@ export function RegisterPage() {
             consider_icon_player: formData.considerIconPlayer || 'no',
             representing_country: formData.representingCountry || ''
           }
+
 
           const regRes = await fetch(buildApiUrl('/player-registrations'), {
             method: 'POST',

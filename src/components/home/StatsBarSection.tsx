@@ -9,7 +9,7 @@ export function StatsBarSection() {
       <div className="stats-watermark">APL LIVE STATS PERFORMANCE • APL LIVE STATS PERFORMANCE • APL LIVE STATS PERFORMANCE •</div>
       <div className="stats-container">
         <div className="stat-card">
-          <div className="stat-value">6</div>
+          <div className="stat-value">5</div>
           <div className="stat-label">Elite Teams</div>
           <div className="stat-divider"></div>
         </div>
@@ -19,8 +19,8 @@ export function StatsBarSection() {
           <div className="stat-divider"></div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">17K+</div>
-          <div className="stat-label">Stadium Capacity</div>
+          <div className="stat-value">100+</div>
+          <div className="stat-label">Star Players</div>
           <div className="stat-divider"></div>
         </div>
         <div className="stat-card">

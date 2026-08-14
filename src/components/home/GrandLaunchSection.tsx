@@ -17,8 +17,8 @@ export function GrandLaunchSection() {
     setter(false)
     const iframe = document.getElementById(iframeId) as HTMLIFrameElement
     if (iframe?.contentWindow) {
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*')
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*')
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), 'https://www.youtube.com')
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), 'https://www.youtube.com')
     }
   }
 

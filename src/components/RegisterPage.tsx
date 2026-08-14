@@ -711,13 +711,23 @@ export function RegisterPage() {
             agent_phone_number: formData.regType === 'agent' ? formData.agentPhone : '',
             agent_email_address: formData.regType === 'agent' ? formData.agentEmail : '',
 
-            // Explicit extra keys for API schema
-            accept_relegation: formData.acceptRelegation || 'no',
+            // Three new variables requested by Bilal in Live V4 API
+            icon_player_nomination: formData.considerIconPlayer === 'yes',
+            accept_relegation: formData.acceptRelegation === 'yes',
+            relegation_category: formData.acceptRelegation === 'yes' ? (formData.relegationLimit || '') : '',
+
+            // Additional compatibility keys
             relegation_limit: formData.relegationLimit || 'None',
             consider_icon_player: formData.considerIconPlayer || 'no',
             representing_country: formData.representingCountry || ''
           }
 
+          console.log('🚀 Registration Payload sent to Bilal API:', regPayload)
+          console.log('📋 Live V4 Fields:', {
+            icon_player_nomination: regPayload.icon_player_nomination,
+            accept_relegation: regPayload.accept_relegation,
+            relegation_category: regPayload.relegation_category
+          })
 
           const regRes = await fetch(buildApiUrl('/player-registrations'), {
             method: 'POST',

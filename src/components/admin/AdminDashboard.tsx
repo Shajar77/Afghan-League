@@ -346,12 +346,13 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
         return cat.includes(filterVal)
       })()
 
+      const rawDate = r.created_at || (r as any).createdAt || (r as any).registration_date || (r as any).registrationDate || (r as any).submitted_at || (r as any).date
       let matchDate = true
-      if (dateFrom && r.created_at) {
-        matchDate = matchDate && new Date(r.created_at) >= new Date(dateFrom)
+      if (dateFrom && rawDate) {
+        matchDate = matchDate && new Date(rawDate) >= new Date(dateFrom)
       }
-      if (dateTo && r.created_at) {
-        matchDate = matchDate && new Date(r.created_at) <= new Date(dateTo + 'T23:59:59')
+      if (dateTo && rawDate) {
+        matchDate = matchDate && new Date(rawDate) <= new Date(dateTo + 'T23:59:59')
       }
 
       return matchSearch && matchStatus && matchCategory && matchDate
@@ -443,8 +444,9 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
     
     registrations.forEach(r => {
       let dateKey = ''
-      if (r.created_at) {
-        const date = new Date(r.created_at)
+      const rawDate = r.created_at || (r as any).createdAt || (r as any).registration_date || (r as any).registrationDate || (r as any).submitted_at || (r as any).date
+      if (rawDate) {
+        const date = new Date(rawDate)
         if (!isNaN(date.getTime())) {
           dateKey = date.toISOString().split('T')[0] // YYYY-MM-DD
         }
@@ -1083,7 +1085,6 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
                     <th>CATEGORY</th>
                     <th>PLAYING ROLE</th>
                     <th>STATUS</th>
-                    <th>REGISTERED</th>
                     <th className="th-action">ACTION</th>
                   </tr>
                 </thead>
@@ -1173,13 +1174,7 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
                             {formatStatus(reg.status)}
                           </span>
                         </td>
-                        <td className="td-date">
-                          {reg.created_at ? new Date(reg.created_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          }) : '—'}
-                        </td>
+
                         <td className="td-action" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"

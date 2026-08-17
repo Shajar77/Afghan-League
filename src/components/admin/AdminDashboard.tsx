@@ -270,7 +270,7 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
         startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
         endDate: dateTo ? `${dateTo}T23:59:59.000Z` : '',
         page: 1,
-        limit: 1000
+        limit: 50
       }
 
       const res = await fetch(buildApiUrl('/admin/players/search'), {

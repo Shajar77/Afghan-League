@@ -1569,9 +1569,7 @@
     white-space: normal;
     font-size: 0.78rem;
   }
-  /* Show only Player & Identity (col 2) and Action (col 8) on mobile */
-  .apl-admin-table th:nth-child(1),
-  .apl-admin-table td:nth-child(1),
+  /* Show only # (col 1), Player & Identity (col 2) and Action (col 7) on mobile */
   .apl-admin-table th:nth-child(3),
   .apl-admin-table td:nth-child(3),
   .apl-admin-table th:nth-child(4),

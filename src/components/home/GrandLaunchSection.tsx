@@ -17,8 +17,8 @@ export function GrandLaunchSection() {
     setter(false)
     const iframe = document.getElementById(iframeId) as HTMLIFrameElement
     if (iframe?.contentWindow) {
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), 'https://www.youtube.com')
-      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), 'https://www.youtube.com')
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*')
+      iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*')
     }
   }
 
@@ -37,7 +37,7 @@ export function GrandLaunchSection() {
                 <iframe
                   id="launch-video-iframe"
                   className="launch-video-iframe"
-                  src="https://www.youtube.com/embed/sq00E0Rmyjs?autoplay=1&mute=1&enablejsapi=1&rel=0&controls=1&playlist=sq00E0Rmyjs&loop=1"
+                  src="https://www.youtube-nocookie.com/embed/sq00E0Rmyjs?autoplay=1&mute=1&enablejsapi=1&rel=0&controls=1&playlist=sq00E0Rmyjs&loop=1"
                   title="The APL Grand Launch Event"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
@@ -64,7 +64,7 @@ export function GrandLaunchSection() {
               <iframe
                 id="side-video-1"
                 className="side-video-iframe"
-                src="https://www.youtube.com/embed/ePIpdbzDgM4?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=ePIpdbzDgM4&loop=1"
+                src="https://www.youtube-nocookie.com/embed/ePIpdbzDgM4?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=ePIpdbzDgM4&loop=1"
                 title="APL Launch Highlights 1"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -86,7 +86,7 @@ export function GrandLaunchSection() {
               <iframe
                 id="side-video-2"
                 className="side-video-iframe"
-                src="https://www.youtube.com/embed/OPLRXDmteCE?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=OPLRXDmteCE&loop=1"
+                src="https://www.youtube-nocookie.com/embed/OPLRXDmteCE?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=OPLRXDmteCE&loop=1"
                 title="APL Launch Highlights 2"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -108,7 +108,7 @@ export function GrandLaunchSection() {
               <iframe
                 id="side-video-3"
                 className="side-video-iframe"
-                src="https://www.youtube.com/embed/6PZfy6YCw88?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=6PZfy6YCw88&loop=1"
+                src="https://www.youtube-nocookie.com/embed/6PZfy6YCw88?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=6PZfy6YCw88&loop=1"
                 title="APL Launch Highlights 3"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen

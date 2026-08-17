@@ -1,15 +1,17 @@
-import { useEffect, useState, Suspense, lazy } from 'react'
-import { Navbar } from './components/Navbar'
-import { GetInvolvedSection } from './components/GetInvolvedSection'
+import { useEffect, useState, Suspense, lazy, useCallback } from 'react'
+import { Navbar } from './components/layout/Navbar'
+import { GetInvolvedSection } from './components/home/GetInvolvedSection'
 import { FEATURES } from './constants/features'
-import { HomeNewsSection } from './components/HomeNewsSection'
+import { HomeNewsSection } from './components/home/HomeNewsSection'
 import { articles } from './constants/newsData'
 import type { Article } from './constants/newsData'
-import { ErrorBoundary } from './components/ErrorBoundary'
+import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { useAppStore } from './store/useAppStore'
+import type { PageName } from './store/useAppStore'
 import Lenis from 'lenis'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { gsap } from 'gsap'
+import { scrollToTop } from './utils/lenis'
 
 import { HeroSection } from './components/home/HeroSection'
 import { StatsBarSection } from './components/home/StatsBarSection'
@@ -20,29 +22,78 @@ import { VisionSection } from './components/home/VisionSection'
 import { MoreAboutSection } from './components/home/MoreAboutSection'
 import { OfficialPartnersSection } from './components/home/OfficialPartnersSection'
 import { CricketBallSeam } from './components/home/CricketBallSeam'
-import { Footer } from './components/Footer'
+import { Footer } from './components/layout/Footer'
 
 import './App.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const About = lazy(() => import('./components/About').then(m => ({ default: m.About })))
-const Moments = lazy(() => import('./components/Moments').then(m => ({ default: m.Moments })))
-const News = lazy(() => import('./components/News').then(m => ({ default: m.News })))
-const BlogDetailPage = lazy(() => import('./components/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })))
-const GalleryPage = lazy(() => import('./components/GalleryPage').then(m => ({ default: m.GalleryPage })))
-const FixturesPage = lazy(() => import('./components/FixturesPage').then(m => ({ default: m.FixturesPage })))
-const PointsTable = lazy(() => import('./components/PointsTable').then(m => ({ default: m.PointsTable })))
-const PartnershipsPage = lazy(() => import('./components/PartnershipsPage').then(m => ({ default: m.PartnershipsPage })))
-const ContactPage = lazy(() => import('./components/ContactPage').then(m => ({ default: m.ContactPage })))
-const TeamsPage = lazy(() => import('./components/TeamsPage').then(m => ({ default: m.TeamsPage })))
-const ComingSoonPage = lazy(() => import('./components/ComingSoonPage').then(m => ({ default: m.ComingSoonPage })))
-const RegisterPage = lazy(() => import('./components/RegisterPage').then(m => ({ default: m.RegisterPage })))
-const RegisterStatusPage = lazy(() => import('./components/RegisterStatusPage').then(m => ({ default: m.RegisterStatusPage })))
+const About = lazy(() => import('./components/pages/About').then(m => ({ default: m.About })))
+const Moments = lazy(() => import('./components/pages/Moments').then(m => ({ default: m.Moments })))
+const News = lazy(() => import('./components/pages/News').then(m => ({ default: m.News })))
+const BlogDetailPage = lazy(() => import('./components/pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })))
+const GalleryPage = lazy(() => import('./components/pages/GalleryPage').then(m => ({ default: m.GalleryPage })))
+const FixturesPage = lazy(() => import('./components/pages/FixturesPage').then(m => ({ default: m.FixturesPage })))
+const PointsTable = lazy(() => import('./components/pages/PointsTable').then(m => ({ default: m.PointsTable })))
+const PartnershipsPage = lazy(() => import('./components/pages/PartnershipsPage').then(m => ({ default: m.PartnershipsPage })))
+const ContactPage = lazy(() => import('./components/pages/ContactPage').then(m => ({ default: m.ContactPage })))
+const TeamsPage = lazy(() => import('./components/pages/TeamsPage').then(m => ({ default: m.TeamsPage })))
+const ComingSoonPage = lazy(() => import('./components/pages/ComingSoonPage').then(m => ({ default: m.ComingSoonPage })))
+const RegisterPage = lazy(() => import('./components/pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
+const RegisterStatusPage = lazy(() => import('./components/pages/RegisterStatusPage').then(m => ({ default: m.RegisterStatusPage })))
+const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })))
+
+const HASH_PAGE_MAP: Record<string, PageName> = {
+  '#about': 'about',
+  '#news': 'news',
+  '#teams': 'teams',
+  '#gallery': 'gallery',
+  '#fixtures': 'fixtures',
+  '#points-table': 'points-table',
+  '#partnerships': 'partnerships',
+  '#contact-us': 'contact',
+  '#contact': 'contact',
+  '#register-player': 'register-player',
+  '#register': 'register-player',
+  '#register-status': 'register-status',
+  '#status': 'register-status',
+  '#admin': 'admin-login',
+  '#admin-login': 'admin-login',
+  '#admin-dashboard': 'admin-dashboard',
+}
+
+function PageLoadingSpinner() {
+  return (
+    <div style={{
+      minHeight: '60vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'column',
+      gap: '1rem',
+      fontFamily: 'var(--font-display)',
+      color: 'var(--brand-gold)'
+    }}>
+      <div className="page-loading-spinner" style={{
+        width: '40px',
+        height: '40px',
+        border: '3px solid rgba(255, 255, 255, 0.1)',
+        borderTopColor: 'var(--brand-gold)',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
+      }}></div>
+      <span style={{ fontSize: '1.5rem', letterSpacing: '0.1em' }}>LOADING...</span>
+    </div>
+  )
+}
 
 function App() {
   const { currentPage, setCurrentPage } = useAppStore()
   const [blogDetailArticle, setBlogDetailArticle] = useState<Article | null>(null)
+
+  const handleScrollToTop = useCallback(() => {
+    scrollToTop(true)
+  }, [])
 
   // Initialize Lenis smooth scroll
   useEffect(() => {
@@ -54,88 +105,68 @@ function App() {
       smoothWheel: true,
     })
 
-    // Synchronize ScrollTrigger with Lenis updates
     lenis.on('scroll', ScrollTrigger.update)
 
-    // Run Lenis in the GSAP ticker loop
     const updateTicker = (time: number) => {
       lenis.raf(time * 1000)
     }
     gsap.ticker.add(updateTicker)
     gsap.ticker.lagSmoothing(0)
 
-    // Store lenis reference on window object for router navigation scrolling
-    ;(window as any).lenis = lenis
+    ;(window as unknown as { __lenis?: Lenis }).__lenis = lenis
 
     return () => {
       lenis.destroy()
       gsap.ticker.remove(updateTicker)
-      delete (window as any).lenis
+      delete (window as unknown as { __lenis?: Lenis }).__lenis
     }
   }, [])
-
-  const scrollToTop = () => {
-    if ((window as any).lenis) {
-      ;(window as any).lenis.scrollTo(0, { immediate: true })
-    } else {
-      window.scrollTo(0, 0)
-    }
-  }
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash
-      if (hash === '#about') {
-        setCurrentPage('about')
-        scrollToTop()
-      } else if (hash === '#news') {
-        setCurrentPage('news')
-        scrollToTop()
-      } else if (hash.startsWith('#blog/')) {
+
+      if (HASH_PAGE_MAP[hash]) {
+        setCurrentPage(HASH_PAGE_MAP[hash])
+        handleScrollToTop()
+        return
+      }
+
+      if (hash.startsWith('#blog/')) {
         const blogId = hash.replace('#blog/', '')
         const article = articles.find(a => a.id === blogId)
         if (article) {
           setBlogDetailArticle(article)
           setCurrentPage('blog-detail')
-          scrollToTop()
+          handleScrollToTop()
         } else {
           setCurrentPage('home')
         }
-      } else if (hash === '#teams') {
-        setCurrentPage('teams')
-        scrollToTop()
-      } else if (hash === '#gallery') {
-        setCurrentPage('gallery')
-        scrollToTop()
-      } else if (hash === '#fixtures') {
-        setCurrentPage('fixtures')
-        scrollToTop()
-      } else if (hash === '#points-table') {
-        setCurrentPage('points-table')
-        scrollToTop()
-      } else if (hash === '#partnerships') {
-        setCurrentPage('partnerships')
-        scrollToTop()
-      } else if (hash === '#contact-us' || hash === '#contact') {
-        setCurrentPage('contact')
-        scrollToTop()
-      } else if (hash === '#register-player' || hash === '#register') {
-        setCurrentPage('register-player')
-        scrollToTop()
-      } else if (hash === '#register-status' || hash === '#status') {
-        setCurrentPage('register-status')
-        scrollToTop()
-      } else {
-        if (hash && hash !== '#home' && hash !== '') {
-          window.location.hash = '#home'
-        }
-        setCurrentPage('home')
+        return
       }
+
+      if (hash && hash !== '#home' && hash !== '') {
+        window.history.replaceState(null, '', '#home')
+      }
+      setCurrentPage('home')
+      handleScrollToTop()
     }
+
     handleHashChange()
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [setCurrentPage])
+  }, [setCurrentPage, handleScrollToTop])
+
+  // Admin portal is fully self-contained — no Navbar/Footer
+  if (currentPage === 'admin-login' || currentPage === 'admin-dashboard') {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoadingSpinner />}>
+          <AdminPortal />
+        </Suspense>
+      </ErrorBoundary>
+    )
+  }
 
   return (
     <div className="app-container">
@@ -192,28 +223,7 @@ function App() {
         </>
       ) : (
         <ErrorBoundary>
-          <Suspense fallback={
-            <div style={{
-              minHeight: '60vh',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-              gap: '1rem',
-              fontFamily: 'var(--font-display)',
-              color: 'var(--brand-gold)'
-            }}>
-              <div className="page-loading-spinner" style={{
-                width: '40px',
-                height: '40px',
-                border: '3px solid rgba(255, 255, 255, 0.1)',
-                borderTopColor: 'var(--brand-gold)',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}></div>
-              <span style={{ fontSize: '1.5rem', letterSpacing: '0.1em' }}>LOADING...</span>
-            </div>
-          }>
+          <Suspense fallback={<PageLoadingSpinner />}>
             {currentPage === 'news' ? (
               <News />
             ) : currentPage === 'blog-detail' && blogDetailArticle ? (

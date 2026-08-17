@@ -18,22 +18,22 @@ export function TeamsGridSection() {
         {/* Left side: Teams Grid */}
         <div className="teams-left">
           <div className="teams-grid">
-            <a href="#team-kabul" className="team-card" title="Kabul Knights">
+            <a href="#teams" className="team-card" title="Kabul Knights">
               <img src={londonSpiritLogo} alt="Kabul Knights Logo" className="team-logo-img" />
             </a>
-            <a href="#team-kandahar" className="team-card" title="Kandahar Kings">
+            <a href="#teams" className="team-card" title="Kandahar Kings">
               <img src={birminghamPhoenixLogo} alt="Kandahar Kings Logo" className="team-logo-img" />
             </a>
-            <a href="#team-balkh" className="team-card" title="Balkh Legends">
+            <a href="#teams" className="team-card" title="Balkh Legends">
               <img src={manchesterSuperGiantsLogo} alt="Balkh Legends Logo" className="team-logo-img" />
             </a>
-            <a href="#team-paktia" className="team-card" title="Paktia Panthers">
+            <a href="#teams" className="team-card" title="Paktia Panthers">
               <img src={sunrisersLeedsLogo} alt="Paktia Panthers Logo" className="team-logo-img" />
             </a>
-            <a href="#team-amo" className="team-card" title="Amo Sharks">
+            <a href="#teams" className="team-card" title="Amo Sharks">
               <img src={welshFireLogo} alt="Amo Sharks Logo" className="team-logo-img" />
             </a>
-            <a href="#team-bandeamir" className="team-card" title="Band-e-Amir Dragons">
+            <a href="#teams" className="team-card" title="Band-e-Amir Dragons">
               <img src={southernBraveLogo} alt="Band-e-Amir Dragons Logo" className="team-logo-img" />
             </a>
           </div>

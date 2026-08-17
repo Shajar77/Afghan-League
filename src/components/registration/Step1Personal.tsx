@@ -1,5 +1,5 @@
 import { Calendar } from 'lucide-react'
-import { SearchableDropdown } from '../SearchableDropdown'
+import { SearchableDropdown } from '../common/SearchableDropdown'
 import type { FormData, ApiAvailability } from './types'
 
 interface Step1PersonalProps {

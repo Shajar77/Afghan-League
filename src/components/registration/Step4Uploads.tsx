@@ -1,9 +1,36 @@
+import { useState, useEffect } from 'react'
 import frontProfileRef from '../../assets/Front Profile.jpg.jpeg'
 import idRef from '../../assets/ID.jpg.jpeg'
 import actionShotRef from '../../assets/Action.jpg.jpeg'
 import rightProfileRef from '../../assets/Right Profile.jpg.jpeg'
 import leftRef from '../../assets/Left.jpg.jpeg'
 import type { FormData, FileMeta } from './types'
+
+function FilePreview({ file, defaultSrc, alt, className }: { file?: File | null; defaultSrc: string; alt: string; className?: string }) {
+  const [src, setSrc] = useState(defaultSrc)
+
+  useEffect(() => {
+    if (!file) {
+      setSrc(defaultSrc)
+      return
+    }
+
+    if (file.type && !file.type.startsWith('image/')) {
+      setSrc(defaultSrc)
+      return
+    }
+
+    const url = URL.createObjectURL(file)
+    setSrc(url)
+
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [file, defaultSrc])
+
+  return <img src={src} alt={alt} className={className} />
+}
+
 
 interface Step4UploadsProps {
   formData: FormData
@@ -66,7 +93,7 @@ export function Step4Uploads({
               </div>
             </div>
             <div className="upload-reference-container">
-              <img src={frontProfileRef} alt="Player Profile Photo Reference" className="upload-reference-img" />
+              <FilePreview file={formData.passportPhoto} defaultSrc={frontProfileRef} alt="Player Profile Photo Preview" className="upload-reference-img" />
             </div>
           </div>
           {errors.passportPhoto && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportPhoto}</span>}
@@ -107,7 +134,7 @@ export function Step4Uploads({
               </div>
             </div>
             <div className="upload-reference-container">
-              <img src={idRef} alt="Passport Document Reference" className="upload-reference-img" />
+              <FilePreview file={formData.passportScan} defaultSrc={idRef} alt="Passport Document Preview" className="upload-reference-img" />
             </div>
           </div>
           {errors.passportScan && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.passportScan}</span>}
@@ -151,7 +178,7 @@ export function Step4Uploads({
               </div>
             </div>
             <div className="upload-reference-container">
-              <img src={actionShotRef} alt="Action Shot Reference" className="upload-reference-img" />
+              <FilePreview file={formData.actionShot} defaultSrc={actionShotRef} alt="Action Shot Preview" className="upload-reference-img" />
             </div>
           </div>
           {errors.actionShot && <span className="error-message" style={{ marginTop: '0.5rem' }}>{errors.actionShot}</span>}
@@ -195,7 +222,7 @@ export function Step4Uploads({
               </div>
             </div>
             <div className="upload-reference-container">
-              <img src={rightProfileRef} alt="Right Profile Photo Reference" className="upload-reference-img" />
+              <FilePreview file={formData.rightProfilePhoto} defaultSrc={rightProfileRef} alt="Right Profile Photo Preview" className="upload-reference-img" />
             </div>
           </div>
         </div>
@@ -238,7 +265,7 @@ export function Step4Uploads({
               </div>
             </div>
             <div className="upload-reference-container">
-              <img src={leftRef} alt="Left Profile Photo Reference" className="upload-reference-img" />
+              <FilePreview file={formData.leftProfilePhoto} defaultSrc={leftRef} alt="Left Profile Photo Preview" className="upload-reference-img" />
             </div>
           </div>
         </div>

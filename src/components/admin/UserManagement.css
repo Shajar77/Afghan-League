@@ -1,0 +1,429 @@
+/* User Management Staging Container */
+.apl-user-mgmt-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Header */
+.apl-user-mgmt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.apl-user-mgmt-title {
+  font-family: var(--font-display, "Big Shoulders Display", sans-serif);
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+  color: #ffffff;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.apl-user-mgmt-subtitle {
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0.25rem 0 0 0;
+}
+
+/* Buttons */
+.apl-add-user-btn {
+  background: #ffffff;
+  border: none;
+  color: #021B79;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0px; /* Sharp corners */
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.apl-add-user-btn:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+/* Grid layout */
+.apl-user-mgmt-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+  .apl-user-mgmt-grid {
+    flex-direction: row;
+  }
+}
+
+/* Cards */
+.apl-user-list-card {
+  background: #f3f4f6; /* Off-white matching dashboard cards */
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  border-radius: 28px; /* Matching dashboard bento grid cards */
+  overflow: hidden;
+}
+
+.apl-user-list-card.split-view {
+  flex: 1.4;
+}
+
+.apl-user-list-card.full-view {
+  flex: 1;
+}
+
+.apl-user-form-card {
+  background: #ECE9E6;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFFFF, #ECE9E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+  padding: 1.5rem;
+  flex: 1;
+  width: 100%;
+  border-radius: 28px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Heading row inside cards */
+.apl-user-card-heading-row,
+.apl-form-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.apl-user-icon-decor,
+.apl-form-icon-decor {
+  color: #021B79;
+}
+
+.apl-user-count-pill {
+  background: rgba(2, 27, 121, 0.1);
+  color: #021B79;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.apl-form-close-btn {
+  background: transparent;
+  border: none;
+  color: #475569;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.15s ease;
+}
+
+.apl-form-close-btn:hover {
+  color: #0f172a;
+}
+
+/* Loading & Empty States */
+.apl-user-loading-state,
+.apl-user-empty-state,
+.apl-user-error-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: #475569;
+  gap: 0.75rem;
+}
+
+.apl-user-error-banner {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  margin-top: 1rem;
+}
+
+.apl-loading-spinner {
+  width: 28px;
+  height: 28px;
+  color: #021B79;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* User Table */
+.apl-user-table-wrapper {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .apl-user-table-wrapper {
+    overflow-x: visible;
+  }
+}
+
+.apl-user-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+@media (max-width: 767px) {
+  .apl-user-table {
+    font-size: 0.78rem;
+  }
+  /* Hide EMAIL and STATUS columns on mobile */
+  .apl-user-table th:nth-child(2),
+  .apl-user-table td:nth-child(2),
+  .apl-user-table th:nth-child(4),
+  .apl-user-table td:nth-child(4) {
+    display: none;
+  }
+}
+
+.apl-user-table th {
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+@media (max-width: 767px) {
+  .apl-user-table th {
+    padding: 0.65rem 0.5rem;
+  }
+}
+
+.apl-user-table td {
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+@media (max-width: 767px) {
+  .apl-user-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
+.apl-user-row {
+  transition: background-color 0.15s ease;
+}
+
+.apl-user-row:hover {
+  background-color: rgba(241, 245, 249, 0.7);
+}
+
+.apl-user-cell-name {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.apl-user-avatar-circle {
+  width: 32px;
+  height: 32px;
+  background: #021B79;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.apl-user-cell-email {
+  color: #475569;
+}
+
+/* Role Badges */
+.role-badge {
+  display: inline-block;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.role-badge-super {
+  color: #d97706; /* gold/amber */
+}
+
+.role-badge-content {
+  color: #0369a1; /* blue */
+}
+
+.role-badge-media {
+  color: #6d28d9; /* purple */
+}
+
+.role-badge-ops {
+  color: #047857; /* emerald/green */
+}
+
+.role-badge-default {
+  color: #475569;
+}
+
+.apl-user-status-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.apl-user-status-text.status-active {
+  color: #10b981;
+}
+
+.apl-user-status-text.status-inactive {
+  color: #ef4444;
+}
+
+/* Form Design */
+.apl-create-user-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  margin-top: 1rem;
+}
+
+.apl-form-error-banner {
+  background: rgba(220, 38, 38, 0.08);
+  border-left: 3px solid #dc2626;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.apl-form-success-banner {
+  background: rgba(22, 163, 74, 0.08);
+  border-left: 3px solid #16a34a;
+  color: #16a34a;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.apl-form-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.apl-form-input-group label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.apl-form-input-box {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 0.65rem 0.85rem;
+  color: #475569;
+  gap: 0.65rem;
+  transition: border-color 0.15s ease;
+}
+
+.apl-form-input-box:focus-within {
+  border-color: #021B79;
+}
+
+.apl-form-input-box input,
+.apl-form-input-box select {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.apl-form-input-box input::placeholder {
+  color: #94a3b8;
+}
+
+/* Custom styling for select dropdown */
+.apl-form-input-box select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.1rem center;
+  background-size: 1.25rem;
+  padding-right: 1.5rem;
+}
+
+/* Submit Button */
+.apl-form-submit-btn {
+  background: #021B79;
+  border: none;
+  color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0px; /* Sharp corners */
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.apl-form-submit-btn:hover:not(:disabled) {
+  background: #0575E6;
+  box-shadow: 0 4px 12px rgba(5, 117, 230, 0.25);
+}
+
+.apl-form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.apl-btn-spin {
+  animation: spin 1s linear infinite;
+}

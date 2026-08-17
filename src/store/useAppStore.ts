@@ -13,8 +13,13 @@ export type PageName =
   | 'partnerships'
   | 'contact'
   | 'register-player'
+  | 'player-register'
   | 'register-status'
-  | (string & {})
+  | 'acb-governance'
+  | 'league-faq'
+  | 'media-kit'
+  | 'admin-login'
+  | 'admin-dashboard'
 
 interface AppState {
   currentPage: PageName

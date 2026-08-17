@@ -11,11 +11,23 @@ export const buildApiUrl = (path: string): string => {
 
 export const normalizeMediaUrl = (path?: string | null): string => {
   if (!path) return ''
-  if (path.startsWith('http://') || path.startsWith('https://')) {
+  if (
+    path.startsWith('http://') ||
+    path.startsWith('https://') ||
+    path.startsWith('data:') ||
+    path.startsWith('blob:') ||
+    path.startsWith('/src/') ||
+    path.startsWith('/@fs/') ||
+    path.startsWith('@fs/')
+  ) {
     return path
   }
   const cleanPath = path.startsWith('/') ? path : `/${path}`
-  // Extract domain base from API_BASE_URL
-  const domainBase = API_BASE_URL.replace(/\/api\/v\d+.*$/, '')
-  return `${domainBase}${cleanPath}`
+  try {
+    const origin = new URL(API_BASE_URL).origin
+    return `${origin}${cleanPath}`
+  } catch {
+    const domainBase = API_BASE_URL.replace(/\/api(\/v\d+)?.*$/, '')
+    return `${domainBase}${cleanPath}`
+  }
 }

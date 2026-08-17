@@ -1,4 +1,4 @@
-import { SearchableDropdown } from '../SearchableDropdown'
+import { SearchableDropdown } from '../common/SearchableDropdown'
 import type { FormData } from './types'
 
 interface Step2CricketProps {

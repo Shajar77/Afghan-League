@@ -1,0 +1,667 @@
+/* ==========================================================================
+   APL T20 ADMIN LOGIN — FULL-SCREEN ENTERPRISE SPLIT LAYOUT
+   ========================================================================== */
+
+.apl-admin-fullscreen-wrapper {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background: #0b0f19;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body, "Archivo", -apple-system, BlinkMacSystemFont, sans-serif);
+  color: #0f172a;
+}
+
+/* ── LEFT COLUMN: VISUAL BRAND SHOWCASE ── */
+.apl-admin-left-showcase {
+  width: 45%;
+  height: 100%;
+  position: relative;
+  background: url('/admin-showcase.png') center/cover no-repeat;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.apl-showcase-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Top Right Close Cross Button */
+.apl-close-btn {
+  position: absolute;
+  top: 1.75rem;
+  right: 1.75rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.apl-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+
+/* Center Logo */
+.apl-showcase-center-logo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.apl-showcase-logo-center {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.6));
+}
+
+.apl-showcase-footer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.apl-showcase-footer p {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── RIGHT COLUMN: CLEAN FORM ── */
+.apl-admin-right-form {
+  width: 55%;
+  height: 100%;
+  background: #0b0f19;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3rem;
+  position: relative;
+}
+
+.apl-form-center-box {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.apl-form-welcome-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+  margin-top: -3.5rem;
+  margin-bottom: 1rem;
+}
+
+.apl-welcome-title {
+  font-family: var(--font-display, "Big Shoulders Display", sans-serif);
+  font-size: clamp(2.2rem, 3.2vw, 3.25rem);
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.apl-welcome-sub {
+  font-size: 0.92rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Animated Moving Gold Lines & Ambient Glow Background */
+.apl-right-bg-animation {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.apl-bg-glow-orb-1 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  top: -140px;
+  right: -140px;
+  background: radial-gradient(circle, rgba(248, 200, 0, 0.15) 0%, rgba(217, 119, 6, 0.04) 50%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(65px);
+  animation: pulseOrb1 12s ease-in-out infinite alternate;
+}
+
+.apl-bg-glow-orb-2 {
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  bottom: -140px;
+  left: -140px;
+  background: radial-gradient(circle, rgba(248, 200, 0, 0.12) 0%, rgba(217, 119, 6, 0.04) 50%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(65px);
+  animation: pulseOrb2 14s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes pulseOrb1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-30px, 40px) scale(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseOrb2 {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(40px, -30px) scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* Horizontal Moving Gold Lines */
+.apl-gold-line {
+  position: absolute;
+  height: 2px;
+  width: 140%;
+  left: -20%;
+  background: linear-gradient(90deg, transparent 0%, rgba(248, 200, 0, 0.2) 20%, #F8C800 50%, rgba(248, 200, 0, 0.2) 80%, transparent 100%);
+  box-shadow: 0 0 14px rgba(248, 200, 0, 0.85), 0 0 4px #F8C800;
+  opacity: 0;
+}
+
+.apl-gold-line-1 {
+  top: 18%;
+  animation: sweepGoldHoriz1 6s ease-in-out infinite;
+}
+
+.apl-gold-line-2 {
+  top: 52%;
+  animation: sweepGoldHoriz2 8s ease-in-out 2s infinite;
+}
+
+.apl-gold-line-3 {
+  top: 80%;
+  animation: sweepGoldHoriz3 7s ease-in-out 4s infinite;
+}
+
+@keyframes sweepGoldHoriz1 {
+  0% {
+    transform: translateX(-60%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  70% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(60%);
+    opacity: 0;
+  }
+}
+
+@keyframes sweepGoldHoriz2 {
+  0% {
+    transform: translateX(60%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.8;
+  }
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-60%);
+    opacity: 0;
+  }
+}
+
+@keyframes sweepGoldHoriz3 {
+  0% {
+    transform: translateX(-50%);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(50%);
+    opacity: 0;
+  }
+}
+
+/* Alert */
+.apl-admin-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.apl-admin-alert-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #ef4444;
+}
+
+/* Clean Form */
+.apl-admin-clean-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.apl-clean-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.apl-clean-input-group label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #cbd5e1;
+  text-transform: uppercase;
+}
+
+.apl-label-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.apl-clean-input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.apl-clean-input-icon {
+  position: absolute;
+  left: 1.1rem;
+  color: #64748b;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.apl-clean-input-box input {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 0.9rem 2.8rem 0.9rem 2.8rem;
+  font-size: 0.95rem;
+  color: #ffffff;
+  min-height: 52px;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.apl-clean-input-box input::placeholder {
+  color: #64748b;
+}
+
+.apl-clean-input-box input:focus {
+  border-color: var(--brand-gold, #F8C800);
+  box-shadow: 0 0 0 4px rgba(248, 200, 0, 0.15);
+}
+
+.apl-clean-input-box:focus-within .apl-clean-input-icon {
+  color: var(--brand-gold, #F8C800);
+}
+
+.apl-toggle-pw-btn {
+  position: absolute;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.apl-toggle-pw-btn:hover {
+  color: #ffffff;
+}
+
+/* Submit Button */
+.apl-clean-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  background: var(--brand-gold, #F8C800);
+  color: #0f172a;
+  border: none;
+  padding: 0.95rem 1.5rem;
+  border-radius: 0px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+.apl-clean-submit-btn:hover:not(:disabled) {
+  background: #e6b800;
+  box-shadow: none;
+}
+
+.apl-clean-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.apl-admin-spin {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(15, 23, 42, 0.3);
+  border-top-color: #0f172a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Admin Status Card */
+.apl-admin-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.apl-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.apl-status-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.apl-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+.apl-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.apl-status-val {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* Right Clean Footer */
+.apl-right-clean-footer {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+  padding-top: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.apl-right-clean-footer p {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+
+/* Responsive Mobile Layout: Full Image Background with Overlay Form */
+@media (max-width: 900px) {
+  .apl-admin-fullscreen-wrapper {
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    position: relative;
+    background: url('/admin-showcase.png') center/cover no-repeat;
+    overflow: hidden;
+  }
+
+  /* Header banner containing top logo and Back to Home button */
+  .apl-admin-left-showcase {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: unset;
+    background: transparent;
+    padding: 1.25rem 1.5rem;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .apl-showcase-overlay {
+    display: none;
+  }
+
+  .apl-close-btn {
+    top: 1.25rem;
+    right: 1.25rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .apl-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+  }
+
+  .apl-showcase-center-logo {
+    flex: unset;
+    display: flex;
+    align-items: center;
+  }
+
+  .apl-showcase-logo-center {
+    height: 34px;
+  }
+
+  .apl-showcase-footer {
+    display: none;
+  }
+
+  /* Form section overlaid on top of full background image */
+  .apl-admin-right-form {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.85) 35%, rgba(15, 23, 42, 0.95) 100%);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 5.5rem 1.5rem 2rem;
+    justify-content: space-between;
+    z-index: 5;
+  }
+
+  .apl-form-center-box {
+    gap: 1.5rem;
+    flex: 1;
+    justify-content: center;
+    max-width: 400px;
+  }
+
+  .apl-form-welcome-header {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .apl-welcome-title {
+    font-size: 1.8rem;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+  }
+
+  .apl-welcome-sub {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .apl-admin-clean-form {
+    gap: 1.25rem;
+  }
+
+  .apl-clean-input-group label {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .apl-clean-input-box input {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #0f172a;
+    padding: 0.85rem 2.6rem;
+  }
+
+  .apl-clean-input-icon {
+    color: #64748b;
+  }
+
+  .apl-clean-submit-btn {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    background: var(--brand-gold, #F8C800);
+    color: #0f172a;
+  }
+
+  .apl-right-clean-footer {
+    padding-top: 0.5rem;
+  }
+
+  .apl-right-clean-footer p {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.45);
+  }
+}
+
+/* Short height screens support (Laptops / Small Displays) */
+@media (max-height: 720px) and (min-width: 901px) {
+  .apl-admin-right-form {
+    padding: 1.75rem 2rem;
+  }
+
+  .apl-form-center-box {
+    gap: 1rem;
+  }
+
+  .apl-form-welcome-header {
+    margin-top: -1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .apl-welcome-title {
+    font-size: 1.75rem;
+  }
+
+  .apl-admin-clean-form {
+    gap: 1rem;
+  }
+
+  .apl-clean-input-box input {
+    padding: 0.75rem 2.5rem 0.75rem 2.5rem;
+  }
+
+  .apl-clean-submit-btn {
+    padding: 0.75rem 1.25rem;
+  }
+}

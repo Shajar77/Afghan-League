@@ -110,11 +110,39 @@ export const categoriesList: ApiCategory[] = [
   { id: 'Emerging Under-23', label: 'Emerging Under-23', desc: 'Afghan National Players Emerging Talent', price: '$5,000' }
 ]
 
+const MIME_MAP: Record<string, string[]> = {
+  jpg: ['image/jpeg'],
+  jpeg: ['image/jpeg'],
+  png: ['image/png'],
+  webp: ['image/webp'],
+  pdf: ['application/pdf']
+}
+
 export const validateFile = (file: File, allowedTypes: string[], maxSizeMB: number): string | null => {
   const fileExtension = file.name.split('.').pop()?.toLowerCase() || ''
+
+  // Explicit check for HEIC/HEIF (common on Apple devices)
+  if (
+    fileExtension === 'heic' ||
+    fileExtension === 'heif' ||
+    file.type === 'image/heic' ||
+    file.type === 'image/heif'
+  ) {
+    return 'HEIC/HEIF image format is not supported. Please convert your photo to JPG or PNG before uploading.'
+  }
+
   if (!allowedTypes.includes(fileExtension)) {
     return `Invalid format. Allowed formats: ${allowedTypes.join(', ').toUpperCase()}`
   }
+
+  // Validate MIME type if available from browser
+  if (file.type) {
+    const validMimes = allowedTypes.flatMap(ext => MIME_MAP[ext] || [])
+    if (validMimes.length > 0 && !validMimes.includes(file.type.toLowerCase())) {
+      return `Invalid file type (${file.type}). Expected ${allowedTypes.join(', ').toUpperCase()}`
+    }
+  }
+
   if (file.size > maxSizeMB * 1024 * 1024) {
     return `File size exceeds the ${maxSizeMB} MB limit.`
   }

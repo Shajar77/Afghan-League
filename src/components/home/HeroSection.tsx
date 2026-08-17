@@ -1,4 +1,4 @@
-import { MatchTicker } from '../MatchTicker'
+import { MatchTicker } from './MatchTicker'
 import { FEATURES } from '../../constants/features'
 import aboutVideoWebm from '../../assets/about-video (1).webm'
 import aboutVideo from '../../assets/about-video (1).mp4'

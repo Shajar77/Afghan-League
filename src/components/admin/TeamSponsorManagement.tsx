@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
 import { MOCK_TOKEN, MOCK_TEAMS, MOCK_SPONSORS } from './mockData'
+import { compressImageFile } from '../../utils/imageCompression'
 import {
   Shield,
   Award,
@@ -241,13 +242,14 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
 
   // Handle Logo Upload Helper
   const uploadLogoFile = async (file: File): Promise<string> => {
+    const compressedFile = await compressImageFile(file, { maxSizeMB: 0.3, maxWidthOrHeight: 1200 })
     const token = localStorage.getItem('apl_admin_token') || ''
     if (token === MOCK_TOKEN) {
       return 'https://api-staging.chaptersquare.com/uploads/images/action_sample.jpg'
     }
 
     const formData = new FormData()
-    formData.append('file', file) // Enforcing exact key name requested by Bilal
+    formData.append('file', compressedFile) // Enforcing exact key name requested by Bilal
 
     const uploadRes = await fetch(buildApiUrl('/uploads/image'), {
       method: 'POST',

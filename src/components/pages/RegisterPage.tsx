@@ -14,6 +14,7 @@ import { Step3Category } from '../registration/Step3Category'
 import { Step4Uploads } from '../registration/Step4Uploads'
 import { Step5Review } from '../registration/Step5Review'
 import { scrollToTop, scrollToElement } from '../../utils/lenis'
+import { compressImageFile } from '../../utils/imageCompression'
 import './RegisterPage.css'
 
 export function RegisterPage() {
@@ -477,11 +478,11 @@ export function RegisterPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot' | 'rightProfilePhoto' | 'leftProfilePhoto') => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot' | 'rightProfilePhoto' | 'leftProfilePhoto') => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
+      const rawFile = e.target.files[0]
       const allowedTypes = fieldName === 'passportScan' ? ['jpg', 'jpeg', 'png', 'pdf'] : ['jpg', 'jpeg', 'png']
-      const errorMsg = validateFile(file, allowedTypes, 5)
+      const errorMsg = validateFile(rawFile, allowedTypes, 15) // Allow selecting up to 15MB camera photos (pre-compressed in browser)
 
       if (errorMsg) {
         setErrors(prev => ({ ...prev, [fieldName]: errorMsg }))
@@ -493,11 +494,12 @@ export function RegisterPage() {
           return copy
         })
       } else {
-        setFormData(prev => ({ ...prev, [fieldName]: file }))
+        const compressedFile = await compressImageFile(rawFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1600 })
+        setFormData(prev => ({ ...prev, [fieldName]: compressedFile }))
         setFileMeta(prev => {
           const updated = {
             ...prev,
-            [fieldName]: { name: file.name, size: file.size }
+            [fieldName]: { name: compressedFile.name, size: compressedFile.size }
           }
           localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(updated))
           return updated
@@ -517,12 +519,12 @@ export function RegisterPage() {
     e.preventDefault()
   }
 
-  const handleDrop = (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot' | 'rightProfilePhoto' | 'leftProfilePhoto') => {
+  const handleDrop = async (e: React.DragEvent, fieldName: 'passportPhoto' | 'passportScan' | 'actionShot' | 'rightProfilePhoto' | 'leftProfilePhoto') => {
     e.preventDefault()
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0]
+      const rawFile = e.dataTransfer.files[0]
       const allowedTypes = fieldName === 'passportScan' ? ['jpg', 'jpeg', 'png', 'pdf'] : ['jpg', 'jpeg', 'png']
-      const errorMsg = validateFile(file, allowedTypes, 5)
+      const errorMsg = validateFile(rawFile, allowedTypes, 15)
 
       if (errorMsg) {
         setErrors(prev => ({ ...prev, [fieldName]: errorMsg }))
@@ -534,11 +536,12 @@ export function RegisterPage() {
           return copy
         })
       } else {
-        setFormData(prev => ({ ...prev, [fieldName]: file }))
+        const compressedFile = await compressImageFile(rawFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1600 })
+        setFormData(prev => ({ ...prev, [fieldName]: compressedFile }))
         setFileMeta(prev => {
           const updated = {
             ...prev,
-            [fieldName]: { name: file.name, size: file.size }
+            [fieldName]: { name: compressedFile.name, size: compressedFile.size }
           }
           localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(updated))
           return updated

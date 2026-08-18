@@ -25,6 +25,10 @@
   text-transform: uppercase;
 }
 
+.apl-user-mgmt-title .gold-text {
+  color: #F8C800;
+}
+
 .apl-user-mgmt-subtitle {
   font-size: 0.88rem;
   color: rgba(255, 255, 255, 0.75);
@@ -227,8 +231,9 @@
 
 .apl-user-table td {
   padding: 1rem;
-  font-size: 0.85rem;
-  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: #1e293b;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -250,7 +255,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  font-weight: 600;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
 
 .apl-user-avatar-circle {
@@ -268,52 +275,39 @@
 }
 
 .apl-user-cell-email {
-  color: #475569;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
 
-/* Role Badges */
-.role-badge {
+/* Role Badges & Status */
+.role-badge,
+.apl-user-status-text {
   display: inline-block;
   padding: 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
-.role-badge-super {
-  color: #d97706; /* gold/amber */
-}
-
-.role-badge-content {
-  color: #0369a1; /* blue */
-}
-
-.role-badge-media {
-  color: #6d28d9; /* purple */
-}
-
-.role-badge-ops {
-  color: #047857; /* emerald/green */
-}
-
+.role-badge-super,
+.role-badge-content,
+.role-badge-media,
+.role-badge-ops,
 .role-badge-default {
-  color: #475569;
-}
-
-.apl-user-status-text {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  color: inherit;
 }
 
 .apl-user-status-text.status-active {
-  color: #10b981;
+  color: #059669;
+  font-weight: inherit;
 }
 
 .apl-user-status-text.status-inactive {
-  color: #ef4444;
+  color: #dc2626;
+  font-weight: inherit;
 }
 
 /* Form Design */

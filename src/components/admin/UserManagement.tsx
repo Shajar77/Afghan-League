@@ -188,7 +188,7 @@ export function UserManagement({ onLogout }: UserManagementProps) {
       {/* View Header */}
       <div className="apl-user-mgmt-header">
         <div>
-          <h1 className="apl-user-mgmt-title">SYSTEM ADMINISTRATORS</h1>
+          <h1 className="apl-user-mgmt-title">SYSTEM <span className="gold-text">ADMINISTRATORS</span></h1>
           <p className="apl-user-mgmt-subtitle">Manage administrative accounts, operators and permissions</p>
         </div>
         {!showAddForm && (

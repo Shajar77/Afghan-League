@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { buildApiUrl } from '../../config/api'
+import { buildApiUrl, getApiToken } from '../../config/api'
 import aboutHeroImg from '../../assets/about-hero-bg.jpeg'
 import './ContactPage.css'
 // Removed About.css import — shared hero styles have been moved into ContactPage.css
@@ -39,10 +39,21 @@ export function ContactPage() {
     setSubmitError(null)
 
     try {
+      const token = getApiToken()
       const res = await fetch(buildApiUrl('/contact'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
+          // Primary Live V6 Postman Schema (PascalCase)
+          FullName: formData.name.trim(),
+          Email: formData.email.trim(),
+          PhoneNumber: formData.phone.trim() || undefined,
+          Subject: formData.subject.trim(),
+          Message: formData.message.trim(),
+          // Backwards-compatible aliases
           name: formData.name.trim(),
           email: formData.email.trim(),
           phone: formData.phone.trim() || undefined,
@@ -149,9 +160,9 @@ export function ContactPage() {
               <div className="contact-success-card animate-fade-in" style={{
                 textAlign: 'center',
                 padding: '2.5rem 1.5rem',
-                border: '1px solid rgba(250, 167, 24, 0.2)',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(13, 18, 64, 0.15)',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.4)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -159,25 +170,27 @@ export function ContactPage() {
               }}>
                 <div style={{
                   fontSize: '3rem',
-                  color: 'var(--brand-gold, #faa718)',
+                  color: '#1F2E7A',
+                  fontWeight: 'bold',
                   lineHeight: '1'
                 }}>✓</div>
                 <h3 style={{
-                  fontSize: '1.5rem',
-                  color: '#ffffff',
+                  fontSize: '1.75rem',
+                  color: '#000000',
                   margin: 0,
                   fontFamily: 'var(--font-display)',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase'
+                  letterSpacing: '-0.02em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700
                 }}>Message Sent</h3>
                 <p style={{
-                  color: 'rgba(229, 233, 240, 0.7)',
-                  fontSize: '0.95rem',
+                  color: '#1e293b',
+                  fontSize: '1rem',
                   lineHeight: '1.6',
                   margin: '0 0 1rem 0',
                   maxWidth: '400px'
                 }}>
-                  Thank you, <strong>{formData.name}</strong>. Your message regarding "<strong>{formData.subject}</strong>" has been received. Our team will get back to you shortly.
+                  Thank you, <strong style={{ color: '#000000' }}>{formData.name}</strong>. Your message regarding "<strong style={{ color: '#000000' }}>{formData.subject}</strong>" has been received. Our team will get back to you shortly.
                 </p>
                 <button
                   onClick={() => {

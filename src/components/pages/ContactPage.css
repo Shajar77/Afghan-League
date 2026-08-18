@@ -190,25 +190,6 @@
   transform: translateY(-2px);
 }
 
-@keyframes morphBlob {
-  0% {
-    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
-    transform: translate(0, 0) rotate(0deg) scale(0.95);
-  }
-  33% {
-    border-radius: 70% 30% 52% 48% / 60% 40% 60% 40%;
-    transform: translate(110px, 60px) rotate(120deg) scale(1.1);
-  }
-  66% {
-    border-radius: 50% 50% 30% 70% / 40% 60% 30% 70%;
-    transform: translate(-30px, 120px) rotate(240deg) scale(0.9);
-  }
-  100% {
-    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
-    transform: translate(0, 0) rotate(360deg) scale(0.95);
-  }
-}
-
 .contact-form-panel {
   position: relative;
   background: #c8cbd9;
@@ -218,20 +199,6 @@
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   order: 2;
-}
-
-.contact-form-panel::before {
-  content: "";
-  position: absolute;
-  top: -10%;
-  left: -10%;
-  width: 320px;
-  height: 320px;
-  background: rgba(13, 18, 64, 0.3);
-  filter: blur(45px);
-  z-index: 0;
-  pointer-events: none;
-  animation: morphBlob 16s ease-in-out infinite;
 }
 
 .contact-form-title {
@@ -303,6 +270,21 @@
 .contact-form-element input:focus::placeholder,
 .contact-form-element textarea:focus::placeholder {
   opacity: 0.6;
+}
+
+/* Override WebKit / Blink default browser autofill background & text colors */
+.contact-form-element input:-webkit-autofill,
+.contact-form-element input:-webkit-autofill:hover,
+.contact-form-element input:-webkit-autofill:focus,
+.contact-form-element input:-webkit-autofill:active,
+.contact-form-element textarea:-webkit-autofill,
+.contact-form-element textarea:-webkit-autofill:hover,
+.contact-form-element textarea:-webkit-autofill:focus,
+.contact-form-element textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #c8cbd9 inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  caret-color: #000000;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 .contact-submit-btn {

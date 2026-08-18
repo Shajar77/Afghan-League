@@ -573,7 +573,7 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
               className={`apl-admin-nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => setActiveTab('dashboard')}
             >
-              Dashboard
+              Player Registrations
             </button>
             <button
               type="button"
@@ -655,7 +655,7 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
                 setMobileMenuOpen(false)
               }}
             >
-              Dashboard
+              Player Registrations
             </button>
           </li>
           <li className="mobile-nav-item">

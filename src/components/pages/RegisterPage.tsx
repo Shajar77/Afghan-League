@@ -22,7 +22,6 @@ export function RegisterPage() {
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
   const [refCode, setRefCode] = useState<string>('')
-  const [draftSaved, setDraftSaved] = useState<boolean>(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoaded, setIsLoaded] = useState<boolean>(false)
   const [fileMeta, setFileMeta] = useState<Record<string, { name: string; size: number }>>({})
@@ -77,8 +76,8 @@ export function RegisterPage() {
             }
           }
         }
-      } catch (err) {
-        console.error('Failed to fetch nationalities, falling back to static list', err)
+      } catch {
+        // Silently fall back to static nationality list
       }
     }
     fetchNationalities()
@@ -187,8 +186,8 @@ export function RegisterPage() {
           rightProfilePhoto: null,
           leftProfilePhoto: null,
         }))
-      } catch (e) {
-        console.error('Failed to load draft from localStorage', e)
+      } catch {
+        // Corrupted draft — start fresh
       }
     }
 
@@ -196,8 +195,8 @@ export function RegisterPage() {
     if (savedFileMeta) {
       try {
         setFileMeta(JSON.parse(savedFileMeta))
-      } catch (e) {
-        console.error('Failed to parse file metadata', e)
+      } catch {
+        // Could not parse file metadata — clear it silently
       }
     }
 
@@ -737,7 +736,6 @@ export function RegisterPage() {
 
           if (!regRes.ok) {
             const errJson = await regRes.json().catch(() => ({}))
-            console.error('Backend registration response 400 details:', errJson)
 
             const formatErrorObj = (obj: any): string => {
               if (!obj) return ''
@@ -794,7 +792,6 @@ export function RegisterPage() {
           setIsSubmitted(true)
           scrollToTop(true)
         } catch (err: any) {
-          console.error('Submission failed:', err)
           setSubmitError(err.message || 'An error occurred during submission. Please try again.')
         } finally {
           setIsSubmitting(false)
@@ -810,12 +807,7 @@ export function RegisterPage() {
     }
   }
 
-  const handleSaveDraft = () => {
-    const { passportPhoto: _passportPhoto, passportScan: _passportScan, actionShot: _actionShot, rightProfilePhoto: _rPhoto, leftProfilePhoto: _lPhoto, ...serializableData } = formData
-    localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializableData))
-    setDraftSaved(true)
-    setTimeout(() => setDraftSaved(false), 3000)
-  }
+
 
   const handleReset = () => {
     if (isSubmitted || window.confirm('Are you sure you want to clear your current progress and start fresh? All saved draft entries will be removed.')) {
@@ -933,13 +925,7 @@ export function RegisterPage() {
           </div>
 
           <div className="form-card-body">
-            {/* Draft Saved Toast */}
-            {draftSaved && (
-              <div className="draft-saved-toast">
-                <span style={{ marginRight: '8px', color: 'var(--brand-gold, #faa718)' }}>✓</span>
-                Draft successfully saved at {new Date().toLocaleTimeString()}!
-              </div>
-            )}
+
 
             {/* STEP 1: PERSONAL INFORMATION */}
             {currentStep === 1 && (
@@ -1038,23 +1024,13 @@ export function RegisterPage() {
                   >
                     Back
                   </button>
-                  <button 
-                    type="button" 
-                    className="btn-save-draft-review" 
-                    onClick={handleSaveDraft}
-                    disabled={isSubmitting}
-                  >
-                    Save as Draft
-                  </button>
-                </div>
-                <div className="review-bottom-submit-row">
                   <button
                     type="button"
                     className="btn-submit-registration"
                     onClick={handleNext}
                     disabled={isSubmitting || !consent1 || !consent2 || !consent3 || !consent4}
                   >
-                    {isSubmitting ? 'Submitting Registration...' : 'Submit Registration'}
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </button>
                 </div>
               </div>
@@ -1065,9 +1041,6 @@ export function RegisterPage() {
                     Back
                   </button>
                 )}
-                <button type="button" className="btn-secondary" onClick={handleSaveDraft}>
-                  Save as Draft
-                </button>
                 <button
                   type="button"
                   className="btn-primary"

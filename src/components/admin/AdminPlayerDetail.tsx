@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
 import { MOCK_TOKEN } from './mockData'
 import { formatStatus, statusClass } from './adminUtils'
+import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
 import {
   ArrowLeft,
@@ -170,8 +171,8 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
             }
           }
         }
-      } catch (err) {
-        console.error('Failed to fetch full player details:', err)
+      } catch {
+        // Network error — player data from table row is used as fallback
       } finally {
         setIsDataLoading(false)
       }
@@ -213,10 +214,8 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
         if (colonIdx === -1) return null
         return { label: part.slice(0, colonIdx).trim(), value: part.slice(colonIdx + 1).trim() }
       })
-      .filter(Boolean) as { label: string; value: string }[]
+      .filter((item): item is { label: string; value: string } => item !== null)
   }
-
-
 
   const updateStatus = async (newStatus: string) => {
     setActionLoading(newStatus)
@@ -430,11 +429,9 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
 
         {/* ── PHOTO GALLERY SECTION ── */}
         <section className="apl-detail-section">
-          <div className="apl-section-heading-row">
-            <h2 className="apl-section-heading">
-              PLAYER MEDIA & DOCUMENTS
-            </h2>
-          </div>
+          <h2 className="apl-section-heading">
+            PLAYER MEDIA & DOCUMENTS
+          </h2>
 
           <div className="apl-gallery-grid">
             <ImageCard url={reg.photo_url} label="Official Headshot" icon={User} />
@@ -489,7 +486,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
               {/* Availability */}
               <div className="apl-data-row">
                 <span className="apl-data-label">Tournament Availability</span>
-                <span className="apl-data-value">{toTitleCase(reg.player_availability) || '—'}</span>
+                <span className="apl-data-value">{formatAvailabilityDisplay(reg.player_availability)}</span>
               </div>
               {(reg as any).availability_details && (
                 parseKVString((reg as any).availability_details).map(({ label, value }) => (

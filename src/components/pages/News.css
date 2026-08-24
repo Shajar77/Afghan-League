@@ -134,11 +134,14 @@
   margin: 0;
 }
 
-/* ── Stats ── */
+/* ── Mobile-First Hero Stats ── */
 .news-hero-stats {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  width: 100%;
+  justify-content: space-around;
+  gap: 0.5rem;
+  margin-top: 1rem;
   flex-shrink: 0;
 }
 
@@ -151,7 +154,7 @@
 
 .news-stat-number {
   font-family: var(--font-display);
-  font-size: clamp(3.8rem, 8vw, 6.2rem);
+  font-size: clamp(2rem, 8vw, 3rem);
   font-weight: 900;
   color: #ffffff;
   line-height: 0.95;
@@ -170,9 +173,24 @@
 
 .news-stat-divider {
   width: 1px;
-  height: 68px;
+  height: 48px;
   background: rgba(248, 200, 0, 0.2);
   flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .news-hero-stats {
+    width: auto;
+    justify-content: flex-start;
+    gap: 2rem;
+    margin-top: 0;
+  }
+  .news-stat-number {
+    font-size: clamp(3.8rem, 8vw, 6.2rem);
+  }
+  .news-stat-divider {
+    height: 68px;
+  }
 }
 
 
@@ -616,19 +634,9 @@
   }
 }
 
-@media (max-width: 576px) {
+@media (min-width: 577px) {
   .news-slider-controls-row {
-    gap: 1rem;
-  }
-
-  .news-slider-arrow {
-    width: 36px;
-    height: 36px;
-  }
-
-  .news-slider-arrow svg {
-    width: 16px;
-    height: 16px;
+    gap: 1.5rem;
   }
 }
 
@@ -656,24 +664,7 @@
   width: 38px;
 }
 
-/* ── RESPONSIVE HERO STATS & TYPOGRAPHY ── */
-
-@media (max-width: 767px) {
-  .news-hero-stats {
-    width: 100%;
-    justify-content: space-around;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-
-  .news-stat-number {
-    font-size: clamp(2rem, 8vw, 3rem);
-  }
-
-  .news-stat-divider {
-    height: 48px;
-  }
-}
+/* (Hero stats responsive styles now consolidated in mobile-first base declaration above) */
 
 /* ── READ FULL STORY BUTTON FOR GRID CARDS ── */
 .news-grid-read-btn {

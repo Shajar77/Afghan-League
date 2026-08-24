@@ -90,19 +90,11 @@
 
 .coming-soon-big-heading {
   font-family: var(--font-display, 'Outfit', sans-serif);
-  font-size: clamp(3.5rem, 10vw, 7rem);
+  font-size: clamp(2.5rem, 10vw, 7rem);
   font-weight: 900;
   letter-spacing: -0.02em;
   color: #ffffff;
   text-align: center;
   margin: 0;
   text-transform: uppercase;
-}
-
-/* Responsive adjustments */
-
-@media (max-width: 480px) {
-  .coming-soon-big-heading {
-    font-size: clamp(2.5rem, 14vw, 3.5rem);
-  }
 }

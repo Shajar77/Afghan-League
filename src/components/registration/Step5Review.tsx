@@ -1,4 +1,5 @@
 import type { FormData } from './types'
+import { formatAvailabilityDisplay } from './types'
 
 interface Step5ReviewProps {
   formData: FormData
@@ -101,20 +102,7 @@ export function Step5Review({
               <div className="review-line-item">
                 <span className="review-line-label">Availability</span>
                 <span className="review-line-val">
-                  {Array.isArray(formData.availability) ? (
-                    formData.availability.map(key => {
-                      if (key === 'full') return 'Available for full season'
-                      if (key === 'selected') return 'Available for selected dates'
-                      if (key === 'national') return 'Subject to national-team commitments'
-                      if (key === 'release') return 'Subject to club or franchise release'
-                      return key
-                    }).join(', ') || 'None selected'
-                  ) : (
-                    formData.availability === 'full' ? 'Available for full season' :
-                      formData.availability === 'selected' ? 'Available for selected dates' :
-                        formData.availability === 'national' ? 'Subject to national-team commitments' :
-                          'Subject to club or franchise release'
-                  )}
+                  {formatAvailabilityDisplay(formData.availability)}
                 </span>
               </div>
             </div>

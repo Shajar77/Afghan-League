@@ -380,6 +380,11 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
       return
     }
 
+    if (!sponsorWebsite.trim()) {
+      setError('Website URL is required.')
+      return
+    }
+
     setIsSubmittingSponsor(true)
     setError(null)
 
@@ -390,9 +395,7 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
       }
 
       let formattedWebsite = sponsorWebsite.trim()
-      if (!formattedWebsite) {
-        formattedWebsite = 'https://apl-t20.com'
-      } else if (!formattedWebsite.startsWith('http://') && !formattedWebsite.startsWith('https://')) {
+      if (!formattedWebsite.startsWith('http://') && !formattedWebsite.startsWith('https://')) {
         formattedWebsite = `https://${formattedWebsite}`
       }
 
@@ -896,9 +899,10 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
 
                 {/* Website URL */}
                 <div className="apl-form-group">
-                  <label className="apl-form-label">Website URL</label>
+                  <label className="apl-form-label">Website URL *</label>
                   <input
                     type="text"
+                    required
                     placeholder="https://redbull.com"
                     className="apl-form-input"
                     value={sponsorWebsite}

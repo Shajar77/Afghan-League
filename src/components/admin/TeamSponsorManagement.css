@@ -49,20 +49,20 @@
   font-weight: 500;
 }
 
+/* Controls Row (Mobile-First Base: stacked on small screens) */
 .apl-ts-controls-row {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   width: 100%;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 769px) {
   .apl-ts-controls-row {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
   }
 }
 
@@ -92,6 +92,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.6rem 0.5rem;
+  min-height: 44px;
   border-radius: 0px;
   font-size: 1.05rem;
   font-weight: 400;
@@ -102,6 +103,7 @@
   cursor: pointer;
   letter-spacing: -0.01em;
   transition: all 0.2s ease;
+  touch-action: manipulation;
 }
 
 .apl-ts-tab-btn:hover {
@@ -126,6 +128,7 @@
   color: #0f172a;
   border: none;
   padding: 0.65rem 1.4rem;
+  min-height: 44px;
   border-radius: 0px;
   font-size: 0.88rem;
   font-weight: 600;
@@ -133,6 +136,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: none;
+  touch-action: manipulation;
 }
 
 .apl-ts-btn-add:hover {
@@ -475,6 +479,7 @@
   font-weight: 900;
   color: #0f172a;
   text-transform: uppercase;
+  letter-spacing: -0.03em;
   margin: 0;
 }
 
@@ -680,23 +685,19 @@
   cursor: not-allowed;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Form row 2 columns on tablet/desktop */
+.apl-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
   .apl-ts-layout {
-    padding: 1.25rem 1rem;
+    padding: 2rem 1.5rem;
   }
-
-  .apl-ts-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .apl-ts-grid {
-    grid-template-columns: 1fr;
-  }
-
   .apl-form-row-2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 

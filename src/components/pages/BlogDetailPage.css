@@ -69,8 +69,9 @@
 
 .blog-detail-meta {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
   font-family: var(--font-body);
   font-size: 0.85rem;
   margin-bottom: 1rem;
@@ -142,11 +143,20 @@
   justify-content: flex-start;
 }
 
+@media (min-width: 577px) {
+  .blog-detail-page {
+    padding-top: 6rem;
+    padding-bottom: 8rem;
+  }
+  .blog-detail-meta {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+  }
+}
+
 .btn-blog-back-bottom {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
   background: transparent;
   border: 1.5px solid var(--brand-gold);
   color: var(--brand-gold);
@@ -155,25 +165,16 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   padding: 0.75rem 1.75rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  touch-action: manipulation;
 }
 
 .btn-blog-back-bottom:hover {
   background: var(--brand-gold);
   color: #0e1038;
-}
-
-/* Mobile responsive fixes */
-@media (max-width: 576px) {
-  .blog-detail-page {
-    padding-top: 5rem;
-    padding-bottom: 5rem;
-  }
-
-  .blog-detail-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
 }

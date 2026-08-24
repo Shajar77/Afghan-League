@@ -19,6 +19,10 @@ export default defineConfig({
           if (id.includes('lucide-react')) {
             return 'lucide'
           }
+          // Keep recharts library in its own chunk
+          if (id.includes('recharts')) {
+            return 'recharts'
+          }
           // Core React runtime stays in main vendor chunk
           if (id.includes('react-dom') || id.includes('react/')) {
             return 'react-vendor'

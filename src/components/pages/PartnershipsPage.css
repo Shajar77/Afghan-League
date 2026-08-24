@@ -129,11 +129,14 @@
   margin: 0;
 }
 
-/* Hero stats counter */
+/* Hero stats counter (Mobile-First Base) */
 .partnerships-hero-stats {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  width: 100%;
+  justify-content: space-around;
+  gap: 0.5rem;
+  margin-top: 1rem;
   flex-shrink: 0;
 }
 
@@ -146,7 +149,7 @@
 
 .partnerships-stat-number {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 4.2rem);
+  font-size: clamp(1.8rem, 6vw, 2.5rem);
   font-weight: 900;
   color: #ffffff;
   line-height: 0.95;
@@ -165,23 +168,23 @@
 
 .partnerships-stat-divider {
   width: 1px;
-  height: 52px;
+  height: 40px;
   background: rgba(248, 200, 0, 0.2);
   flex-shrink: 0;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 768px) {
   .partnerships-hero-stats {
-    width: 100%;
-    justify-content: space-around;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    width: auto;
+    justify-content: flex-start;
+    gap: 2rem;
+    margin-top: 0;
   }
   .partnerships-stat-number {
-    font-size: clamp(1.8rem, 6vw, 2.5rem);
+    font-size: clamp(2.5rem, 5vw, 4.2rem);
   }
   .partnerships-stat-divider {
-    height: 40px;
+    height: 52px;
   }
 }
 

@@ -62,6 +62,42 @@ export interface ApiAvailability {
   label: string
 }
 
+export const AVAILABILITY_LABEL_MAP: Record<string, string> = {
+  'full': 'Available for full season',
+  'selected': 'Available for selected dates',
+  'national': 'Subject to national-team commitments',
+  'release': 'Subject to club or franchise release',
+
+  'available for full season': 'Available for full season',
+  'available for selected dates': 'Available for selected dates',
+  'subject to national-team commitments': 'Subject to national-team commitments',
+  'subject to club or franchise release': 'Subject to club or franchise release',
+
+  'available_for_full_season': 'Available for full season',
+  'available_for_selected_dates': 'Available for selected dates',
+  'subject_to_national_team_commitments': 'Subject to national-team commitments',
+  'subject_to_club_or_franchise_release': 'Subject to club or franchise release',
+  'subject_to_national_team_commitmen': 'Subject to national-team commitments',
+  'national_team_commitments': 'Subject to national-team commitments',
+  'club_release': 'Subject to club or franchise release',
+}
+
+export function formatAvailabilityDisplay(avail: any): string {
+  if (!avail) return 'None selected'
+  const list = Array.isArray(avail) ? avail : [avail]
+  
+  const mapped = list
+    .filter(Boolean)
+    .map(item => {
+      const raw = String(item).trim()
+      const cleanKey = raw.toLowerCase().replace(/,/g, '')
+      return AVAILABILITY_LABEL_MAP[cleanKey] || raw.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    })
+    .filter((val, idx, self) => self.indexOf(val) === idx)
+
+  return mapped.join(', ') || 'None selected'
+}
+
 export const initialFormData: FormData = {
   regType: 'player',
   agentName: '',

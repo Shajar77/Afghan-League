@@ -62,8 +62,7 @@ export function RegisterStatusPage() {
       } else {
         setErrorMessage(json.message || 'Reference Code or Email not found.')
       }
-    } catch (err) {
-      console.error('Tracking API error:', err)
+    } catch {
       setErrorMessage('Could not connect to the tracking server. Please try again later.')
     } finally {
       setIsLoading(false)
@@ -145,7 +144,11 @@ export function RegisterStatusPage() {
                  </div>
                  <div className="result-row">
                    <span className="result-label">Current Status</span>
-                   <span className="result-value status-badge-track">{statusResult.status}</span>
+                   <span className="result-value status-badge-track">
+                      {statusResult.status
+                        ? statusResult.status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+                        : 'Pending'}
+                   </span>
                  </div>
                </div>
  

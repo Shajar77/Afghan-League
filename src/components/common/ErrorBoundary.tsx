@@ -19,8 +19,8 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error in APL Application:', error, errorInfo)
+  public componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
+    // Error captured in state — displayed via the fallback UI
   }
 
   private handleReload = () => {

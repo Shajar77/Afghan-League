@@ -15,7 +15,12 @@ import {
   LogOut,
   Home,
   Menu,
-  ArrowRight
+  ArrowRight,
+  Download,
+  Loader2,
+  Camera,
+  Briefcase,
+  Globe
 } from 'lucide-react'
 import {
   AreaChart,
@@ -27,6 +32,30 @@ import {
 import './AdminDashboard.css'
 import { UserManagement } from './UserManagement'
 import { TeamSponsorManagement } from './TeamSponsorManagement'
+
+const CRICKETING_NATIONS = [
+  'Afghanistan',
+  'Australia',
+  'Bangladesh',
+  'Canada',
+  'England',
+  'India',
+  'Ireland',
+  'Namibia',
+  'Nepal',
+  'Netherlands',
+  'New Zealand',
+  'Oman',
+  'Pakistan',
+  'Scotland',
+  'South Africa',
+  'Sri Lanka',
+  'UAE',
+  'USA',
+  'Uganda',
+  'West Indies',
+  'Zimbabwe'
+]
 
 // Simple in-memory cache for avatar URLs to avoid duplicate API lookups
 const avatarCache = new Map<string, string>()
@@ -164,6 +193,7 @@ function PlayerAvatar({
 export interface Registration {
   id: number | string
   registration_code?: string
+  code?: string
   full_name?: string
   email?: string
   phone?: string
@@ -225,12 +255,16 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'teams'>('dashboard')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isExportingXLSX, setIsExportingXLSX] = useState(false)
+  const [isExportingPhotos, setIsExportingPhotos] = useState(false)
 
   // Filters
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
+  const [submitterFilter, setSubmitterFilter] = useState('All')
+  const [nationalityFilter, setNationalityFilter] = useState('All')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
@@ -346,6 +380,27 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
         return cat.includes(filterVal)
       })()
 
+      const matchSubmitter = (() => {
+        if (submitterFilter === 'All') return true
+        const hasAgent = Boolean(
+          r.agent_full_name ||
+          r.agent_company_name ||
+          r.agent_email_address ||
+          r.agent_phone_number ||
+          (r as any).submitted_by === 'agent' ||
+          (r as any).is_agent
+        )
+        if (submitterFilter === 'Agent') return hasAgent
+        if (submitterFilter === 'Player') return !hasAgent
+        return true
+      })()
+
+      const matchNationality = (() => {
+        if (nationalityFilter === 'All') return true
+        const nat = (r.nationality || r.representing_country || r.country_of_residence || '').toLowerCase()
+        return nat.includes(nationalityFilter.toLowerCase())
+      })()
+
       const rawDate = r.created_at || (r as any).createdAt || (r as any).registration_date || (r as any).registrationDate || (r as any).submitted_at || (r as any).date
       let matchDate = true
       if (dateFrom && rawDate) {
@@ -355,9 +410,9 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
         matchDate = matchDate && new Date(rawDate) <= new Date(dateTo + 'T23:59:59')
       }
 
-      return matchSearch && matchStatus && matchCategory && matchDate
+      return matchSearch && matchStatus && matchCategory && matchSubmitter && matchNationality && matchDate
     })
-  }, [registrations, search, statusFilter, categoryFilter, dateFrom, dateTo])
+  }, [registrations, search, statusFilter, categoryFilter, submitterFilter, nationalityFilter, dateFrom, dateTo])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const safeCurrentPage = Math.min(currentPage, totalPages)
@@ -367,19 +422,124 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, statusFilter, categoryFilter, dateFrom, dateTo, itemsPerPage])
+  }, [search, statusFilter, categoryFilter, submitterFilter, nationalityFilter, dateFrom, dateTo, itemsPerPage])
+
+  // Server-side Excel export caller (V7 API Endpoint: POST /admin/players/export)
+  const handleExportXLSX = async () => {
+    if (isExportingXLSX) return
+    setIsExportingXLSX(true)
+    try {
+      const token = localStorage.getItem('apl_admin_token') || adminToken || ''
+
+      const payload = {
+        search: search.trim(),
+        status: statusFilter === 'All' ? '' : statusFilter.toLowerCase(),
+        category: categoryFilter === 'All' ? '' : categoryFilter,
+        startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
+        endDate: dateTo ? `${dateTo}T23:59:59.000Z` : '',
+        format: 'excel'
+      }
+
+      const res = await fetch(buildApiUrl('/admin/players/export'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!res.ok) {
+        throw new Error(`Export failed with status ${res.status}`)
+      }
+
+      const blob = await res.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = downloadUrl
+      const dateStr = new Date().toISOString().slice(0, 10)
+      a.download = `APL_Player_Registrations_${dateStr}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+    } catch {
+      alert('Failed to download Excel export. Please try again.')
+    } finally {
+      setIsExportingXLSX(false)
+    }
+  }
+
+  // Server-side Photos ZIP export caller (V8 API Endpoint: POST /admin/players/export-photos)
+  const handleExportPhotos = async () => {
+    if (isExportingPhotos) return
+    setIsExportingPhotos(true)
+    try {
+      const token = localStorage.getItem('apl_admin_token') || adminToken || ''
+
+      const payload = {
+        search: search.trim(),
+        status: statusFilter === 'All' ? '' : statusFilter.toLowerCase(),
+        category: categoryFilter === 'All' ? '' : categoryFilter,
+        startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
+        endDate: dateTo ? `${dateTo}T23:59:59.000Z` : ''
+      }
+
+      const res = await fetch(buildApiUrl('/admin/players/export-photos'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!res.ok) {
+        throw new Error(`Photos export failed with status ${res.status}`)
+      }
+
+      const blob = await res.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = downloadUrl
+      const dateStr = new Date().toISOString().slice(0, 10)
+      a.download = `APL_Player_Photos_${dateStr}.zip`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+    } catch {
+      alert('Failed to download player photos archive. Please try again.')
+    } finally {
+      setIsExportingPhotos(false)
+    }
+  }
 
 
 
-  // CSV Export
+  // Unique player nationalities for the filter dropdown
+  const uniqueNationalities = useMemo(() => {
+    const set = new Set<string>()
+    registrations.forEach(r => {
+      let nat = (r.nationality || r.representing_country || r.country_of_residence || '').trim()
+      if (nat && nat !== '—' && nat.toLowerCase() !== 'none') {
+        nat = nat.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+        set.add(nat)
+      }
+    })
+    return Array.from(set).sort()
+  }, [registrations])
 
 
-  const hasActiveFilters = search || statusFilter !== 'All' || categoryFilter !== 'All' || dateFrom || dateTo
+
+  const hasActiveFilters = search || statusFilter !== 'All' || categoryFilter !== 'All' || submitterFilter !== 'All' || nationalityFilter !== 'All' || dateFrom || dateTo
 
   const clearAllFilters = () => {
     setSearch('')
     setStatusFilter('All')
     setCategoryFilter('All')
+    setSubmitterFilter('All')
+    setNationalityFilter('All')
     setDateFrom('')
     setDateTo('')
   }
@@ -436,6 +596,62 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
       heroCount: String(total),
       rosterSlots: '4500'
     }
+  }, [registrations])
+
+  // Fully Dynamic Registrations by Country (Active registered countries dynamically replace 0-count default nations)
+  const registrationsByCountry = useMemo(() => {
+    const countsMap: Record<string, number> = {}
+
+    // 1. Aggregate registration counts per country
+    registrations.forEach(r => {
+      let country = (r.nationality || r.representing_country || r.country_of_residence || '').trim()
+      if (!country || country === '—' || country.toLowerCase() === 'none') return
+
+      const norm = country.toLowerCase()
+      let stdName = country
+        .split(' ')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(' ')
+
+      if (norm.includes('pakistan')) stdName = 'Pakistan'
+      else if (norm.includes('afghanistan')) stdName = 'Afghanistan'
+      else if (norm.includes('australia')) stdName = 'Australia'
+      else if (norm.includes('bangladesh')) stdName = 'Bangladesh'
+      else if (norm.includes('england') || norm.includes('uk')) stdName = 'England'
+      else if (norm.includes('india')) stdName = 'India'
+      else if (norm.includes('ireland')) stdName = 'Ireland'
+      else if (norm.includes('zealand')) stdName = 'New Zealand'
+      else if (norm.includes('south africa')) stdName = 'South Africa'
+      else if (norm.includes('sri lanka')) stdName = 'Sri Lanka'
+      else if (norm.includes('west indies')) stdName = 'West Indies'
+      else if (norm.includes('zimbabwe')) stdName = 'Zimbabwe'
+      else if (norm.includes('emirates') || norm.includes('uae')) stdName = 'UAE'
+      else if (norm.includes('states') || norm.includes('usa')) stdName = 'USA'
+
+      countsMap[stdName] = (countsMap[stdName] || 0) + 1
+    })
+
+    // 2. Extract active registered countries (count > 0)
+    const activeCountries = Object.entries(countsMap)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count || a.country.localeCompare(b.country))
+
+    const activeSet = new Set(activeCountries.map(c => c.country.toLowerCase()))
+
+    // 3. Filter default nations that currently have NO registrations (count = 0)
+    const zeroCountDefaults = CRICKETING_NATIONS
+      .filter(name => !activeSet.has(name.toLowerCase()))
+      .map(country => ({ country, count: 0 }))
+      .sort((a, b) => a.country.localeCompare(b.country))
+
+    // 4. Fill remaining slots up to fixed capacity (21 slots)
+    const MAX_SLOTS = Math.max(21, activeCountries.length)
+    const remainingSlotsNeeded = Math.max(0, MAX_SLOTS - activeCountries.length)
+
+    return [
+      ...activeCountries,
+      ...zeroCountDefaults.slice(0, remainingSlotsNeeded)
+    ]
   }, [registrations])
 
   // Chart Memos for Recharts components - Grouped by dates chronologically
@@ -726,83 +942,61 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
         <section className="exact-kikin-grid">
           {/* ── LEFT COLUMN (Invoice / Draft Pipeline + Verification Score + Category Breakdown) ── */}
           <div className="kikin-left-column">
-            {/* 1. TOP INVOICE / DRAFT CARD */}
-            <div className="kikin-card kikin-card-invoice">
-              <div className="kikin-invoice-header">
-                <div className="kikin-invoice-to">
-                  <span className="apl-card-heading">APL T20 SEASON 2026</span>
-                </div>
-                <button
-                  type="button"
-                  className="kikin-btn-view-details"
-                  onClick={() => {
-                    const el = document.getElementById('player-registrations-section')
-                    el?.scrollIntoView({ behavior: 'smooth' })
-                  }}
-                >
-                  View details
-                </button>
-              </div>
-
-              <div className="kikin-invoice-hero">
-                <div className="kikin-hero-amount">{stats.total}</div>
-                <div className="kikin-hero-sub">
-                  Player applications across {stats.uniqueCountries} {stats.uniqueCountries === 1 ? 'country' : 'countries'}
-                </div>
-              </div>
-
-              {/* Recharts Area Chart for Draft Submissions Trend */}
-              <div className="kikin-chart-wrap" style={{ height: 110, width: '100%', marginTop: '0.5rem' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={draftTrendData} margin={{ top: 5, right: 0, left: 0, bottom: 12 }}>
-                    <defs>
-                      <linearGradient id="draftFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#F8C800" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#F8C800" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis
-                      {...({
-                        dataKey: 'name',
-                        stroke: '#88988A',
-                        tickLine: false,
-                        axisLine: false,
-                        boundaryGap: false,
-                        tick: { fontSize: 11, fontWeight: '500', fill: '#475569', dy: 8 }
-                      } as any)}
-                    />
-                    <Tooltip
-                      contentStyle={{ background: '#141C15', border: '1px solid #233226', borderRadius: 8 }}
-                      labelStyle={{ color: '#88988A' }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#F8C800"
-                      strokeWidth={2.5}
-                      fillOpacity={1}
-                      fill="url(#draftFill)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* 2. BOTTOM ROW (White Score Card + Category Progress Bars) */}
+            {/* 1. UPPER ROW (Timeline Trend & Category Breakdown Cards) */}
             <div className="kikin-bottom-row">
-              {/* Card 2: Calculating Score (Clean White) */}
-              <div className="kikin-card kikin-card-score-white">
+              {/* Card 1: Submissions Timeline & Activity */}
+              <div className="kikin-card kikin-card-score-white" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 <div>
-                  <h2 className="apl-card-heading">APPROVED FOR DRAFT</h2>
-                  <div className="apl-card-divider" />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 className="apl-card-heading">SUBMISSION TIMELINE & TREND</h2>
+                  </div>
+                  <div className="apl-card-divider" style={{ margin: '0.5rem 0 0.75rem' }} />
                 </div>
-                <div className="kikin-score-hero">
-                  <span className="kikin-score-number">{stats.approved}</span>
-                  <span className="kikin-score-denom">/{stats.total} Validated Profiles</span>
+
+                <div className="kikin-invoice-hero" style={{ marginBottom: '0.25rem' }}>
+                  <div className="kikin-hero-amount" style={{ color: '#0f172a', fontSize: '2.5rem' }}>{stats.total}</div>
+                  <div className="kikin-hero-sub" style={{ color: '#64748b' }}>
+                    Player applications across {stats.uniqueCountries} {stats.uniqueCountries === 1 ? 'country' : 'countries'}
+                  </div>
+                </div>
+
+                <div style={{ height: 110, width: '100%' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={draftTrendData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
+                      <defs>
+                        <linearGradient id="timelineFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#021B79" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#021B79" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis
+                        {...({
+                          dataKey: 'name',
+                          stroke: '#94a3b8',
+                          tickLine: false,
+                          axisLine: false,
+                          boundaryGap: false,
+                          tick: { fontSize: 11, fontWeight: '500', fill: '#64748b', dy: 4 }
+                        } as any)}
+                      />
+                      <Tooltip
+                        contentStyle={{ background: '#021B79', border: '1px solid #1F2E7A', borderRadius: 8, color: '#ffffff' }}
+                        labelStyle={{ color: '#F8C800' }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#021B79"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#timelineFill)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Card 3: 4 Player Category Progress Bars (Custom Left Aligned Grid) */}
+              {/* Card 2: 4 Player Category Progress Bars */}
               <div className="kikin-card kikin-card-esg-bars" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 <div>
                   <h2 className="apl-card-heading">REGISTRATIONS BY CATEGORY</h2>
@@ -849,6 +1043,70 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
                     )
                   })}
                 </div>
+              </div>
+            </div>
+
+            {/* 2. LOWER ROW - REGISTRATIONS BY ALL CRICKETING NATIONS */}
+            <div className="kikin-card kikin-card-invoice" style={{ padding: '1.5rem' }}>
+              <div className="kikin-invoice-header" style={{ marginBottom: '0.75rem' }}>
+                <div className="kikin-invoice-to">
+                  <span className="apl-card-heading">PLAYER REGISTRATIONS BY COUNTRIES</span>
+                </div>
+              </div>
+
+              {/* Multi-Column Grid Layout for All Cricketing Nations */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+                columnGap: '2rem',
+                rowGap: '0.1rem',
+                maxHeight: '220px',
+                overflowY: 'auto',
+                paddingRight: '0.5rem'
+              }}>
+                {registrationsByCountry.map(({ country, count }) => (
+                  <div
+                    key={country}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0.45rem 0',
+                      borderBottom: '1px solid #cbd5e1',
+                      opacity: count > 0 ? 1 : 0.65
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                      <span style={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: '50%',
+                        background: count > 0 ? '#021B79' : '#94a3b8',
+                        display: 'inline-block'
+                      }} />
+                      <span style={{
+                        fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+                        fontSize: '1.15rem',
+                        fontWeight: count > 0 ? 600 : 500,
+                        color: count > 0 ? '#0f172a' : '#475569',
+                        letterSpacing: '0.01em',
+                        textTransform: 'uppercase'
+                      }}>
+                        {country}
+                      </span>
+                    </div>
+
+                    <span style={{
+                      fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+                      fontSize: '1.15rem',
+                      fontWeight: count > 0 ? 700 : 500,
+                      color: count > 0 ? '#021B79' : '#64748b',
+                      letterSpacing: '0.01em'
+                    }}>
+                      ({count})
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -974,6 +1232,47 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
             </p>
           </div>
 
+          <div className="apl-export-buttons-group">
+            <button
+              type="button"
+              className="apl-export-excel-btn"
+              onClick={handleExportXLSX}
+              disabled={isExportingXLSX || registrations.length === 0}
+              title="Download full player dossier spreadsheet as Excel (.xlsx) from server"
+            >
+              {isExportingXLSX ? (
+                <>
+                  <Loader2 size={16} className="apl-btn-spin" />
+                  <span>EXPORTING...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>EXPORT EXCEL (.XLSX)</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="apl-export-excel-btn"
+              onClick={handleExportPhotos}
+              disabled={isExportingPhotos || registrations.length === 0}
+              title="Download ZIP folder of all player photos from server"
+            >
+              {isExportingPhotos ? (
+                <>
+                  <Loader2 size={16} className="apl-btn-spin" />
+                  <span>EXPORTING PHOTOS...</span>
+                </>
+              ) : (
+                <>
+                  <Camera size={16} />
+                  <span>EXPORT PHOTOS (.ZIP)</span>
+                </>
+              )}
+            </button>
+          </div>
         </section>
 
         {/* ── ADVANCED FILTERS BAR ── */}
@@ -1026,6 +1325,37 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
                 {CATEGORY_FILTERS.map(c => (
                   <option key={c} value={c}>
                     {c === 'All' ? 'All Categories' : `Category: ${c}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Submitter Filter (Agent vs Player) */}
+            <div className="apl-select-wrap">
+              <Briefcase size={14} className="apl-select-icon" />
+              <select
+                value={submitterFilter}
+                onChange={e => setSubmitterFilter(e.target.value)}
+                className="apl-filter-select"
+              >
+                <option value="All">All Submitters</option>
+                <option value="Agent">Submitted by Agent</option>
+                <option value="Player">Submitted by Player</option>
+              </select>
+            </div>
+
+            {/* Nationality Filter */}
+            <div className="apl-select-wrap">
+              <Globe size={14} className="apl-select-icon" />
+              <select
+                value={nationalityFilter}
+                onChange={e => setNationalityFilter(e.target.value)}
+                className="apl-filter-select"
+              >
+                <option value="All">All Nationalities</option>
+                {uniqueNationalities.map(n => (
+                  <option key={n} value={n}>
+                    {n}
                   </option>
                 ))}
               </select>

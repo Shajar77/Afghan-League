@@ -74,12 +74,14 @@ export function UserManagement({ onLogout }: UserManagementProps) {
           'Content-Type': 'application/json'
         }
       })
+      if (res.status === 401 || res.status === 403) {
+        onLogout()
+        return
+      }
       const json = await res.json()
       if (res.ok) {
         const data = Array.isArray(json) ? json : (json.data || json.users || [])
         setUsers(data)
-      } else if (res.status === 401) {
-        onLogout()
       } else {
         setError(json.message || 'Failed to retrieve system administrators.')
       }

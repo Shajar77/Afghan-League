@@ -321,10 +321,10 @@
 }
 
 .stat-value-unit {
-  font-size: 0.28em !important;
+  font-size: 0.35em !important;
   font-weight: 900;
   color: var(--brand-gold) !important;
-  margin-left: -0.65rem !important;
+  margin-left: -0.15rem !important;
   letter-spacing: -0.02em;
   vertical-align: baseline !important;
 }
@@ -334,42 +334,45 @@
   flex-direction: column !important;
   align-items: center !important;
   text-align: center !important;
+  flex: 1;
+  min-width: 0;
+}
+
+.points-rules-section .stat-value {
+  font-size: clamp(2rem, 6vw, 3.2rem) !important;
 }
 
 .points-rules-section .stat-label {
   font-family: var(--font-display) !important;
-  font-size: 1.35rem !important;
+  font-size: clamp(0.7rem, 2.2vw, 0.85rem) !important;
   font-weight: 500 !important;
   color: #ffffff !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.04em !important;
   margin-top: 0 !important;
   line-height: 1.2 !important;
   text-align: center !important;
 }
 
 .points-rules-section .stat-divider {
-  margin: 0.6rem auto 0.75rem !important;
+  margin: 0.4rem auto !important;
+  width: 14px !important;
 }
 
-@media (max-width: 767px) {
-  .points-rules-section .stat-card {
-    flex: 1;
-    min-width: 0;
-  }
+@media (min-width: 768px) {
   .points-rules-section .stat-value {
-    font-size: clamp(2rem, 6vw, 3.2rem) !important;
+    font-size: clamp(3rem, 6vw, 5rem) !important;
   }
   .stat-value-unit {
-    font-size: 0.35em !important;
-    margin-left: -0.15rem !important;
+    font-size: 0.28em !important;
+    margin-left: -0.65rem !important;
   }
   .points-rules-section .stat-label {
-    font-size: clamp(0.7rem, 2.2vw, 0.85rem) !important;
-    letter-spacing: 0.04em !important;
+    font-size: 1.35rem !important;
+    letter-spacing: 0.06em !important;
   }
   .points-rules-section .stat-divider {
-    margin: 0.4rem auto !important;
-    width: 14px !important;
+    margin: 0.6rem auto 0.75rem !important;
+    width: 24px !important;
   }
 }
 

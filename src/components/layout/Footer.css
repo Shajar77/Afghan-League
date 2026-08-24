@@ -162,7 +162,11 @@
 
 .footer-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "brand     brand"
+    "nav       resources"
+    "info      franchises";
   gap: 2.5rem 1.5rem;
   width: 100%;
   padding-bottom: 2rem;
@@ -176,8 +180,24 @@
 }
 
 .brand-col {
-  grid-column: span 2;
+  grid-area: brand;
   max-width: 100%;
+}
+
+.nav-col {
+  grid-area: nav;
+}
+
+.resources-col {
+  grid-area: resources;
+}
+
+.info-col {
+  grid-area: info;
+}
+
+.franchises-col {
+  grid-area: franchises;
 }
 
 .footer-brand-desc {
@@ -359,13 +379,23 @@
   }
 
   .footer-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    grid-template-columns: 1.6fr 1fr 1fr;
+    grid-template-areas:
+      "brand nav       resources"
+      "brand info      franchises";
+    gap: 2.5rem 2.5rem;
   }
 
   .brand-col {
-    grid-column: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
     max-width: 320px;
+  }
+
+  .footer-brand-desc {
+    max-width: 300px;
   }
   
   .footer-bottom-bar {
@@ -387,7 +417,13 @@
 
   .footer-grid {
     grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr;
-    gap: 1.5rem;
+    grid-template-areas:
+      "brand nav info resources franchises";
+    gap: 2rem;
+  }
+
+  .brand-col {
+    max-width: 340px;
   }
 
   .footer-logo-main {

@@ -36,8 +36,8 @@ export async function compressImageFile(
   try {
     const compressed = await imageCompression(file, options)
     return compressed
-  } catch (err) {
-    console.warn('Image pre-compression warning (using original file):', err)
+  } catch {
+    // Compression failed — return original file unchanged
     return file
   }
 }

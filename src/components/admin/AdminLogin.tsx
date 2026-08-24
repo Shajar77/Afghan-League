@@ -88,13 +88,10 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
 
       {/* ── RIGHT COLUMN: CLEAN FORM ── */}
       <div className="apl-admin-right-form">
-        {/* Moving Gold Lines & Ambient Glow Animation Background */}
+        {/* Ambient Glow Background */}
         <div className="apl-right-bg-animation" aria-hidden="true">
           <div className="apl-bg-glow-orb-1" />
           <div className="apl-bg-glow-orb-2" />
-          <div className="apl-gold-line apl-gold-line-1" />
-          <div className="apl-gold-line apl-gold-line-2" />
-          <div className="apl-gold-line apl-gold-line-3" />
         </div>
 
         <div className="apl-form-center-box">

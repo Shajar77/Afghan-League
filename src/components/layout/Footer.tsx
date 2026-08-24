@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import aplLogo from '../../assets/Asset 2@2x.png'
 import { FEATURES } from '../../constants/features'
+import './Footer.css'
 
 export function Footer() {
   const [newsletterEmail, setNewsletterEmail] = useState('')
@@ -63,7 +64,7 @@ export function Footer() {
           </div>
 
           {/* Column 2: Navigation Links */}
-          <div className="footer-col links-col">
+          <div className="footer-col links-col nav-col">
             <h4 className="footer-col-title">Navigation</h4>
             <ul className="footer-links-list">
               <li><a href="#home">Home</a></li>
@@ -74,8 +75,20 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Info & Support Links */}
-          <div className="footer-col links-col">
+          {/* Column 3: Resource Document Links */}
+          <div className="footer-col links-col resources-col">
+            <h4 className="footer-col-title">Resources</h4>
+            <ul className="footer-links-list">
+              <li><a href="#acb-governance">ACB Governance</a></li>
+              {FEATURES.SHOW_REGISTRATION && <li><a href="#register-player">Player Registration</a></li>}
+              {FEATURES.SHOW_LEAGUE_FAQ && <li><a href="#league-faq">League FAQ</a></li>}
+              {FEATURES.SHOW_MEDIA_KIT && <li><a href="#media-kit">Media Kit</a></li>}
+              <li><a href="#admin-login">Admin Panel</a></li>
+            </ul>
+          </div>
+
+          {/* Column 4: Info & Support Links */}
+          <div className="footer-col links-col info-col">
             <h4 className="footer-col-title">Info & Support</h4>
             <ul className="footer-links-list">
               {FEATURES.SHOW_ABOUT && <li><a href="#about">About APL</a></li>}
@@ -84,9 +97,9 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Franchises Links */}
+          {/* Column 5: Franchises Links */}
           {FEATURES.SHOW_TEAMS && (
-            <div className="footer-col links-col">
+            <div className="footer-col links-col franchises-col">
               <h4 className="footer-col-title">Franchises</h4>
               <ul className="footer-links-list">
                 <li><a href="#teams">Kabul Knights</a></li>
@@ -98,18 +111,6 @@ export function Footer() {
               </ul>
             </div>
           )}
-
-          {/* Column 5: Resource Document Links */}
-          <div className="footer-col links-col">
-            <h4 className="footer-col-title">Resources</h4>
-            <ul className="footer-links-list">
-              <li><a href="#acb-governance">ACB Governance</a></li>
-              {FEATURES.SHOW_REGISTRATION && <li><a href="#register-player">Player Registration</a></li>}
-              {FEATURES.SHOW_LEAGUE_FAQ && <li><a href="#league-faq">League FAQ</a></li>}
-              {FEATURES.SHOW_MEDIA_KIT && <li><a href="#media-kit">Media Kit</a></li>}
-              <li><a href="#admin-login">Admin Panel</a></li>
-            </ul>
-          </div>
 
         </div>
 

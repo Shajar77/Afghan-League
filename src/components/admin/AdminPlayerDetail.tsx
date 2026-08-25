@@ -1,6 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
-import { MOCK_TOKEN } from './mockData'
 import { formatStatus, statusClass, isAgentRegistration } from './adminUtils'
 import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
@@ -141,8 +140,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
 
   useEffect(() => {
     const token = localStorage.getItem('apl_admin_token') || ''
-    // Use the imported MOCK_TOKEN constant — no hardcoded string comparisons
-    if (!token || token === MOCK_TOKEN) {
+    if (!token) {
       return
     }
 
@@ -221,14 +219,6 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
     setActionLoading(newStatus)
     setActionError(null)
     const token = localStorage.getItem('apl_admin_token') || ''
-
-    const isMock = Boolean(MOCK_TOKEN && token === MOCK_TOKEN) || localStorage.getItem('apl_admin_is_mock') === 'true'
-    if (isMock) {
-      await new Promise(r => setTimeout(r, 400))
-      setCurrentStatus(newStatus)
-      setActionLoading(null)
-      return
-    }
 
     try {
       const res = await fetch(buildApiUrl(`/player-registrations/${reg.id}/status`), {

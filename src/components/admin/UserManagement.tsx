@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { buildApiUrl } from '../../config/api'
-import { MOCK_TOKEN } from './mockData'
 import {
   Users,
   UserPlus,
@@ -55,17 +54,6 @@ export function UserManagement({ onLogout }: UserManagementProps) {
     setError(null)
     const token = localStorage.getItem('apl_admin_token') || ''
 
-    if (token === MOCK_TOKEN) {
-      await new Promise(r => setTimeout(r, 400))
-      setUsers([
-        { id: 1, name: 'System Admin', email: 'admin@apl-t20.com', role: 'super_admin', status: 'active' },
-        { id: 2, name: 'Bilal Ghaffar - League Ops', email: 'bilal.ghaffar12@apl-t20.com', role: 'league_ops', status: 'active' },
-        { id: 3, name: 'Safi Content', email: 'safi@apl-t20.com', role: 'content_editor', status: 'inactive' }
-      ])
-      setIsLoading(false)
-      return
-    }
-
     try {
       const res = await fetch(buildApiUrl('/users'), {
         method: 'GET',
@@ -107,32 +95,7 @@ export function UserManagement({ onLogout }: UserManagementProps) {
     }
 
     setIsSubmitting(true)
-
     const token = localStorage.getItem('apl_admin_token') || ''
-
-    if (token === MOCK_TOKEN) {
-      await new Promise(r => setTimeout(r, 600))
-      const newUser: AdminUser = {
-        id: Date.now(),
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        role,
-        status: 'active'
-      }
-      setUsers(prev => [...prev, newUser])
-      setSubmitSuccess(true)
-      setName('')
-      setEmail('')
-      setPassword('')
-      setRole('league_ops')
-      setIsSubmitting(false)
-      // Hide form after 1.5s success
-      setTimeout(() => {
-        setShowAddForm(false)
-        setSubmitSuccess(false)
-      }, 1500)
-      return
-    }
 
     try {
       const res = await fetch(buildApiUrl('/users'), {
@@ -245,8 +208,10 @@ export function UserManagement({ onLogout }: UserManagementProps) {
                 <tbody>
                   {users.map((usr, i) => (
                     <tr key={usr.id || i} className="apl-user-row">
-                      <td className="apl-user-cell-name">
-                        <span>{usr.name}</span>
+                      <td className="apl-user-td-name">
+                        <div className="apl-user-cell-name">
+                          <span>{usr.name}</span>
+                        </div>
                       </td>
                       <td className="apl-user-cell-email">{usr.email}</td>
                       <td>

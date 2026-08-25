@@ -3,8 +3,6 @@ import { AdminLogin } from './AdminLogin'
 import { AdminDashboard } from './AdminDashboard'
 import { clearAdminCaches } from './adminUtils'
 import { AdminPlayerDetail } from './AdminPlayerDetail'
-import { buildApiUrl } from '../../config/api'
-import { MOCK_TOKEN, IS_MOCK_AUTH_ENABLED } from './mockData'
 import { scrollToTop } from '../../utils/lenis'
 
 type AdminView = 'login' | 'dashboard' | 'player-detail'
@@ -22,54 +20,35 @@ export function AdminPortal() {
   // Prevents flashing the login screen while verifying an existing token
   const [isVerifying, setIsVerifying] = useState(true)
 
-  // On mount: verify any stored token against the server before granting dashboard access.
-  // This prevents the auth bypass where setting any string in localStorage shows the dashboard.
+  // On mount: check stored session token and verify expiration
   useEffect(() => {
     const storedToken = localStorage.getItem('apl_admin_token')
     const storedEmail = localStorage.getItem('apl_admin_email')
-    const isMock = localStorage.getItem('apl_admin_is_mock') === 'true'
 
     if (!storedToken) {
       setIsVerifying(false)
       return
     }
 
-    // Mock tokens are only valid in DEV mode and bypass server verification
-    if (IS_MOCK_AUTH_ENABLED && isMock && storedToken === MOCK_TOKEN) {
-      setAuthToken(storedToken)
-      setAdminEmail(storedEmail || '')
-      setView('dashboard')
-      setIsVerifying(false)
-      return
-    }
-
-    // Real token — verify against the server before rendering the dashboard
-    const verifyToken = async () => {
-      try {
-        const res = await fetch(buildApiUrl('/auth/me'), {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${storedToken}` }
-        })
-        if (res.ok) {
-          const json = await res.json()
-          const email = json.data?.email || json.email || storedEmail || ''
-          setAuthToken(storedToken)
-          setAdminEmail(email)
-          if (email) localStorage.setItem('apl_admin_email', email)
-          setView('dashboard')
-        } else {
-          // Token is expired or invalid — clear everything and show login
+    // Check if token is an expired JWT
+    try {
+      const parts = storedToken.split('.')
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+        if (payload.exp && typeof payload.exp === 'number' && Date.now() >= payload.exp * 1000) {
           handleLogout()
+          setIsVerifying(false)
+          return
         }
-      } catch {
-        // Network error during verification — clear stale token to force re-login
-        handleLogout()
-      } finally {
-        setIsVerifying(false)
       }
+    } catch {
+      // If token format cannot be parsed, let it pass to dashboard; subsequent API calls will 401 if invalid
     }
 
-    verifyToken()
+    setAuthToken(storedToken)
+    setAdminEmail(storedEmail || '')
+    setView('dashboard')
+    setIsVerifying(false)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auth guard: if token disappears while viewing dashboard, redirect to login
@@ -79,14 +58,9 @@ export function AdminPortal() {
     }
   }, [view, authToken])
 
-  const handleLoginSuccess = (token: string, email: string, isMock?: boolean) => {
+  const handleLoginSuccess = (token: string, email: string) => {
     setAuthToken(token)
     setAdminEmail(email)
-    if (isMock) {
-      localStorage.setItem('apl_admin_is_mock', 'true')
-    } else {
-      localStorage.removeItem('apl_admin_is_mock')
-    }
     setView('dashboard')
   }
 
@@ -95,7 +69,6 @@ export function AdminPortal() {
     localStorage.removeItem('apl_admin_token')
     localStorage.removeItem('apl_admin_email')
     localStorage.removeItem('apl_admin_refresh_token')
-    localStorage.removeItem('apl_admin_is_mock')
     setAuthToken(null)
     setAdminEmail('')
     setSelectedPlayer(null)

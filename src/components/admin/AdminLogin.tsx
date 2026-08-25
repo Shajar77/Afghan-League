@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { buildApiUrl } from '../../config/api'
-import { IS_MOCK_AUTH_ENABLED, MOCK_TOKEN, MOCK_EMAIL, MOCK_PASSWORD } from './mockData'
 import aplLogo from '../../assets/Asset 2@2x.png'
 import { Lock, Mail, ShieldAlert, ArrowRight, Eye, EyeOff, X } from 'lucide-react'
 import './AdminLogin.css'
 
 interface AdminLoginProps {
-  onLoginSuccess: (token: string, email: string, isMock?: boolean) => void
+  onLoginSuccess: (token: string, email: string) => void
 }
 
 export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
@@ -20,22 +19,6 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     e.preventDefault()
     setError(null)
     setIsLoading(true)
-
-    // Check mock credentials in DEV/explicitly enabled mock mode
-    if (
-      IS_MOCK_AUTH_ENABLED &&
-      MOCK_EMAIL &&
-      MOCK_PASSWORD &&
-      email.trim().toLowerCase() === MOCK_EMAIL.toLowerCase() &&
-      password === MOCK_PASSWORD
-    ) {
-      localStorage.setItem('apl_admin_token', MOCK_TOKEN)
-      localStorage.setItem('apl_admin_email', email.trim())
-      localStorage.setItem('apl_admin_is_mock', 'true')
-      setIsLoading(false)
-      onLoginSuccess(MOCK_TOKEN, email.trim(), true)
-      return
-    }
 
     try {
       const res = await fetch(buildApiUrl('/auth/login'), {
@@ -54,8 +37,7 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           if (data.refresh_token) {
             localStorage.setItem('apl_admin_refresh_token', data.refresh_token)
           }
-          localStorage.removeItem('apl_admin_is_mock')
-          onLoginSuccess(token, email.trim(), false)
+          onLoginSuccess(token, email.trim())
           return
         }
       }

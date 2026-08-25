@@ -1892,6 +1892,7 @@
   color: rgba(255, 255, 255, 0.028); /* Slightly increased opacity for clear legibility */
   white-space: nowrap;
   pointer-events: none;
+  -webkit-user-select: none;
   user-select: none;
   text-transform: uppercase;
   animation: statsWatermarkScroll 24s linear infinite; /* Seamless marquee scroll */

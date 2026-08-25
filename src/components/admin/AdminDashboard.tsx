@@ -59,13 +59,27 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({
-  adminEmail,
+  adminEmail: _adminEmail,
   adminToken,
   onLogout,
   onViewPlayer
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'users'>('dashboard')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Determine if the current admin token grants super_admin role (user management access)
+  const isSuperAdmin = (() => {
+    try {
+      const token = adminToken || localStorage.getItem('apl_admin_token') || ''
+      const parts = token.split('.')
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+        const role = (payload.role || payload.roles?.[0] || '').toLowerCase()
+        return role === 'super_admin' || role === 'superadmin' || role === 'admin'
+      }
+    } catch { /* invalid token format */ }
+    return false
+  })()
 
   // Data & Loading states
   const [registrations, setRegistrations] = useState<Registration[]>(() => registrationsCache || [])
@@ -566,7 +580,7 @@ export function AdminDashboard({
             >
               Teams & Sponsors
             </button>
-            {adminEmail === 'admin@apl-t20.com' && (
+            {isSuperAdmin && (
               <button
                 type="button"
                 className={`apl-admin-nav-tab ${activeTab === 'users' ? 'active' : ''}`}
@@ -654,7 +668,7 @@ export function AdminDashboard({
               Teams & Sponsors
             </button>
           </li>
-          {adminEmail === 'admin@apl-t20.com' && (
+          {isSuperAdmin && (
             <li className="mobile-nav-item">
               <button
                 type="button"

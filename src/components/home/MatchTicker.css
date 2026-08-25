@@ -61,6 +61,7 @@
   height: 72px; /* Smaller height on mobile */
   padding: 0 0.6rem;
   flex-shrink: 0;
+  -webkit-user-select: none;
   user-select: none;
   margin: 0.25rem 0.4rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);

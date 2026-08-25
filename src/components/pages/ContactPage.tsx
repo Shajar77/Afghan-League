@@ -292,9 +292,74 @@ export function ContactPage() {
         </div>
       </section>
 
-      {/* Map Section */}
-      <section className="contact-map-section">
-        <div className="contact-map-container">
+      {/* Map Section — lazy-loaded to prevent Google stream errors on initial page load */}
+      <MapSection />
+    </div>
+  )
+}
+
+function MapSection() {
+  const [mapVisible, setMapVisible] = useState(false)
+  const [mapError, setMapError] = useState(false)
+  const containerRef = (element: HTMLElement | null) => {
+    if (!element || mapVisible) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setMapVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(element)
+  }
+
+  return (
+    <section className="contact-map-section">
+      <div className="contact-map-container" ref={containerRef}>
+        {!mapVisible ? (
+          <div style={{
+            width: '100%',
+            height: '450px',
+            borderRadius: '8px',
+            background: 'rgba(255,255,255,0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#64748b',
+            fontSize: '0.9rem',
+            border: '1px solid rgba(255,255,255,0.08)'
+          }}>
+            Loading map...
+          </div>
+        ) : mapError ? (
+          <div style={{
+            width: '100%',
+            height: '450px',
+            borderRadius: '8px',
+            background: 'rgba(255,255,255,0.04)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.75rem',
+            color: '#64748b',
+            fontSize: '0.9rem',
+            border: '1px solid rgba(255,255,255,0.08)'
+          }}>
+            <span>📍</span>
+            <span>Kabul International Cricket Stadium</span>
+            <a
+              href="https://maps.google.com/?q=Kabul+International+Cricket+Stadium"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#F8C800', fontSize: '0.85rem' }}
+            >
+              Open in Google Maps →
+            </a>
+          </div>
+        ) : (
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3286.9936991040375!2d69.21557027633215!3d34.5283477924403!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38d16eb512c14099%3A0xe4438df9ee49292c!2sKabul%20International%20Cricket%20Stadium!5e0!3m2!1sen!2s!4v1700000000000!5m2!1sen!2s"
             width="100%"
@@ -305,9 +370,10 @@ export function ContactPage() {
             referrerPolicy="no-referrer-when-downgrade"
             title="Kabul International Cricket Stadium Location Map"
             className="contact-google-map"
-          ></iframe>
-        </div>
-      </section>
-    </div>
+            onError={() => setMapError(true)}
+          />
+        )}
+      </div>
+    </section>
   )
 }

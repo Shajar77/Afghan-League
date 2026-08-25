@@ -99,7 +99,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
   const topRef = useRef<HTMLDivElement>(null)
   const [playerData, setPlayerData] = useState<Registration>(initialReg)
   const [isDataLoading, setIsDataLoading] = useState(false)
-  const reg = playerData
+  const reg: any = playerData
 
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)

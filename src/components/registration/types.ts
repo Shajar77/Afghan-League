@@ -82,7 +82,7 @@ export const AVAILABILITY_LABEL_MAP: Record<string, string> = {
   'club_release': 'Subject to club or franchise release',
 }
 
-export function formatAvailabilityDisplay(avail: any): string {
+export function formatAvailabilityDisplay(avail?: string | string[] | null): string {
   if (!avail) return 'None selected'
   const list = Array.isArray(avail) ? avail : [avail]
   

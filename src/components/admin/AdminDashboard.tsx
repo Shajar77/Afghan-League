@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
 import { IS_MOCK_AUTH_ENABLED, MOCK_REGISTRATIONS, MOCK_TOKEN } from './mockData'
-import { formatStatus, statusClass } from './adminUtils'
+import { formatStatus, statusClass, registerAdminCacheClearer } from './adminUtils'
 import {
   Users,
   AlertCircle,
@@ -19,7 +19,6 @@ import {
   Download,
   Loader2,
   Camera,
-  Briefcase,
   Globe
 } from 'lucide-react'
 import {
@@ -59,6 +58,12 @@ const CRICKETING_NATIONS = [
 
 // Simple in-memory cache for avatar URLs to avoid duplicate API lookups
 const avatarCache = new Map<string, string>()
+
+// Register cache-clearing callback so adminUtils.clearAdminCaches() can reach module-level state
+registerAdminCacheClearer(() => {
+  avatarCache.clear()
+  registrationsCache = null
+})
 
 function PlayerAvatar({
   photoUrl,
@@ -263,7 +268,6 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
-  const [submitterFilter, setSubmitterFilter] = useState('All')
   const [nationalityFilter, setNationalityFilter] = useState('All')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -351,7 +355,11 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
       const matchSearch =
         !q ||
         (r.full_name || '').toLowerCase().includes(q) ||
-        (r.registration_code || '').toLowerCase().includes(q)
+        (r.registration_code || '').toLowerCase().includes(q) ||
+        (r.email || '').toLowerCase().includes(q) ||
+        (r.phone || '').toLowerCase().includes(q) ||
+        (r.agent_full_name || '').toLowerCase().includes(q) ||
+        (r.agent_company_name || '').toLowerCase().includes(q)
 
       const matchStatus =
         statusFilter === 'All' || (r.status || 'pending').toLowerCase() === statusFilter.toLowerCase()
@@ -380,21 +388,6 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
         return cat.includes(filterVal)
       })()
 
-      const matchSubmitter = (() => {
-        if (submitterFilter === 'All') return true
-        const hasAgent = Boolean(
-          r.agent_full_name ||
-          r.agent_company_name ||
-          r.agent_email_address ||
-          r.agent_phone_number ||
-          (r as any).submitted_by === 'agent' ||
-          (r as any).is_agent
-        )
-        if (submitterFilter === 'Agent') return hasAgent
-        if (submitterFilter === 'Player') return !hasAgent
-        return true
-      })()
-
       const matchNationality = (() => {
         if (nationalityFilter === 'All') return true
         const nat = (r.nationality || r.representing_country || r.country_of_residence || '').toLowerCase()
@@ -410,9 +403,9 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
         matchDate = matchDate && new Date(rawDate) <= new Date(dateTo + 'T23:59:59')
       }
 
-      return matchSearch && matchStatus && matchCategory && matchSubmitter && matchNationality && matchDate
+      return matchSearch && matchStatus && matchCategory && matchNationality && matchDate
     })
-  }, [registrations, search, statusFilter, categoryFilter, submitterFilter, nationalityFilter, dateFrom, dateTo])
+  }, [registrations, search, statusFilter, categoryFilter, nationalityFilter, dateFrom, dateTo])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const safeCurrentPage = Math.min(currentPage, totalPages)
@@ -422,7 +415,7 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, statusFilter, categoryFilter, submitterFilter, nationalityFilter, dateFrom, dateTo, itemsPerPage])
+  }, [search, statusFilter, categoryFilter, nationalityFilter, dateFrom, dateTo, itemsPerPage])
 
   // Server-side Excel export caller (V7 API Endpoint: POST /admin/players/export)
   const handleExportXLSX = async () => {
@@ -532,13 +525,12 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
 
 
 
-  const hasActiveFilters = search || statusFilter !== 'All' || categoryFilter !== 'All' || submitterFilter !== 'All' || nationalityFilter !== 'All' || dateFrom || dateTo
+  const hasActiveFilters = search || statusFilter !== 'All' || categoryFilter !== 'All' || nationalityFilter !== 'All' || dateFrom || dateTo
 
   const clearAllFilters = () => {
     setSearch('')
     setStatusFilter('All')
     setCategoryFilter('All')
-    setSubmitterFilter('All')
     setNationalityFilter('All')
     setDateFrom('')
     setDateTo('')
@@ -1330,20 +1322,6 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
               </select>
             </div>
 
-            {/* Submitter Filter (Agent vs Player) */}
-            <div className="apl-select-wrap">
-              <Briefcase size={14} className="apl-select-icon" />
-              <select
-                value={submitterFilter}
-                onChange={e => setSubmitterFilter(e.target.value)}
-                className="apl-filter-select"
-              >
-                <option value="All">All Submitters</option>
-                <option value="Agent">Submitted by Agent</option>
-                <option value="Player">Submitted by Player</option>
-              </select>
-            </div>
-
             {/* Nationality Filter */}
             <div className="apl-select-wrap">
               <Globe size={14} className="apl-select-icon" />
@@ -1422,14 +1400,14 @@ export function AdminDashboard({ adminEmail, adminToken, onLogout, onViewPlayer 
                   {isLoading ? (
                     Array.from({ length: itemsPerPage }).map((_, i) => (
                       <tr key={i} className="apl-admin-row apl-admin-row-skel">
-                        <td colSpan={8}>
+                        <td colSpan={7}>
                           <div className="apl-skeleton-bar" />
                         </td>
                       </tr>
                     ))
                   ) : paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="apl-td-empty">
+                      <td colSpan={7} className="apl-td-empty">
                         <div className="apl-empty-state-wrap">
                           <Users size={36} className="apl-empty-icon" />
                           <div className="apl-empty-title">No Player Registrations Match Your Filter</div>

@@ -120,9 +120,14 @@
   white-space: nowrap;
 }
 
-.btn-newsletter-subscribe:hover {
+.btn-newsletter-subscribe:hover:not(:disabled) {
   background: var(--brand-gold);
   color: #0e1038;
+}
+
+.btn-newsletter-subscribe:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .newsletter-success-msg {
@@ -131,6 +136,21 @@
   color: #2ed573;
   margin: 0;
   text-align: left;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.newsletter-error-msg {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: #ff6b6b;
+  margin: 0;
+  text-align: left;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .footer-divider {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
 import { MOCK_TOKEN } from './mockData'
-import { formatStatus, statusClass } from './adminUtils'
+import { formatStatus, statusClass, isAgentRegistration } from './adminUtils'
 import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
 import {
@@ -38,7 +38,7 @@ interface AdminPlayerDetailProps {
 
 // formatStatus and statusClass are now imported from ./adminUtils
 
-function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: string; icon: any }) {
+function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }) {
   const [lightbox, setLightbox] = useState(false)
   const src = normalizeMediaUrl(url)
 
@@ -83,7 +83,7 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
               <a
                 href={src}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="apl-lightbox-open-raw"
               >
                 Open Original File <ExternalLink size={13} />
@@ -637,7 +637,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
               <h3>Agent &amp; Agency Representation</h3>
             </div>
             <div className="apl-matrix-body">
-              {!reg.agent_full_name ? (
+              {!isAgentRegistration(reg) ? (
                 <div className="apl-empty-agent-box">
                   <User size={28} className="apl-agent-empty-icon" />
                   <span>Direct Player Registration</span>
@@ -647,7 +647,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
                 <>
                   <div className="apl-data-row">
                     <span className="apl-data-label">Agent Full Name</span>
-                    <span className="apl-data-value highlight">{toTitleCase(reg.agent_full_name)}</span>
+                    <span className="apl-data-value highlight">{toTitleCase(reg.agent_full_name) || 'Authorized Representative'}</span>
                   </div>
                   <div className="apl-data-row">
                     <span className="apl-data-label">Agency / Company Name</span>

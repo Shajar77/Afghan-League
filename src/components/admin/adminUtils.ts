@@ -1,5 +1,19 @@
 // Shared admin status utilities — single source of truth
 
+// Cache-clearing registry: component modules register their cleanup callbacks here.
+// This avoids exporting non-component functions from component files (which breaks React Fast Refresh).
+const _cacheClearers: (() => void)[] = []
+
+/** Called by component modules to register their cache-clearing logic. */
+export function registerAdminCacheClearer(fn: () => void) {
+  _cacheClearers.push(fn)
+}
+
+/** Clears all registered module-level caches — call on logout. */
+export function clearAdminCaches() {
+  _cacheClearers.forEach(fn => fn())
+}
+
 export function formatStatus(status?: string): string {
   if (!status) return 'Pending'
   return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -124,4 +138,120 @@ export function formatRegistrationDate(reg: any): string {
   }
 
   return '—'
+}
+
+/**
+ * Helper to determine whether a player registration was submitted by an Agent or directly by the Player.
+ * Robustly inspects explicit submission categories, flags (is_agent), and agent detail fields across all backend formats.
+ */
+export function isAgentRegistration(reg: any): boolean {
+  if (!reg || typeof reg !== 'object') return false
+
+  const isValidString = (val: any): boolean => {
+    if (typeof val !== 'string') return false
+    const trimmed = val.trim().toLowerCase()
+    return (
+      trimmed.length > 0 &&
+      !['null', 'undefined', 'none', 'n/a', 'na', '-', '--', 'nil', 'false', '0', 'no', 'n / a', 'not applicable', 'unspecified', 'direct', 'self', 'player'].includes(trimmed)
+    )
+  }
+
+  const playerName = typeof reg.full_name === 'string' ? reg.full_name.trim().toLowerCase() : (typeof reg.name === 'string' ? reg.name.trim().toLowerCase() : '')
+  const playerEmail = typeof reg.email === 'string' ? reg.email.trim().toLowerCase() : ''
+  const playerPhone = typeof reg.phone === 'string' ? reg.phone.replace(/\D/g, '') : ''
+
+  // 1. Check explicit Direct Player indicators
+  const subCategory = (reg.submission_category || reg.submissionCategory || reg.submission_type || reg.submissionType || reg.submitted_by || reg.submittedBy || reg.submitter || reg.submitter_type || reg.submitterType || reg.reg_type || reg.regType || reg.registration_type || reg.registrationType || '')
+  const subCategoryLower = typeof subCategory === 'string' ? subCategory.trim().toLowerCase() : ''
+
+  const isAgentFlag = reg.is_agent ?? reg.isAgent ?? reg.has_agent ?? reg.hasAgent ?? reg.by_agent ?? reg.byAgent
+
+  // Explicit boolean false / 0
+  if (isAgentFlag === false || isAgentFlag === 0 || isAgentFlag === 'false' || isAgentFlag === '0' || isAgentFlag === 'no') {
+    if (!subCategoryLower.includes('agent') && !subCategoryLower.includes('agency')) {
+      return false
+    }
+  }
+
+  // Explicit category saying player / direct / self
+  if (subCategoryLower === 'player' || subCategoryLower === 'direct' || subCategoryLower === 'self' || subCategoryLower === 'direct player' || subCategoryLower === 'player registration') {
+    const agentName = reg.agent_full_name || reg.agent_name || reg.agentName || reg.agentFullName || reg.agent?.full_name || reg.agent?.name
+    if (!isValidString(agentName) || (playerName && agentName.trim().toLowerCase() === playerName)) {
+      return false
+    }
+  }
+
+  // 2. Explicit Agent flags (boolean true, 1, 'true', 'yes')
+  if (isAgentFlag === true || isAgentFlag === 1 || isAgentFlag === 'true' || isAgentFlag === '1' || isAgentFlag === 'yes') {
+    return true
+  }
+
+  // 3. Explicit Agent category strings
+  if (
+    subCategoryLower === 'agent' ||
+    subCategoryLower.includes('agent') ||
+    subCategoryLower.includes('agency') ||
+    subCategoryLower.includes('representative')
+  ) {
+    return true
+  }
+
+  // 4. Agent Full Name check (must be valid and distinct from player name)
+  const agentName =
+    reg.agent_full_name ||
+    reg.agent_name ||
+    reg.agentName ||
+    reg.agentFullName ||
+    reg.agent?.full_name ||
+    reg.agent?.name
+
+  if (isValidString(agentName)) {
+    const agentNameLower = typeof agentName === 'string' ? agentName.trim().toLowerCase() : ''
+    if (!playerName || agentNameLower !== playerName) {
+      return true
+    }
+  }
+
+  // 5. Agent Company / Agency Name check
+  const agentAgency =
+    reg.agent_company_name ||
+    reg.agent_company ||
+    reg.agentCompany ||
+    reg.agent_agency ||
+    reg.agentAgency ||
+    reg.agent?.company ||
+    reg.agent?.agency
+  if (isValidString(agentAgency)) {
+    return true
+  }
+
+  // 6. Agent Email check (must be valid email and distinct from player email)
+  const agentEmail =
+    reg.agent_email_address ||
+    reg.agent_email ||
+    reg.agentEmail ||
+    reg.agent?.email ||
+    reg.agent?.agent_email
+  if (isValidString(agentEmail) && agentEmail.includes('@')) {
+    const agentEmailLower = agentEmail.trim().toLowerCase()
+    if (!playerEmail || agentEmailLower !== playerEmail) {
+      return true
+    }
+  }
+
+  // 7. Agent Phone check (must be distinct from player phone)
+  const agentPhone =
+    reg.agent_phone_number ||
+    reg.agent_phone ||
+    reg.agentPhone ||
+    reg.agent?.phone ||
+    reg.agent?.agent_phone
+  if (isValidString(agentPhone)) {
+    const agentPhoneDigits = agentPhone.replace(/\D/g, '')
+    if (agentPhoneDigits.length >= 6 && (!playerPhone || agentPhoneDigits !== playerPhone)) {
+      return true
+    }
+  }
+
+  return false
 }

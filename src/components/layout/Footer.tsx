@@ -1,20 +1,63 @@
 import React, { useState } from 'react'
+import { buildApiUrl, getApiToken } from '../../config/api'
 import aplLogo from '../../assets/Asset 2@2x.png'
 import { FEATURES } from '../../constants/features'
 import './Footer.css'
 
 export function Footer() {
   const [newsletterEmail, setNewsletterEmail] = useState('')
-  const [newsletterSuccess, setNewsletterSuccess] = useState(false)
+  const [newsletterSuccessMsg, setNewsletterSuccessMsg] = useState<string | null>(null)
+  const [newsletterError, setNewsletterError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newsletterEmail.trim()) {
-      setNewsletterSuccess(true)
-      setNewsletterEmail('')
-      setTimeout(() => {
-        setNewsletterSuccess(false)
-      }, 5000)
+    const trimmedEmail = newsletterEmail.trim()
+    if (!trimmedEmail) return
+
+    setIsSubmitting(true)
+    setNewsletterError(null)
+    setNewsletterSuccessMsg(null)
+
+    try {
+      const token = getApiToken()
+      const res = await fetch(buildApiUrl('/newsletter/subscribe'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ email: trimmedEmail })
+      })
+
+      const json = await res.json().catch(() => ({}))
+
+      if (res.ok || res.status === 200 || res.status === 201) {
+        const msg = json.message || ''
+        const isAlreadySubscribed = msg.toLowerCase().includes('already') || msg.toLowerCase().includes('exist')
+
+        if (isAlreadySubscribed) {
+          // Display already subscribed message in red without tick icon
+          setNewsletterError(msg || 'You are already subscribed.')
+          setTimeout(() => {
+            setNewsletterError(null)
+          }, 5000)
+        } else {
+          // New subscription: display success in green with checkmark
+          const successText = msg || 'Thank you! Your email has been registered for updates.'
+          setNewsletterSuccessMsg(successText.startsWith('✓') ? successText : `✓ ${successText}`)
+          setNewsletterEmail('')
+          setTimeout(() => {
+            setNewsletterSuccessMsg(null)
+          }, 5000)
+        }
+      } else {
+        setNewsletterError(json.error?.message || json.message || 'Failed to subscribe. Please try again.')
+      }
+    } catch {
+      setNewsletterError('Unable to connect to server. Please try again later.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -37,15 +80,26 @@ export function Footer() {
                 placeholder="you@example.com" 
                 className="newsletter-input" 
                 required 
+                disabled={isSubmitting}
                 value={newsletterEmail}
-                onChange={(e) => setNewsletterEmail(e.target.value)}
+                onChange={(e) => {
+                  setNewsletterEmail(e.target.value)
+                  if (newsletterError) setNewsletterError(null)
+                }}
               />
-              <button type="submit" className="btn-newsletter-subscribe">
-                SUBMIT
+              <button 
+                type="submit" 
+                className="btn-newsletter-subscribe"
+                disabled={isSubmitting || !newsletterEmail.trim()}
+              >
+                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
               </button>
             </form>
-            {newsletterSuccess && (
-              <div className="newsletter-success-msg">✓ Thank you! Your email has been registered.</div>
+            {newsletterSuccessMsg && (
+              <div className="newsletter-success-msg">{newsletterSuccessMsg}</div>
+            )}
+            {newsletterError && (
+              <div className="newsletter-error-msg">{newsletterError}</div>
             )}
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AdminLogin } from './AdminLogin'
 import { AdminDashboard } from './AdminDashboard'
+import { clearAdminCaches } from './adminUtils'
 import { AdminPlayerDetail } from './AdminPlayerDetail'
 import { buildApiUrl } from '../../config/api'
 import { MOCK_TOKEN, IS_MOCK_AUTH_ENABLED } from './mockData'
@@ -90,6 +91,7 @@ export function AdminPortal() {
   }
 
   const handleLogout = () => {
+    clearAdminCaches()
     localStorage.removeItem('apl_admin_token')
     localStorage.removeItem('apl_admin_email')
     localStorage.removeItem('apl_admin_refresh_token')

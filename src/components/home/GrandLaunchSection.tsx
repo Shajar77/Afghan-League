@@ -44,7 +44,19 @@ export function GrandLaunchSection() {
                   loading="lazy"
                 ></iframe>
                 {launchMuted && (
-                  <div className="launch-video-overlay" onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}>
+                  <div 
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Unmute and play Grand Launch Ceremony video"
+                    className="launch-video-overlay" 
+                    onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleUnmute('launch-video-iframe', setLaunchMuted)
+                      }
+                    }}
+                  >
                     <div className="launch-unmute-button-container">
                       <div className="launch-unmute-icon-ring">
                         <VolumeX size={44} className="launch-unmute-icon" />
@@ -71,7 +83,19 @@ export function GrandLaunchSection() {
                 loading="lazy"
               ></iframe>
               {side1Muted && (
-                <div className="side-video-overlay" onClick={() => handleUnmute('side-video-1', setSide1Muted)}>
+                <div 
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Unmute Players Reviews video"
+                  className="side-video-overlay" 
+                  onClick={() => handleUnmute('side-video-1', setSide1Muted)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleUnmute('side-video-1', setSide1Muted)
+                    }
+                  }}
+                >
                   <div className="side-unmute-button-container">
                     <div className="side-unmute-icon-ring">
                       <VolumeX size={24} className="side-unmute-icon" />
@@ -93,7 +117,19 @@ export function GrandLaunchSection() {
                 loading="lazy"
               ></iframe>
               {side2Muted && (
-                <div className="side-video-overlay" onClick={() => handleUnmute('side-video-2', setSide2Muted)}>
+                <div 
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Unmute Moments of appreciation video"
+                  className="side-video-overlay" 
+                  onClick={() => handleUnmute('side-video-2', setSide2Muted)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleUnmute('side-video-2', setSide2Muted)
+                    }
+                  }}
+                >
                   <div className="side-unmute-button-container">
                     <div className="side-unmute-icon-ring">
                       <VolumeX size={24} className="side-unmute-icon" />
@@ -115,7 +151,19 @@ export function GrandLaunchSection() {
                 loading="lazy"
               ></iframe>
               {side3Muted && (
-                <div className="side-video-overlay" onClick={() => handleUnmute('side-video-3', setSide3Muted)}>
+                <div 
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Unmute APL celebrations video"
+                  className="side-video-overlay" 
+                  onClick={() => handleUnmute('side-video-3', setSide3Muted)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleUnmute('side-video-3', setSide3Muted)
+                    }
+                  }}
+                >
                   <div className="side-unmute-button-container">
                     <div className="side-unmute-icon-ring">
                       <VolumeX size={24} className="side-unmute-icon" />

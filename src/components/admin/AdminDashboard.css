@@ -1868,6 +1868,50 @@
   color: #64748b;
 }
 
+/* Submitter & Agent Badges */
+.apl-submitter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.apl-submitter-tag.tag-agent {
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.apl-submitter-tag.tag-player {
+  background: rgba(100, 116, 139, 0.08);
+  color: #64748b;
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.apl-agent-sub-name {
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+.apl-card-agent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  margin-top: 0.35rem;
+}
+
 /* Code Chip */
 .apl-code-chip {
   display: inline-block;

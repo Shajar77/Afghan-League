@@ -1,9 +1,9 @@
 import gallery5 from '../assets/gallery-5.webp'
 import gallery7 from '../assets/gallery-7.webp'
-import downloadImg from '../assets/download.jpeg'
+import downloadImg from '../assets/download.webp'
 import downloadWebp from '../assets/download.webp'
-import download1Img from '../assets/download (1).jpeg'
-import prImg from '../assets/PR.png'
+import download1Img from '../assets/download (1).webp'
+import prImg from '../assets/PR.webp'
 
 export interface Article {
   id: string

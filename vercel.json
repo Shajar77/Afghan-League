@@ -38,7 +38,7 @@
         },
         {
           "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
+          "value": "same-origin-allow-popups"
         },
         {
           "key": "X-Permitted-Cross-Domain-Policies",
@@ -46,7 +46,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://api-staging.chaptersquare.com https://*.chaptersquare.com https://*.apl.af https://apl.af; frame-src 'self' https://www.google.com https://maps.google.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com; media-src 'self' blob: data: https://res.cloudinary.com https:;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://api-staging.chaptersquare.com https://*.chaptersquare.com https://*.apl.af https://apl.af https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src 'self' https://www.google.com https://www.google.com/recaptcha/ https://recaptcha.google.com https://maps.google.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com; media-src 'self' blob: data: https://res.cloudinary.com https:;"
         }
       ]
     }

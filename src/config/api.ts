@@ -10,19 +10,32 @@ export const buildApiUrl = (path: string): string => {
 }
 
 export const normalizeMediaUrl = (path?: string | null): string => {
-  if (!path) return ''
-  if (
-    path.startsWith('http://') ||
-    path.startsWith('https://') ||
-    path.startsWith('data:') ||
-    path.startsWith('blob:') ||
-    path.startsWith('/src/') ||
-    path.startsWith('/@fs/') ||
-    path.startsWith('@fs/')
-  ) {
-    return path
+  if (!path || typeof path !== 'string') return ''
+  
+  const trimmed = path.trim()
+  
+  // Disallow javascript:, vbscript:, or non-image data schemes
+  const lower = trimmed.toLowerCase()
+  if (lower.startsWith('javascript:') || lower.startsWith('vbscript:')) {
+    return ''
   }
-  const cleanPath = path.startsWith('/') ? path : `/${path}`
+  if (lower.startsWith('data:') && !lower.startsWith('data:image/')) {
+    return ''
+  }
+
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:image/') ||
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('/src/') ||
+    trimmed.startsWith('/@fs/') ||
+    trimmed.startsWith('@fs/')
+  ) {
+    return trimmed
+  }
+
+  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
   try {
     const origin = new URL(API_BASE_URL).origin
     return `${origin}${cleanPath}`

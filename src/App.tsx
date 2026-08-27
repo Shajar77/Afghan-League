@@ -9,8 +9,6 @@ import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { useAppStore } from './store/useAppStore'
 import type { PageName } from './store/useAppStore'
 import Lenis from 'lenis'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { gsap } from 'gsap'
 import { scrollToTop } from './utils/lenis'
 
 import { HeroSection } from './components/home/HeroSection'
@@ -25,8 +23,6 @@ import { CricketBallSeam } from './components/home/CricketBallSeam'
 import { Footer } from './components/layout/Footer'
 
 import './App.css'
-
-gsap.registerPlugin(ScrollTrigger)
 
 const About = lazy(() => import('./components/pages/About').then(m => ({ default: m.About })))
 const Moments = lazy(() => import('./components/pages/Moments').then(m => ({ default: m.Moments })))
@@ -95,7 +91,7 @@ function App() {
     scrollToTop(true)
   }, [])
 
-  // Initialize Lenis smooth scroll
+  // Initialize Lenis smooth scroll with lightweight requestAnimationFrame
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -105,19 +101,18 @@ function App() {
       smoothWheel: true,
     })
 
-    lenis.on('scroll', ScrollTrigger.update)
-
-    const updateTicker = (time: number) => {
-      lenis.raf(time * 1000)
+    let rafId: number
+    function raf(time: number) {
+      lenis.raf(time)
+      rafId = requestAnimationFrame(raf)
     }
-    gsap.ticker.add(updateTicker)
-    gsap.ticker.lagSmoothing(0)
+    rafId = requestAnimationFrame(raf)
 
     ;(window as unknown as { __lenis?: Lenis }).__lenis = lenis
 
     return () => {
+      cancelAnimationFrame(rafId)
       lenis.destroy()
-      gsap.ticker.remove(updateTicker)
       delete (window as unknown as { __lenis?: Lenis }).__lenis
     }
   }, [])

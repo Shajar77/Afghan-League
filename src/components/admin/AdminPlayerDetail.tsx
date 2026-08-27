@@ -221,7 +221,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
     const token = localStorage.getItem('apl_admin_token') || ''
 
     try {
-      const res = await fetch(buildApiUrl(`/player-registrations/${reg.id}/status`), {
+      const res = await fetch(buildApiUrl(`/player-registrations/${encodeURIComponent(String(reg.id))}/status`), {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

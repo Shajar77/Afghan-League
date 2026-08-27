@@ -1,9 +1,12 @@
 import { MatchTicker } from './MatchTicker'
 import { FEATURES } from '../../constants/features'
 
-const HERO_VIDEO_MP4 = 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,f_mp4/v1787816012/APL_TROPHY_V7_1_1.mp4'
-const HERO_VIDEO_WEBM = 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,f_webm/v1787816012/APL_TROPHY_V7_1_1.webm'
-const HERO_VIDEO_RAW = 'https://res.cloudinary.com/ihuz5bq6/video/upload/v1787816012/APL_TROPHY_V7_1_1.mp4'
+// Optimized Cloudinary URLs: auto quality, 1280px width cap, 2Mbps bitrate limit
+const HERO_VIDEO_WEBM = 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,f_webm,w_1280,br_2m/v1787823840/APL_TROPHY_V7_1_1_1.mp4'
+const HERO_VIDEO_MP4 = 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,f_mp4,w_1280,br_2m/v1787823840/APL_TROPHY_V7_1_1_1.mp4'
+
+// High-priority Poster: first frame extracted as lightweight WebP
+const HERO_POSTER = 'https://res.cloudinary.com/ihuz5bq6/video/upload/so_0,w_1280,q_auto,f_webp/v1787823840/APL_TROPHY_V7_1_1_1.webp'
 
 export function HeroSection() {
   return (
@@ -16,11 +19,10 @@ export function HeroSection() {
           muted
           playsInline
           preload="auto"
-          src={HERO_VIDEO_RAW}
+          poster={HERO_POSTER}
         >
           <source src={HERO_VIDEO_WEBM} type="video/webm" />
           <source src={HERO_VIDEO_MP4} type="video/mp4" />
-          <source src={HERO_VIDEO_RAW} type="video/mp4" />
         </video>
         <div className="hero-overlay"></div>
       </div>

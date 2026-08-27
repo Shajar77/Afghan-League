@@ -13,6 +13,7 @@ export function Footer() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const recaptchaRef = useRef<ReCAPTCHA>(null)
 
+  const [newsletterFocused, setNewsletterFocused] = useState(false)
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
@@ -92,7 +93,7 @@ export function Footer() {
         {/* Newsletter Section */}
         <div className="footer-newsletter">
           <div className="newsletter-info">
-            <h5 className="newsletter-subtitle">STAY UPDATED</h5>
+            <h3 className="newsletter-subtitle">STAY UPDATED</h3>
             <p className="newsletter-desc">
               Be the first to receive match updates, ticket alerts, and official league announcements.
             </p>
@@ -106,6 +107,7 @@ export function Footer() {
                 required 
                 disabled={isSubmitting}
                 value={newsletterEmail}
+                onFocus={() => setNewsletterFocused(true)}
                 onChange={(e) => {
                   setNewsletterEmail(e.target.value)
                   if (newsletterError) setNewsletterError(null)
@@ -119,7 +121,7 @@ export function Footer() {
                 {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
               </button>
             </form>
-            {siteKey && (
+            {siteKey && (newsletterFocused || newsletterEmail.length > 0) && (
               <ReCAPTCHA
                 ref={recaptchaRef}
                 sitekey={siteKey}
@@ -144,7 +146,7 @@ export function Footer() {
 
           {/* Column 1: Brand Info Block */}
           <div className="footer-col brand-col">
-            <img src={aplLogo} alt="APL Logo" className="footer-logo-main" loading="lazy" />
+            <img src={aplLogo} alt="APL Logo" className="footer-logo-main" loading="lazy" width="182" height="54" decoding="async" />
             <p className="footer-brand-desc">
               The premier T20 cricket league of Afghanistan. Experience raw domestic talents, global superstars, and electrifying matches.
             </p>

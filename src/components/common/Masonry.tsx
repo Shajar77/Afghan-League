@@ -257,7 +257,7 @@ export default function Masonry({
               if (onItemClick) {
                 e.preventDefault();
                 onItemClick(item);
-              } else {
+              } else if (item.url && (item.url.startsWith('http://') || item.url.startsWith('https://') || item.url.startsWith('/'))) {
                 window.open(item.url, '_blank', 'noopener,noreferrer');
               }
             }}

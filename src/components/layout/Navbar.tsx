@@ -89,7 +89,7 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
 
           {/* Left: APL Brand Logo */}
           <a href="#home" className="navbar-brand">
-            <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
+            <img src={aplLogo} alt="APL Logo" className="navbar-logo" width="135" height="40" />
           </a>
 
           {/* Center: Team Logos Strip OR Nav Links depending on variant */}
@@ -242,7 +242,7 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
       <div className={`mobile-drawer ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="mobile-drawer-header">
           <a href="#home" className="navbar-brand" onClick={() => { setMobileMenuOpen(false); }}>
-            <img src={aplLogo} alt="APL Logo" className="navbar-logo" />
+            <img src={aplLogo} alt="APL Logo" className="navbar-logo" width="135" height="40" />
           </a>
           <button
             className="menu-toggle-btn"

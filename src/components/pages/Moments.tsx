@@ -206,17 +206,12 @@ export function Moments() {
               onClick={() => setActiveReel(reel)}
             >
               <div className="reel-img-wrapper">
-                <video
-                  src={reel.videoUrl}
+                <img
+                  src={reel.img}
+                  alt={reel.title}
                   className="reel-thumbnail"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
+                  loading="lazy"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onCanPlay={(e) => {
-                    e.currentTarget.play().catch(() => {})
-                  }}
                 />
                 <div className="reel-card-overlay">
                   <div className="reel-play-btn">
@@ -269,17 +264,12 @@ export function Moments() {
                   onClick={() => setActiveReel(hl)}
                 >
                   <div className="reel-img-wrapper">
-                    <video
-                      src={hl.videoUrl}
+                    <img
+                      src={hl.img}
+                      alt={hl.title}
                       className="reel-thumbnail"
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
+                      loading="lazy"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onCanPlay={(e) => {
-                        e.currentTarget.play().catch(() => {})
-                      }}
                     />
                     <div className="reel-card-overlay">
                       <div className="reel-play-btn">

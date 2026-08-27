@@ -23,7 +23,7 @@ export function HomeNewsSection() {
               style={{ cursor: 'pointer' }}
               onClick={() => window.location.hash = `#blog/${article.id}`}
             >
-              <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" />
+              <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" decoding="async" width="660" height="371" />
               <div className="news-card-img-overlay" />
               <span className="news-card-category">{article.category}</span>
             </div>

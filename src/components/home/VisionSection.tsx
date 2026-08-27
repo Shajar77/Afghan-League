@@ -11,7 +11,7 @@ export function VisionSection() {
         {/* Left Column: Text + Logo */}
         <div className="acb-left-panel">
           <div className="acb-brand-header">
-            <img src={aplMainLogo} alt="APL Logo" className="acb-brand-logo-apl" loading="lazy" decoding="async" />
+            <img src={aplMainLogo} alt="APL Logo" className="acb-brand-logo-apl" loading="lazy" decoding="async" width="120" height="40" />
           </div>
 
           <p className="acb-simple-paragraph">
@@ -32,11 +32,11 @@ export function VisionSection() {
           <div className="acb-chairman-card-modern">
             <div className="acb-card-frame-accent top-right"></div>
             <div className="acb-card-frame-accent bottom-left"></div>
-            <img src={chairmanImg} alt="Mirwais Ashraf – Chairman, Afghan Cricket Board" className="acb-chairman-img" loading="lazy" decoding="async" />
+            <img src={chairmanImg} alt="Mirwais Ashraf – Chairman, Afghan Cricket Board" className="acb-chairman-img" loading="lazy" decoding="async" width="400" height="480" />
             <div className="acb-chairman-overlay-modern"></div>
             <div className="acb-chairman-info-modern">
               <div className="acb-chairman-badge">ACB Leadership</div>
-              <h4 className="acb-chairman-name-modern">Mirwais Ashraf</h4>
+              <h3 className="acb-chairman-name-modern">Mirwais Ashraf</h3>
               <p className="acb-chairman-role-modern">Chairman, Afghan Cricket Board</p>
             </div>
           </div>

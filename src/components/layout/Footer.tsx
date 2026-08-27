@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { buildApiUrl, getApiToken } from '../../config/api'
 import aplLogo from '../../assets/Asset 2@2x.png'
 import { FEATURES } from '../../constants/features'
@@ -9,6 +10,10 @@ export function Footer() {
   const [newsletterSuccessMsg, setNewsletterSuccessMsg] = useState<string | null>(null)
   const [newsletterError, setNewsletterError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,14 +25,29 @@ export function Footer() {
     setNewsletterSuccessMsg(null)
 
     try {
+      let activeCaptchaToken = captchaToken
+      if (siteKey && recaptchaRef.current) {
+        try {
+          activeCaptchaToken = (await recaptchaRef.current.executeAsync()) || captchaToken
+        } catch {
+          activeCaptchaToken = captchaToken
+        }
+      }
+
       const token = getApiToken()
+      const payload = {
+        email: trimmedEmail,
+        recaptcha_token: activeCaptchaToken || undefined,
+        recaptchaToken: activeCaptchaToken || undefined
+      }
+
       const res = await fetch(buildApiUrl('/newsletter/subscribe'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ email: trimmedEmail })
+        body: JSON.stringify(payload)
       })
 
       const json = await res.json().catch(() => ({}))
@@ -58,6 +78,10 @@ export function Footer() {
       setNewsletterError('Unable to connect to server. Please try again later.')
     } finally {
       setIsSubmitting(false)
+      if (siteKey && recaptchaRef.current) {
+        recaptchaRef.current.reset()
+        setCaptchaToken(null)
+      }
     }
   }
 
@@ -95,6 +119,15 @@ export function Footer() {
                 {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
               </button>
             </form>
+            {siteKey && (
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={siteKey}
+                size="invisible"
+                onChange={(t) => setCaptchaToken(t)}
+                onExpired={() => setCaptchaToken(null)}
+              />
+            )}
             {newsletterSuccessMsg && (
               <div className="newsletter-success-msg">{newsletterSuccessMsg}</div>
             )}

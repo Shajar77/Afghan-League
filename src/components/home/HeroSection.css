@@ -90,7 +90,7 @@
   font-size: 1.15rem;
   font-weight: 400;
   color: var(--brand-gold);
-  letter-spacing: 0.04em;
+  letter-spacing: normal;
   line-height: 1.2;
   margin: 0;
   margin-top: 0.85rem;
@@ -154,7 +154,7 @@
 
   .hero-status-subtitle {
     font-size: 1.5rem;
-    letter-spacing: 0.04em;
+    letter-spacing: normal;
     margin-top: 1.25rem;
   }
 

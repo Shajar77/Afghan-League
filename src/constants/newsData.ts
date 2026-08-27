@@ -3,6 +3,7 @@ import gallery7 from '../assets/gallery-7.webp'
 import downloadImg from '../assets/download.jpeg'
 import downloadWebp from '../assets/download.webp'
 import download1Img from '../assets/download (1).jpeg'
+import prImg from '../assets/PR.png'
 
 export interface Article {
   id: string
@@ -17,6 +18,41 @@ export interface Article {
 }
 
 export const articles: Article[] = [
+  {
+    id: 'apl-press-release-aug25-2026',
+    category: 'PRESS RELEASE',
+    title: 'Afghanistan Premier League T20 Unveils Inaugural Franchises, Logos, and the ‘Koh-E-Zafar’ Trophy Ahead of Historic Season',
+    excerpt: 'Dubai, UAE — The Afghanistan Premier League T20 (APL T20) today marked a major milestone in the nation\'s sporting history. In a momentous ceremony bringing together franchise owners, league partners, and Afghanistan Cricket Board (ACB) officials, the league officially unveiled its three inaugural franchise teams, their team identities, and the premier championship trophy.',
+    date: 'AUG 25, 2026',
+    readTime: '4 MIN READ',
+    img: prImg,
+    featured: true,
+    fullText: [
+      "Dubai, UAE — The Afghanistan Premier League T20 (APL T20) today marked a major milestone in the nation's sporting history. In a momentous ceremony bringing together franchise owners, league partners, and Afghanistan Cricket Board (ACB) officials, the league officially unveiled its three inaugural franchise teams, their team identities, and the premier championship trophy.",
+      "The Inaugural Franchises",
+      "A new chapter begins for Afghan cricket with the introduction of three foundational franchises, each representing the fierce passion of the nation's cricket fans:",
+      "• Axcel United Kabul",
+      "• Balkh Zwanan",
+      "• Kandahar Warriors",
+      "The 'Koh-E-Zafar' Trophy",
+      "The centerpiece of the launch event was the unveiling of the league's premier trophy, named Koh-E-Zafar. The stunning design draws deep inspiration from the enduring beauty, resilience, and strength of Afghanistan’s majestic mountain ranges, symbolizing the peak of cricketing achievement.",
+      "APL T20 Draft & Key Dates",
+      "Alongside the team reveals, the league announced crucial next steps for players and fans alike as preparations for the season accelerate:",
+      "• Player Registration: The portal for the inaugural APL T20 Draft will officially open to players on August 30, 2026 at www.apl-t20.com",
+      "• Player Draft: The Player Draft will be held on September 27, 2026.",
+      "• Future Announcements: Additional details regarding complete tournament schedule, and host venues will be released in the coming weeks.",
+      "• Tournament Start Date: December 27, 2026",
+      "Voices of the League",
+      "The launch event highlighted the collaborative vision behind the APL T20, featuring strong enthusiasm from leadership and all three franchise owners:",
+      "• ACB Chairman, Mirwais Ashraf: \"Today is a landmark occasion for Afghan cricket. The unveiling of our inaugural franchises and the Koh-E-Zafar trophy reflects our shared vision of building a league that inspires future generations. Naming this trophy Koh-E-Zafar was deliberate. A mountain of victory is not climbed in one season — it is built over years, by players who come after us. Today we unveil the franchises that will carry that responsibility, and a competition structure that gives every young cricketer in this country a visible path from the district ground to the international stage.\"",
+      "• Axcel United Kabul Ownership: \"Representing Kabul carries an expectation we welcome. This is a city that has produced some of the finest cricketers Afghanistan has given the world, and our job is to build a franchise those players and this city recognise as their own — professionally run, competitive from day one, and permanent.\"",
+      "• Balkh Zwanan Ownership: \"Our commitment to this league goes far beyond competition; it is about uplifting our community. Zwanan means youth, and that is not decoration on a badge — it is our mandate. Balkh and the north have talent that has never had a professional pathway. We intend to scout it, sign it, and put it on a stage where the whole country and the wider cricketing world can see it.\"",
+      "• Kandahar Warriors Ownership: \"We look forward to bringing fierce passion to the pitch and making our fans proud. Kandahar supporters do not come to watch politely. They come loud, and they expect a team that plays the same way — aggressive, fearless cricket that reflects the character of the south. We are building a squad that gives them something to shout about, and a home ground that visiting sides do not enjoy travelling to.\"",
+      "-ENDS-",
+      "For Media Enquiries:",
+      "contact@apl-t20.com"
+    ]
+  },
   {
     id: 'new-a1',
     category: 'PRESS RELEASE',

@@ -5,11 +5,12 @@
 }
 
 .blog-detail-container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  width: 100%;
 }
 
 .blog-detail-back-wrap {
@@ -37,12 +38,13 @@
 
 .blog-detail-img-wrap {
   width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  aspect-ratio: 21/9;
+  margin: 0;
+  aspect-ratio: 16/9;
+  max-height: 520px;
   overflow: hidden;
   position: relative;
   border: 1px solid var(--border-subtle);
+  border-radius: 8px;
 }
 
 .blog-detail-img {
@@ -121,18 +123,128 @@
 .blog-detail-paragraph {
   font-family: var(--font-body);
   font-size: 1.05rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
 }
 
 .blog-detail-subheading {
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: #ffffff;
-  margin: 2rem 0 0.5rem 0;
+  margin: 2.25rem 0 0.75rem 0;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-left: 3px solid var(--brand-gold);
+  padding-left: 0.75rem;
+}
+
+/* Speaker Quote Cards */
+.blog-detail-quote-card {
+  margin: 1.5rem 0;
+  padding: 1.5rem 1.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 4px solid var(--brand-gold);
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.blog-detail-quote-speaker {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--brand-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.blog-detail-quote-body {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #ffffff;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Bullet Items */
+.blog-detail-bullet-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.5rem 0;
+}
+
+.blog-detail-bullet-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--brand-gold);
+  border-radius: 50%;
+  margin-top: 0.55rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(248, 200, 0, 0.5);
+}
+
+.blog-detail-bullet-text {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.blog-detail-bullet-label {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ENDS Badge */
+.blog-detail-ends-badge {
+  display: flex;
+  justify-content: center;
+  margin: 2.5rem 0 1rem 0;
+}
+
+.blog-detail-ends-badge span {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.4rem 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Media Enquiries / Contact Box */
+.blog-detail-contact-box {
+  margin-top: 0.5rem;
+}
+
+.blog-detail-contact-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.blog-detail-contact-link {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--brand-gold);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.blog-detail-contact-link:hover {
+  color: #ffdb3b;
+  text-decoration: underline;
 }
 
 .blog-detail-footer {

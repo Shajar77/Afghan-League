@@ -57,7 +57,6 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
     FEATURES.SHOW_NEWS && { label: 'News & Media', href: '#news' },
     FEATURES.SHOW_GALLERY && { label: 'Gallery', href: '#gallery' },
     !FEATURES.SHOW_TEAM_LOGOS && FEATURES.SHOW_PARTNERSHIPS && { label: 'Partnerships', href: '#partnerships' },
-    !FEATURES.SHOW_TEAM_LOGOS && FEATURES.SHOW_CONTACT && { label: 'Contact Us', href: '#contact-us' },
   ].filter(Boolean) as NavItem[];
 
   const teamLogos = [
@@ -78,7 +77,6 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
     if (label === 'News & Media') return currentPage === 'news'
     if (label === 'Gallery') return currentPage === 'gallery'
     if (label === 'Partnerships') return currentPage === 'partnerships'
-    if (label === 'Contact Us') return currentPage === 'contact'
     return false
   }
 
@@ -120,7 +118,7 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
             </nav>
           )}
 
-          {/* Right: Register Button or Admin Logout Button */}
+          {/* Right: Contact Us Button, Register Button, or Admin Logout Button */}
           <div className="navbar-top-right">
             {onLogout || isAdmin ? (
               <button 
@@ -131,50 +129,61 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
                 <LogOut size={14} />
                 <span className="skew-unskew-text">LOGOUT</span>
               </button>
-            ) : FEATURES.SHOW_REGISTRATION && (
-              <div 
-                className="register-dropdown-wrapper desktop-register" 
-                ref={registerDropdownRef}
-              >
-                <button 
-                  className="btn-register-now"
-                  onClick={() => setRegisterDropdownOpen(prev => !prev)}
-                >
-                  <span className="skew-unskew-text">PLAYER REGISTRATION</span>
-                  <ChevronDown size={14} className={`dropdown-arrow-icon ${registerDropdownOpen ? 'open' : ''}`} />
-                </button>
-                
-                {registerDropdownOpen && (
-                  <div className="register-dropdown-menu">
-                    <a 
-                      href="#register-player" 
-                      className={`dropdown-item ${currentPage === 'register-player' || currentPage === 'player-register' ? 'active' : ''}`}
-                      onClick={() => {
-                        setRegisterDropdownOpen(false)
-                      }}
+            ) : (
+              <>
+                {FEATURES.SHOW_REGISTRATION && (
+                  <div 
+                    className="register-dropdown-wrapper desktop-register" 
+                    ref={registerDropdownRef}
+                  >
+                    <button 
+                      className="btn-register-now"
+                      onClick={() => setRegisterDropdownOpen(prev => !prev)}
                     >
-                      <UserPlus size={16} strokeWidth={2.5} className="dropdown-item-icon" />
-                      <div className="dropdown-item-text-wrap">
-                        <span className="dropdown-item-title">Player Registration</span>
-                        <span className="dropdown-item-desc">Submit draft form</span>
+                      <span className="skew-unskew-text">PLAYER REGISTRATION</span>
+                      <ChevronDown size={14} className={`dropdown-arrow-icon ${registerDropdownOpen ? 'open' : ''}`} />
+                    </button>
+                    
+                    {registerDropdownOpen && (
+                      <div className="register-dropdown-menu">
+                        <a 
+                          href="#register-player" 
+                          className={`dropdown-item ${currentPage === 'register-player' || currentPage === 'player-register' ? 'active' : ''}`}
+                          onClick={() => {
+                            setRegisterDropdownOpen(false)
+                          }}
+                        >
+                          <UserPlus size={16} strokeWidth={2.5} className="dropdown-item-icon" />
+                          <div className="dropdown-item-text-wrap">
+                            <span className="dropdown-item-title">Player Registration</span>
+                            <span className="dropdown-item-desc">Submit draft form</span>
+                          </div>
+                        </a>
+                        <a 
+                          href="#register-status" 
+                          className={`dropdown-item ${currentPage === 'register-status' ? 'active' : ''}`}
+                          onClick={() => {
+                            setRegisterDropdownOpen(false)
+                          }}
+                        >
+                          <ClipboardList size={16} strokeWidth={2.5} className="dropdown-item-icon" />
+                          <div className="dropdown-item-text-wrap">
+                            <span className="dropdown-item-title">Registration Status</span>
+                            <span className="dropdown-item-desc">Track review progress</span>
+                          </div>
+                        </a>
                       </div>
-                    </a>
-                    <a 
-                      href="#register-status" 
-                      className={`dropdown-item ${currentPage === 'register-status' ? 'active' : ''}`}
-                      onClick={() => {
-                        setRegisterDropdownOpen(false)
-                      }}
-                    >
-                      <ClipboardList size={16} strokeWidth={2.5} className="dropdown-item-icon" />
-                      <div className="dropdown-item-text-wrap">
-                        <span className="dropdown-item-title">Registration Status</span>
-                        <span className="dropdown-item-desc">Track review progress</span>
-                      </div>
-                    </a>
+                    )}
                   </div>
                 )}
-              </div>
+
+                <a 
+                  href="#contact-us" 
+                  className={`btn-register-now desktop-register ${currentPage === 'contact' ? 'active' : ''}`}
+                >
+                  <span className="skew-unskew-text">ENQUIRE NOW</span>
+                </a>
+              </>
             )}
 
             {/* Mobile Hamburger */}
@@ -210,7 +219,7 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
               {/* More Dropdown */}
               <div className="more-dropdown-wrapper" ref={dropdownRef}>
                 <button
-                  className={`desktop-nav-link ${moreOpen || currentPage === 'partnerships' || currentPage === 'contact' ? 'active' : ''}`}
+                  className={`desktop-nav-link ${moreOpen || currentPage === 'partnerships' ? 'active' : ''}`}
                   onClick={() => setMoreOpen(!moreOpen)}
                 >
                   <span className="desktop-nav-link-text">MORE</span>
@@ -220,9 +229,6 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
                   <div className="register-dropdown-menu more-dropdown-menu">
                     <a href="#partnerships" className="register-option-item" onClick={() => setMoreOpen(false)}>
                       Partnerships
-                    </a>
-                    <a href="#contact-us" className="register-option-item" onClick={() => setMoreOpen(false)}>
-                      Contact Us
                     </a>
                   </div>
                 )}
@@ -262,27 +268,26 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
             </li>
           ))}
           {FEATURES.SHOW_TEAM_LOGOS && (
-            <>
-              <li className="mobile-nav-item">
-                <a
-                  href="#partnerships"
-                  className={`mobile-nav-link ${currentPage === 'partnerships' ? 'active' : ''}`}
-                  onClick={() => { setMobileMenuOpen(false) }}
-                >
-                  Partnerships
-                </a>
-              </li>
-              <li className="mobile-nav-item">
-                <a
-                  href="#contact-us"
-                  className={`mobile-nav-link ${currentPage === 'contact' ? 'active' : ''}`}
-                  onClick={() => { setMobileMenuOpen(false) }}
-                >
-                  Contact Us
-                </a>
-              </li>
-            </>
+            <li className="mobile-nav-item">
+              <a
+                href="#partnerships"
+                className={`mobile-nav-link ${currentPage === 'partnerships' ? 'active' : ''}`}
+                onClick={() => { setMobileMenuOpen(false) }}
+              >
+                Partnerships
+              </a>
+            </li>
           )}
+          <li className="mobile-nav-item" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'center' }}>
+            <a
+              href="#contact-us"
+              className="btn-register-now"
+              style={{ width: '100%', justifyContent: 'center' }}
+              onClick={() => { setMobileMenuOpen(false) }}
+            >
+              <span className="skew-unskew-text">ENQUIRE NOW</span>
+            </a>
+          </li>
           {onLogout || isAdmin ? (
             <li className="mobile-nav-item">
               <button

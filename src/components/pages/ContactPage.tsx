@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { buildApiUrl, getApiToken } from '../../config/api'
 import aboutHeroImg from '../../assets/about-hero-bg.jpeg'
 import './ContactPage.css'
@@ -16,6 +17,11 @@ export function ContactPage() {
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -39,27 +45,41 @@ export function ContactPage() {
     setSubmitError(null)
 
     try {
+      let activeCaptchaToken = captchaToken
+      if (siteKey && recaptchaRef.current) {
+        try {
+          activeCaptchaToken = (await recaptchaRef.current.executeAsync()) || captchaToken
+        } catch {
+          // Fallback if executeAsync is already executing or resolved
+          activeCaptchaToken = captchaToken
+        }
+      }
+
       const token = getApiToken()
+      const payload = {
+        // Primary Live V6 Postman Schema (PascalCase)
+        FullName: formData.name.trim(),
+        Email: formData.email.trim(),
+        PhoneNumber: formData.phone.trim() || undefined,
+        Subject: formData.subject.trim(),
+        Message: formData.message.trim(),
+        recaptcha_token: activeCaptchaToken || undefined,
+        // Backwards-compatible aliases
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim() || undefined,
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+        recaptchaToken: activeCaptchaToken || undefined,
+      }
+
       const res = await fetch(buildApiUrl('/contact'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({
-          // Primary Live V6 Postman Schema (PascalCase)
-          FullName: formData.name.trim(),
-          Email: formData.email.trim(),
-          PhoneNumber: formData.phone.trim() || undefined,
-          Subject: formData.subject.trim(),
-          Message: formData.message.trim(),
-          // Backwards-compatible aliases
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim() || undefined,
-          subject: formData.subject.trim(),
-          message: formData.message.trim(),
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (res.ok || res.status === 201 || res.status === 204) {
@@ -79,6 +99,10 @@ export function ContactPage() {
       setSubmitError('Could not connect to our servers. Please email us directly at Contact@apl-t20.com')
     } finally {
       setIsSubmitting(false)
+      if (siteKey && recaptchaRef.current) {
+        recaptchaRef.current.reset()
+        setCaptchaToken(null)
+      }
     }
   }
 
@@ -281,6 +305,16 @@ export function ContactPage() {
                       disabled={isSubmitting}
                     ></textarea>
                   </div>
+
+                  {siteKey && (
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={siteKey}
+                      size="invisible"
+                      onChange={(t) => setCaptchaToken(t)}
+                      onExpired={() => setCaptchaToken(null)}
+                    />
+                  )}
 
                   <button type="submit" className="contact-submit-btn" disabled={isSubmitting}>
                     {isSubmitting ? 'Sending...' : 'Send Message'}

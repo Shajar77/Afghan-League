@@ -54,34 +54,115 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
           <h1 className="blog-detail-title">{article.title}</h1>
           <div className="blog-detail-divider" />
 
-          {/* Paragraphs and Subheadings */}
+          {/* Paragraphs, Subheadings, Bullet Lists, and Quotes */}
           <div className="blog-detail-body">
             {article.fullText ? (
-              article.fullText.map((p, idx) => {
+              article.fullText.map((item, idx) => {
+                const text = item.trim()
+                if (!text) return null
+
+                // 1. ENDS Badge
+                if (text === '-ENDS-') {
+                  return (
+                    <div key={idx} className="blog-detail-ends-badge">
+                      <span>- ENDS -</span>
+                    </div>
+                  )
+                }
+
+                // 2. Media enquiries / Email
+                if (text.toLowerCase().includes('media enquiries') || text.includes('contact@apl-t20.com') || text.includes('bid@apl-t20.com')) {
+                  const isEmail = text.includes('@')
+                  return (
+                    <div key={idx} className="blog-detail-contact-box">
+                      {isEmail ? (
+                        <a href={`mailto:${text}`} className="blog-detail-contact-link">
+                          📧 {text}
+                        </a>
+                      ) : (
+                        <p className="blog-detail-contact-title">{text}</p>
+                      )}
+                    </div>
+                  )
+                }
+
+                // 3. Speaker Quote Block (starts with • Name: "Quote" or contains quotes)
+                const isQuoteBlock = 
+                  (text.startsWith('• ') && text.includes(': "')) || 
+                  (text.startsWith('"') && text.endsWith('"'))
+
+                if (isQuoteBlock) {
+                  // Extract speaker title if present
+                  let speakerName = ''
+                  let quoteText = text
+
+                  if (text.startsWith('• ') && text.includes(': "')) {
+                    const clean = text.substring(2)
+                    const colonIdx = clean.indexOf(': "')
+                    speakerName = clean.substring(0, colonIdx)
+                    quoteText = clean.substring(colonIdx + 3, clean.length - (clean.endsWith('"') ? 1 : 0))
+                  } else if (text.startsWith('"') && text.endsWith('"')) {
+                    quoteText = text.substring(1, text.length - 1)
+                  }
+
+                  return (
+                    <blockquote key={idx} className="blog-detail-quote-card">
+                      {speakerName && <div className="blog-detail-quote-speaker">{speakerName}</div>}
+                      <p className="blog-detail-quote-body">“{quoteText}”</p>
+                    </blockquote>
+                  )
+                }
+
+                // 4. Bullet List Items (starts with • or - )
+                const isBulletItem = text.startsWith('• ') || text.startsWith('- ')
+
+                if (isBulletItem) {
+                  const cleanBullet = text.replace(/^[•-]\s*/, '')
+                  
+                  // Check if bullet contains key-value pair (e.g. "Axcel United Kabul" or "Player Registration: ...")
+                  const parts = cleanBullet.split(/:\s*(.+)/)
+                  const hasLabel = parts.length > 1
+
+                  return (
+                    <div key={idx} className="blog-detail-bullet-item">
+                      <span className="blog-detail-bullet-dot" />
+                      <div className="blog-detail-bullet-text">
+                        {hasLabel ? (
+                          <>
+                            <strong className="blog-detail-bullet-label">{parts[0]}: </strong>
+                            <span>{parts[1]}</span>
+                          </>
+                        ) : (
+                          <span>{cleanBullet}</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+
+                // 5. Section Subheadings
                 const isSubheading = 
-                  p.length < 80 && 
-                  !p.endsWith('.') && 
-                  !p.endsWith('?') && 
-                  !p.endsWith('!') && 
-                  !p.endsWith(':') && 
-                  !p.endsWith('"') && 
-                  !p.endsWith('”') && 
-                  !p.endsWith('-') && 
-                  p !== '-ENDS-' && 
-                  p !== 'For Media Enquiries:' && 
-                  p !== 'For Media & Franchise Enquiries:'
+                  text.length < 75 && 
+                  !text.endsWith('.') && 
+                  !text.endsWith('?') && 
+                  !text.endsWith('!') && 
+                  !text.endsWith(':') && 
+                  !text.endsWith('"') && 
+                  !text.endsWith('”') && 
+                  !text.includes('—')
 
                 if (isSubheading) {
                   return (
                     <h2 key={idx} className="blog-detail-subheading">
-                      {p}
+                      {text}
                     </h2>
                   )
                 }
-                
+
+                // 6. Regular Paragraph
                 return (
                   <p key={idx} className="blog-detail-paragraph">
-                    {p}
+                    {text}
                   </p>
                 )
               })

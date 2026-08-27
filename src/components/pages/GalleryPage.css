@@ -14,7 +14,8 @@
   width: 100%;
   padding: 4rem var(--page-padding) 0.5rem;
   overflow: hidden;
-  background: linear-gradient(135deg, #0a1240 0%, #0f1a52 40%, #162060 70%, #1a2666 100%);
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  background: linear-gradient(to right, #021B79, #0575E6);
   border-bottom: 1px solid rgba(248, 200, 0, 0.12);
 }
 

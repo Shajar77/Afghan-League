@@ -124,7 +124,8 @@ function App() {
 
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash
+      const rawHash = window.location.hash
+      const hash = rawHash ? rawHash.split('?')[0].split('&')[0] : ''
 
       if (HASH_PAGE_MAP[hash]) {
         setCurrentPage(HASH_PAGE_MAP[hash])

@@ -170,7 +170,6 @@ export function Footer() {
               {FEATURES.SHOW_REGISTRATION && <li><a href="#register-player">Player Registration</a></li>}
               {FEATURES.SHOW_LEAGUE_FAQ && <li><a href="#league-faq">League FAQ</a></li>}
               {FEATURES.SHOW_MEDIA_KIT && <li><a href="#media-kit">Media Kit</a></li>}
-              <li><a href="#admin-login">Admin Panel</a></li>
             </ul>
           </div>
 

@@ -1,7 +1,8 @@
 /* Footer Section Styles */
 .app-footer {
   position: relative;
-  background-color: var(--bg-canvas);
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  background: linear-gradient(to right, #021B79, #0575E6);
   margin-top: 0;
   width: 100%;
   border-top: 3px solid var(--brand-gold);

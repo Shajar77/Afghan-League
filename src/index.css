@@ -1,12 +1,12 @@
 :root {
-  /* Premium Indigo Blue Canvas & Elevation Layers */
-  --bg-canvas: #24327B;
-  --bg-surface: #2f3fa1;
-  --bg-surface-hover: #3b4eb8;
-  --border-subtle: #3d52c2;
+  /* Premium Admin Blue Canvas & Elevation Layers (#021B79 to #0575E6) */
+  --bg-canvas: #021B79;
+  --bg-surface: #0575E6;
+  --bg-surface-hover: #0a84ff;
+  --border-subtle: rgba(255, 255, 255, 0.15);
 
   /* Official APL Brand Accent Tokens (Boss Color Palette) */
-  --brand-navy: #2c32aa;      /* Base Blue */
+  --brand-navy: #021B79;      /* Base Blue */
   --brand-green: #017a37;     /* Green */
   --brand-sky: #F8C800;       /* Secondary Color (Vibrant Gold) */
   --brand-gold: #F8C800;      /* Vibrant Gold Accent (Replaces E6FF01) */
@@ -52,7 +52,9 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--bg-canvas);
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  background: linear-gradient(to right, #021B79, #0575E6);
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-body);
   font-optical-sizing: auto;
@@ -66,7 +68,9 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
-  background-color: var(--bg-canvas);
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  background: linear-gradient(to right, #021B79, #0575E6);
+  background-attachment: fixed;
 }
 
 /* Headings & Display Titles */
@@ -124,4 +128,11 @@ button,
   font-family: var(--font-body);
   font-optical-sizing: auto;
   font-variation-settings: "wdth" 100;
+}
+
+/* Hide floating Google reCAPTCHA badge */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

@@ -278,14 +278,13 @@ export function Navbar({ isAdmin, onLogout }: NavbarProps = {}) {
               </a>
             </li>
           )}
-          <li className="mobile-nav-item" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'center' }}>
+          <li className="mobile-nav-item">
             <a
               href="#contact-us"
-              className="btn-register-now"
-              style={{ width: '100%', justifyContent: 'center' }}
+              className={`mobile-nav-link ${currentPage === 'contact' ? 'active' : ''}`}
               onClick={() => { setMobileMenuOpen(false) }}
             >
-              <span className="skew-unskew-text">ENQUIRE NOW</span>
+              Contact Us
             </a>
           </li>
           {onLogout || isAdmin ? (

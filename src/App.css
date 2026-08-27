@@ -5,17 +5,9 @@
 .app-container {
   min-height: 100vh;
   min-height: 100dvh;
-  background: linear-gradient(
-    170deg,
-    #0d1540 0%,
-    #1a2666 18%,
-    #24327B 38%,
-    #1e2d7a 55%,
-    #162060 72%,
-    #0f1a52 88%,
-    #0a1240 100%
-  );
-  background-attachment: fixed; /* Parallax-style fixed gradient as page scrolls */
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  background: linear-gradient(to right, #021B79, #0575E6);
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;

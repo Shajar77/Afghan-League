@@ -1,5 +1,7 @@
 import { MatchTicker } from './MatchTicker'
+import { HeroCountdown } from './HeroCountdown'
 import { FEATURES } from '../../constants/features'
+import './HeroSection.css'
 
 // Optimized Cloudinary URLs: auto quality, 1280px width cap, 2Mbps bitrate limit
 const HERO_VIDEO_WEBM = 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,f_webm,w_1280,br_2m/v1787823840/APL_TROPHY_V7_1_1_1.mp4'
@@ -27,12 +29,18 @@ export function HeroSection() {
         <div className="hero-overlay"></div>
       </div>
 
-      {/* Matches Scorecard docked below the navbar (over the video background) */}
+      {/* Matches Scorecard docked below the navbar */}
       {FEATURES.SHOW_MATCH_TICKER && (
         <div className="hero-matches-ticker-wrapper">
           <MatchTicker />
         </div>
       )}
+
+      {/* Top Countdown Bar */}
+      <div className="hero-countdown-top-wrapper">
+        <HeroCountdown />
+      </div>
+
       <div className="hero-content">
         <h1 className="hero-title">A Legacy<br />in the Making!</h1>
         <p className="hero-status-subtitle">REGISTRATIONS ARE OPEN NOW</p>

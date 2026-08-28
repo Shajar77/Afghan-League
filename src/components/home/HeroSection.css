@@ -49,8 +49,20 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.92) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.58) 100%);
   z-index: 2;
+}
+
+.hero-countdown-top-wrapper {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  width: calc(100% - 1.5rem);
+  max-width: 94vw;
+  display: flex;
+  justify-content: center;
 }
 
 .hero-content {
@@ -61,7 +73,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 6.5rem;
+  margin-top: 2rem;
 }
 
 .hero-title {
@@ -175,6 +187,10 @@
     padding: 0.45rem 1.2rem;
     font-size: 0.95rem;
   }
+
+  .hero-content {
+    margin-top: 4rem;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -184,6 +200,10 @@
     margin-top: 0;
   }
   
+  .hero-content {
+    margin-top: 5.5rem;
+  }
+
   .hero-title {
     font-size: 4.8rem;
   }
@@ -197,3 +217,148 @@
     margin-top: 1.5rem;
   }
 }
+
+/* Hero Countdown Timer Card */
+.hero-countdown-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 0.45rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(4, 11, 30, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(248, 200, 0, 0.45);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(248, 200, 0, 0.1);
+  margin-bottom: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hero-countdown-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 0.1rem;
+  width: 100%;
+  text-align: center;
+}
+
+.hero-countdown-badge {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(0.85rem, 4vw, 1.15rem);
+  font-weight: 700;
+  color: var(--brand-gold);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.hero-countdown-icon {
+  color: var(--brand-gold);
+}
+
+.hero-countdown-date {
+  font-family: var(--font-body);
+  font-size: clamp(0.6rem, 2.8vw, 0.72rem);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.01em;
+}
+
+.hero-countdown-timer {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-evenly !important;
+  gap: clamp(0.2rem, 2vw, 1.2rem);
+  width: 100%;
+  margin-top: 0.35rem;
+}
+
+.hero-countdown-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Styled like .stat-value */
+.hero-countdown-value {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 6.5vw, 3.8rem);
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+}
+
+/* Styled like .stat-label */
+.hero-countdown-unit {
+  font-family: var(--font-body);
+  font-size: clamp(0.55rem, 2.2vw, 0.78rem);
+  font-weight: 700;
+  color: var(--brand-gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+  line-height: 1;
+}
+
+.hero-countdown-divider {
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  color: var(--brand-gold);
+  align-self: center;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .hero-countdown-card {
+    padding: 0.65rem 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-countdown-top-wrapper {
+    width: auto;
+    max-width: 760px;
+    top: 1.25rem;
+  }
+
+  .hero-countdown-card {
+    padding: 0.75rem 2.5rem;
+    width: auto;
+    max-width: 720px;
+    margin-bottom: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .hero-countdown-timer {
+    gap: 1.8rem;
+  }
+
+  .hero-countdown-item {
+    min-width: 85px;
+    flex: initial;
+  }
+
+  .hero-countdown-badge {
+    font-size: 1.45rem;
+  }
+
+  .hero-countdown-date {
+    font-size: 0.8rem;
+  }
+}
+

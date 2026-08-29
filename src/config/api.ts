@@ -140,7 +140,7 @@ let serviceTokenPromise: Promise<string> | null = null
  * service-account credentials stored in VITE_SERVICE_EMAIL / VITE_SERVICE_PASSWORD.
  * These env vars are set only in Vercel project settings — never hardcoded here.
  */
-export const ensurePublicApiToken = async (): Promise<string> => {
+export const ensurePublicApiToken = async (liveCaptchaToken?: string): Promise<string> => {
   // 1. Check if admin token is active in localStorage
   const adminToken = localStorage.getItem('apl_admin_token')
   if (adminToken && !isJwtExpiringSoon(adminToken, 60)) {
@@ -174,7 +174,7 @@ export const ensurePublicApiToken = async (): Promise<string> => {
         body: JSON.stringify({
           email: serviceEmail,
           password: servicePassword,
-          captchaToken: 'service-auth',
+          captchaToken: liveCaptchaToken || 'service-auth',
         }),
       })
 
@@ -202,8 +202,12 @@ export const ensurePublicApiToken = async (): Promise<string> => {
  * Fetch wrapper for public player registration and lookup endpoints.
  * Automatically acquires a valid token and retries if unauthorized.
  */
-export const publicFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
-  const token = await ensurePublicApiToken()
+export const publicFetch = async (
+  url: string,
+  options: RequestInit = {},
+  liveCaptchaToken?: string
+): Promise<Response> => {
+  const token = await ensurePublicApiToken(liveCaptchaToken)
   const headers = new Headers(options.headers || {})
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`)
@@ -214,7 +218,7 @@ export const publicFetch = async (url: string, options: RequestInit = {}): Promi
   // If 401, clear cached session token, obtain a fresh one, and retry once
   if (res.status === 401) {
     sessionStorage.removeItem('apl_service_token')
-    const freshToken = await ensurePublicApiToken()
+    const freshToken = await ensurePublicApiToken(liveCaptchaToken)
     if (freshToken) {
       const retryHeaders = new Headers(options.headers || {})
       retryHeaders.set('Authorization', `Bearer ${freshToken}`)

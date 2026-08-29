@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { buildApiUrl, publicFetch } from '../../config/api'
 import './RegisterStatusPage.css'
 
@@ -19,6 +20,9 @@ export function RegisterStatusPage() {
   const [statusResult, setStatusResult] = useState<StatusResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,9 +45,19 @@ export function RegisterStatusPage() {
     setSearched(false)
     setStatusResult(null)
 
+    let captchaToken = ''
+    if (siteKey && recaptchaRef.current) {
+      try {
+        captchaToken = (await recaptchaRef.current.executeAsync()) || ''
+      } catch {
+        // reCAPTCHA execution fallback
+      }
+    }
+
     try {
-      const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(trimmedEmail)}`)
-      const response = await publicFetch(url)
+      const captchaParam = captchaToken ? `&captchaToken=${encodeURIComponent(captchaToken)}` : ''
+      const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(trimmedEmail)}${captchaParam}`)
+      const response = await publicFetch(url, {}, captchaToken)
       const json = await response.json()
 
       if (response.ok) {
@@ -67,6 +81,9 @@ export function RegisterStatusPage() {
     } finally {
       setIsLoading(false)
       setSearched(true)
+      if (siteKey && recaptchaRef.current) {
+        recaptchaRef.current.reset()
+      }
     }
   }
 
@@ -121,14 +138,23 @@ export function RegisterStatusPage() {
                 <p className="status-otp-hint">Enter the email used during registration</p>
               </div>
             </div>
-             <button 
-               type="submit" 
-               className="status-search-btn status-search-btn--full"
-               disabled={isLoading}
-             >
-               {isLoading ? 'Tracking Application...' : 'Track Application'}
-             </button>
-           </form>
+
+            {siteKey && (
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={siteKey}
+                size="invisible"
+              />
+            )}
+
+            <button 
+              type="submit" 
+              className="status-search-btn status-search-btn--full"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Tracking Application...' : 'Track Application'}
+            </button>
+          </form>
  
            {searched && statusResult && (
              <div className="status-result-box success animate-fade-in">

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AdminLogin } from './AdminLogin'
 import { AdminDashboard } from './AdminDashboard'
 import { clearAdminCaches } from './adminUtils'
 import { AdminPlayerDetail } from './AdminPlayerDetail'
 import { scrollToTop } from '../../utils/lenis'
+import { refreshAdminToken, isJwtExpiringSoon } from '../../config/api'
 
 type AdminView = 'login' | 'dashboard' | 'player-detail'
 
@@ -20,36 +21,86 @@ export function AdminPortal() {
   // Prevents flashing the login screen while verifying an existing token
   const [isVerifying, setIsVerifying] = useState(true)
 
-  // On mount: check stored session token and verify expiration
+  const handleLogout = useCallback(() => {
+    clearAdminCaches()
+    localStorage.removeItem('apl_admin_token')
+    localStorage.removeItem('apl_admin_email')
+    localStorage.removeItem('apl_admin_role')
+    localStorage.removeItem('apl_admin_refresh_token')
+    setAuthToken(null)
+    setAdminEmail('')
+    setSelectedPlayer(null)
+    setView('login')
+  }, [])
+
+  // On mount: check stored session token, renew if expiring/expired, or redirect
   useEffect(() => {
-    const storedToken = localStorage.getItem('apl_admin_token')
-    const storedEmail = localStorage.getItem('apl_admin_email')
+    let isMounted = true
 
-    if (!storedToken) {
-      setIsVerifying(false)
-      return
-    }
+    const verifySession = async () => {
+      const storedToken = localStorage.getItem('apl_admin_token')
+      const storedEmail = localStorage.getItem('apl_admin_email')
 
-    // Check if token is an expired JWT
-    try {
-      const parts = storedToken.split('.')
-      if (parts.length === 3) {
-        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
-        if (payload.exp && typeof payload.exp === 'number' && Date.now() >= payload.exp * 1000) {
+      if (!storedToken) {
+        if (isMounted) setIsVerifying(false)
+        return
+      }
+
+      // If token is expiring within 5 minutes (or already expired), attempt silent renewal
+      if (isJwtExpiringSoon(storedToken, 300)) {
+        const renewedToken = await refreshAdminToken()
+        if (!isMounted) return
+
+        if (renewedToken) {
+          setAuthToken(renewedToken)
+          setAdminEmail(storedEmail || '')
+          setView('dashboard')
+          setIsVerifying(false)
+          return
+        }
+
+        // If renewal failed and stored token is completely expired, log out
+        if (isJwtExpiringSoon(storedToken, 0)) {
           handleLogout()
           setIsVerifying(false)
           return
         }
       }
-    } catch {
-      // If token format cannot be parsed, let it pass to dashboard; subsequent API calls will 401 if invalid
+
+      if (isMounted) {
+        setAuthToken(storedToken)
+        setAdminEmail(storedEmail || '')
+        setView('dashboard')
+        setIsVerifying(false)
+      }
     }
 
-    setAuthToken(storedToken)
-    setAdminEmail(storedEmail || '')
-    setView('dashboard')
-    setIsVerifying(false)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    verifySession()
+
+    return () => {
+      isMounted = false
+    }
+  }, [handleLogout])
+
+  // Periodic background check: auto-renew token every 45 seconds if within 5 min of expiry
+  useEffect(() => {
+    if (!authToken || view === 'login') return
+
+    const interval = setInterval(async () => {
+      const currentToken = localStorage.getItem('apl_admin_token') || authToken
+      if (isJwtExpiringSoon(currentToken, 300)) {
+        const renewed = await refreshAdminToken()
+        if (renewed) {
+          setAuthToken(renewed)
+        } else if (isJwtExpiringSoon(currentToken, 0)) {
+          // If token is fully expired and cannot be renewed, logout safely
+          handleLogout()
+        }
+      }
+    }, 45000)
+
+    return () => clearInterval(interval)
+  }, [authToken, view, handleLogout])
 
   // Auth guard: if token disappears while viewing dashboard, redirect to login
   useEffect(() => {
@@ -62,18 +113,6 @@ export function AdminPortal() {
     setAuthToken(token)
     setAdminEmail(email)
     setView('dashboard')
-  }
-
-  const handleLogout = () => {
-    clearAdminCaches()
-    localStorage.removeItem('apl_admin_token')
-    localStorage.removeItem('apl_admin_email')
-    localStorage.removeItem('apl_admin_role')
-    localStorage.removeItem('apl_admin_refresh_token')
-    setAuthToken(null)
-    setAdminEmail('')
-    setSelectedPlayer(null)
-    setView('login')
   }
 
   const handleViewPlayer = (reg: Registration) => {

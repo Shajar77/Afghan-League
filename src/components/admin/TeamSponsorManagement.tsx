@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { buildApiUrl } from '../../config/api'
+import { buildApiUrl, authFetch } from '../../config/api'
 import { TeamsTab, type Team } from './TeamsTab'
 import { SponsorsTab, type Sponsor } from './SponsorsTab'
 import { Plus, Loader2, Check, AlertCircle } from 'lucide-react'
@@ -29,7 +29,7 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
 
     try {
       // 1. Fetch Teams
-      const teamsRes = await fetch(buildApiUrl('/teams'), {
+      const teamsRes = await authFetch(buildApiUrl('/teams'), {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (teamsRes.ok) {
@@ -38,13 +38,16 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
           ? teamsJson
           : (teamsJson.data?.teams || teamsJson.data || teamsJson.teams || [])
         setTeams(teamsList)
+      } else if (teamsRes.status === 401 && onLogout) {
+        onLogout()
+        return
       } else {
         setTeams([])
         setError('Failed to load teams from backend server.')
       }
 
       // 2. Fetch Sponsors
-      const sponsorsRes = await fetch(buildApiUrl('/sponsors'), {
+      const sponsorsRes = await authFetch(buildApiUrl('/sponsors'), {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (sponsorsRes.ok) {
@@ -53,6 +56,9 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
           ? sponsorsJson
           : (sponsorsJson.data?.sponsors || sponsorsJson.data || sponsorsJson.sponsors || [])
         setSponsors(sponsorsList)
+      } else if (sponsorsRes.status === 401 && onLogout) {
+        onLogout()
+        return
       } else {
         setSponsors([])
       }
@@ -63,7 +69,7 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [onLogout])
 
   useEffect(() => {
     fetchData()

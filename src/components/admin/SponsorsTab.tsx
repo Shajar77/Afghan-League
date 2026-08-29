@@ -1,5 +1,5 @@
 import { useState, type Dispatch, type SetStateAction, type FormEvent } from 'react'
-import { buildApiUrl } from '../../config/api'
+import { buildApiUrl, authFetch } from '../../config/api'
 import { compressImageFile } from '../../utils/imageCompression'
 import {
   Award,
@@ -120,7 +120,7 @@ export function SponsorsTab({
     const formData = new FormData()
     formData.append('file', compressedFile)
 
-    const uploadRes = await fetch(buildApiUrl('/uploads/image'), {
+    const uploadRes = await authFetch(buildApiUrl('/uploads/image'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -170,7 +170,7 @@ export function SponsorsTab({
         is_active: true
       }
 
-      const res = await fetch(buildApiUrl('/sponsors'), {
+      const res = await authFetch(buildApiUrl('/sponsors'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

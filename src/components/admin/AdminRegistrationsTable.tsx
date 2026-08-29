@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
-import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
+import { buildApiUrl, normalizeMediaUrl, authFetch } from '../../config/api'
 import { formatStatus, statusClass, registerAdminCacheClearer } from './adminUtils'
 import {
   Users,
@@ -22,6 +22,7 @@ export interface Registration {
   playing_role?: string
   role?: string
   status?: string
+  registration_status?: string  // alternate field name from some API versions
   registration_code?: string
   code?: string
   photo_url?: string
@@ -90,7 +91,7 @@ function PlayerAvatar({
             const url = buildApiUrl(
               `/player-registrations/lookup?code=${encodeURIComponent(regCode)}&email=${encodeURIComponent(email)}`
             )
-            const res = await fetch(url, {
+            const res = await authFetch(url, {
               headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
             })
             if (!res.ok || !isMounted) return
@@ -275,8 +276,8 @@ export function AdminRegistrationsTable({
                       <span className="apl-role-chip">{reg.playing_role || '—'}</span>
                     </td>
                     <td className="td-status">
-                      <span className={`apl-status-pill ${statusClass(reg.status)}`}>
-                        {formatStatus(reg.status)}
+                      <span className={`apl-status-pill ${statusClass(reg.status || reg.registration_status)}`}>
+                        {formatStatus(reg.status || reg.registration_status)}
                       </span>
                     </td>
 

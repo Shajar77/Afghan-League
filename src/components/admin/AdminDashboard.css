@@ -1265,8 +1265,9 @@
 }
 .apl-export-buttons-group {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.65rem;
+  width: 100%;
 }
 
 .apl-export-excel-btn {
@@ -1277,11 +1278,12 @@
   background: #ffffff;
   color: #021B79;
   border: none;
-  padding: 0.65rem 1.25rem;
+  padding: 0.75rem 1rem;
+  min-height: 44px;
   font-family: var(--font-body, "Archivo", sans-serif);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: 0.02em;
   cursor: pointer;
   border-radius: 0px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1289,39 +1291,28 @@
   text-transform: uppercase;
   white-space: nowrap;
   box-sizing: border-box;
-}
-
-@media (max-width: 767px) {
-  .apl-export-buttons-group {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .apl-export-excel-btn {
-    flex: 1;
-    min-width: 0;
-    width: 50%;
-    padding: 0.65rem 0.35rem;
-    font-size: 0.72rem;
-    gap: 0.35rem;
-    justify-content: center;
-    white-space: nowrap;
-    box-sizing: border-box;
-  }
-
-  .apl-export-excel-btn svg {
-    flex-shrink: 0;
-    width: 14px;
-    height: 14px;
-  }
+  width: 100%;
 }
 
 .apl-export-excel-btn svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
   color: #021B79;
+}
+
+@media (min-width: 520px) {
+  .apl-export-buttons-group {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
+
+  .apl-export-excel-btn {
+    width: auto;
+    padding: 0.65rem 1.15rem;
+    font-size: 0.8rem;
+  }
 }
 
 .apl-export-excel-btn:hover:not(:disabled) {
@@ -1973,6 +1964,9 @@
 
 .status-rejected { color: #ef4444; }
 .status-rejected .apl-status-dot-pulse { background: #ef4444; }
+
+.status-unknown { color: #94a3b8; }
+.status-unknown .apl-status-dot-pulse { background: #94a3b8; }
 
 /* Action Button */
 .apl-table-view-btn {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { buildApiUrl } from '../../config/api'
+import { buildApiUrl, authFetch } from '../../config/api'
 import {
   Users,
   UserPlus,
@@ -30,7 +30,7 @@ const ROLE_OPTIONS = [
   { value: 'super_admin', label: 'Super Administrator' },
   { value: 'content_editor', label: 'Content Editor' },
   { value: 'media_manager', label: 'Media Manager' },
-  { value: 'league_ops', label: 'League Operations' }
+  { value: 'league_ops', label: 'Player Management' }
 ]
 
 export function UserManagement({ onLogout }: UserManagementProps) {
@@ -55,7 +55,7 @@ export function UserManagement({ onLogout }: UserManagementProps) {
     const token = localStorage.getItem('apl_admin_token') || ''
 
     try {
-      const res = await fetch(buildApiUrl('/users'), {
+      const res = await authFetch(buildApiUrl('/users'), {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -98,7 +98,7 @@ export function UserManagement({ onLogout }: UserManagementProps) {
     const token = localStorage.getItem('apl_admin_token') || ''
 
     try {
-      const res = await fetch(buildApiUrl('/users'), {
+      const res = await authFetch(buildApiUrl('/users'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -111,6 +111,10 @@ export function UserManagement({ onLogout }: UserManagementProps) {
           role
         })
       })
+      if (res.status === 401 || res.status === 403) {
+        onLogout()
+        return
+      }
       const json = await res.json()
       if (res.ok) {
         setSubmitSuccess(true)

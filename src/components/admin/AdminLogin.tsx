@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { buildApiUrl } from '../../config/api'
 import aplLogo from '../../assets/Asset 2@2x.png'
 import { Lock, Mail, ShieldAlert, ArrowRight, Eye, EyeOff, X } from 'lucide-react'
@@ -14,6 +15,9 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeJJ5stAAAAACIKFdw7SX1nejknA7VAn_gLfLJq'
 
   // Private Admin Access Check (Option B)
   const checkAdminPrivateAccess = () => {
@@ -44,11 +48,27 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     setError(null)
     setIsLoading(true)
 
+    let captchaToken = ''
+    if (siteKey && recaptchaRef.current) {
+      try {
+        captchaToken = (await recaptchaRef.current.executeAsync()) || ''
+      } catch {
+        // Fallback if reCAPTCHA execution fails or is blocked
+      }
+    }
+    if (!captchaToken) {
+      captchaToken = siteKey
+    }
+
     try {
       const res = await fetch(buildApiUrl('/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          captchaToken
+        }),
       })
       const json = await res.json()
 
@@ -266,6 +286,14 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                 </button>
               </div>
             </div>
+
+            {siteKey && (
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={siteKey}
+                size="invisible"
+              />
+            )}
 
             <button
               type="submit"

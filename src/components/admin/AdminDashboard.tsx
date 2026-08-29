@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { buildApiUrl } from '../../config/api'
-import { registerAdminCacheClearer } from './adminUtils'
+import { buildApiUrl, authFetch } from '../../config/api'
+import {
+  getAdminRegistrationsCache,
+  setAdminRegistrationsCache,
+  getAdminStatusCountsCache,
+  setAdminStatusCountsCache,
+  getAdminStatusMapCache,
+  setAdminStatusMapCache
+} from './adminUtils'
 import { AdminStatsSection, type AdminStats } from './AdminStatsSection'
 import { AdminFiltersBar } from './AdminFiltersBar'
 import { AdminRegistrationsTable, type Registration } from './AdminRegistrationsTable'
@@ -42,14 +49,8 @@ const CRICKETING_NATIONS = [
   'Zimbabwe'
 ]
 
-const STATUS_FILTERS = ['All', 'pending', 'approved', 'under_review', 'rejected']
+const STATUS_FILTERS = ['All', 'pending', 'approved_draft', 'under_review', 'rejected']
 const CATEGORY_FILTERS = ['All', 'Platinum', 'Diamond', 'Gold', 'Silver', 'Emerging']
-
-let registrationsCache: Registration[] | null = null
-
-registerAdminCacheClearer(() => {
-  registrationsCache = null
-})
 
 interface AdminDashboardProps {
   adminEmail: string
@@ -64,13 +65,13 @@ export function AdminDashboard({
   onLogout,
   onViewPlayer
 }: AdminDashboardProps) {
-  // Determine if the current admin token / session grants super_admin role
-  const isSuperAdmin = (() => {
+  // Determine current admin role
+  const adminRole = (() => {
     try {
       // 1. Check stored role first
       const storedRole = (localStorage.getItem('apl_admin_role') || '').toLowerCase().trim()
       if (storedRole) {
-        return storedRole === 'super_admin' || storedRole === 'superadmin' || storedRole === 'super'
+        return storedRole
       }
 
       // 2. Decode JWT token payload if stored role is not explicit
@@ -79,28 +80,40 @@ export function AdminDashboard({
       if (parts.length === 3) {
         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
         const role = (payload.role || payload.roles?.[0] || payload.user?.role || '').toLowerCase().trim()
-        return role === 'super_admin' || role === 'superadmin' || role === 'super'
+        return role
       }
     } catch { /* invalid token format */ }
-    return false
+    return ''
   })()
 
+  const isSuperAdmin = adminRole === 'super_admin' || adminRole === 'superadmin' || adminRole === 'super'
+  const isPlayerManagement = adminRole === 'league_ops' || adminRole === 'player_management' || adminRole === 'player_mgmt'
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'users'>(() => {
-    return isSuperAdmin ? 'dashboard' : 'teams'
+    if (isSuperAdmin || isPlayerManagement) return 'dashboard'
+    return 'teams'
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Safety guard: Ensure non-superadmins are redirected away from restricted tabs
+  // Safety guard: Ensure users are restricted to their allowed tabs
   useEffect(() => {
-    if (!isSuperAdmin && activeTab === 'dashboard') {
+    if (isPlayerManagement && activeTab !== 'dashboard') {
+      setActiveTab('dashboard')
+    } else if (!isSuperAdmin && !isPlayerManagement && activeTab === 'dashboard') {
       setActiveTab('teams')
+    } else if (!isSuperAdmin && activeTab === 'users') {
+      setActiveTab(isPlayerManagement ? 'dashboard' : 'teams')
     }
-  }, [isSuperAdmin, activeTab])
+  }, [isSuperAdmin, isPlayerManagement, activeTab])
 
   // Data & Loading states
-  const [registrations, setRegistrations] = useState<Registration[]>(() => registrationsCache || [])
-  const [isLoading, setIsLoading] = useState(!registrationsCache)
+  const [registrations, setRegistrations] = useState<Registration[]>(() => (getAdminRegistrationsCache() as Registration[]) || [])
+  const [isLoading, setIsLoading] = useState(() => !getAdminRegistrationsCache())
   const [error, setError] = useState<string | null>(null)
+
+  // Status counts & Status map (seeded from cache if present for 0ms transition)
+  const [statusCounts, setStatusCounts] = useState(() => getAdminStatusCountsCache() || { pending: 0, approved: 0, underReview: 0, rejected: 0, total: 0 })
+  const [statusMap, setStatusMap] = useState<Record<string, string>>(() => getAdminStatusMapCache() || {})
 
   // Advanced Filters
   const [search, setSearch] = useState('')
@@ -133,24 +146,28 @@ export function AdminDashboard({
   }, [search])
 
   const fetchRegistrations = useCallback(async () => {
-    if (!registrationsCache) {
+    if (!getAdminRegistrationsCache()) {
       setIsLoading(true)
     }
     setError(null)
     const token = adminToken
 
     try {
+      // Pass statusFilter server-side — the search API accepts status as a filter
+      // but does NOT return registration status in records, so we filter at server level
+      const apiStatus = statusFilter === 'All' ? '' : statusFilter
+
       const searchBody = {
         search: debouncedSearch.trim(),
-        status: '',
+        status: apiStatus,
         category: '',
         startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
         endDate: dateTo ? `${dateTo}T23:59:59.000Z` : '',
         page: 1,
-        limit: 50
+        limit: 500
       }
 
-      const res = await fetch(buildApiUrl('/admin/players/search'), {
+      const res = await authFetch(buildApiUrl('/admin/players/search'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -160,37 +177,142 @@ export function AdminDashboard({
       })
       const json = await res.json()
       if (res.ok) {
-        const data = Array.isArray(json)
+        const rawData: any[] = Array.isArray(json)
           ? json
           : (json.data?.players || json.data?.registrations || json.data || json.players || [])
-        registrationsCache = data
+
+        // Inject the known status from the server-side filter into each record.
+        // The search API does not return registration status in its response fields,
+        // but when a status filter is active, ALL returned records have that status.
+        const knownStatus = statusFilter !== 'All' ? statusFilter : ''
+        const data: Registration[] = rawData.map((r: any) => ({
+          ...r,
+          status: knownStatus || r.status || r.registration_status || ''
+        }))
+
+        // Update cache when on default 'All' filter or update list
+        if (statusFilter === 'All' && !debouncedSearch && !dateFrom && !dateTo) {
+          setAdminRegistrationsCache(data)
+        }
         setRegistrations(data)
       } else if (res.status === 401) {
         onLogout()
       } else {
         setError(json.message || 'Failed to load registrations from backend server.')
-        if (!registrationsCache) {
+        if (!getAdminRegistrationsCache()) {
           setRegistrations([])
         }
       }
     } catch {
       setError('Network error: Unable to connect to administration server.')
-      if (!registrationsCache) {
+      if (!getAdminRegistrationsCache()) {
         setRegistrations([])
       }
     } finally {
       setIsLoading(false)
     }
-  }, [adminToken, onLogout, debouncedSearch, dateFrom, dateTo])
+  }, [adminToken, onLogout, debouncedSearch, statusFilter, dateFrom, dateTo])
+
+  // Fetch status counts via 4 parallel requests and build status map for all records
+  const fetchStatusCounts = useCallback(async () => {
+    const token = adminToken
+    const baseBody = {
+      search: '',
+      category: '',
+      startDate: '',
+      endDate: '',
+      page: 1,
+      limit: 500
+    }
+    const makeStatusRequest = async (status: string): Promise<any[]> => {
+      try {
+        const res = await authFetch(buildApiUrl('/admin/players/search'), {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...baseBody, status })
+        })
+        if (!res.ok) return []
+        const json = await res.json()
+        const arr: any[] = Array.isArray(json)
+          ? json
+          : (json.data?.players || json.data?.registrations || json.data || json.players || [])
+        return Array.isArray(arr) ? arr : []
+      } catch { return [] }
+    }
+
+    const [pendingList, approvedList, underReviewList, rejectedList, totalList] = await Promise.all([
+      makeStatusRequest('pending'),
+      makeStatusRequest('approved_draft'),
+      makeStatusRequest('under_review'),
+      makeStatusRequest('rejected'),
+      makeStatusRequest('')   // empty = all statuses
+    ])
+
+    const map: Record<string, string> = {}
+    const registerInMap = (list: any[], status: string) => {
+      list.forEach(item => {
+        const code = String(item.registration_code || item.code || '').trim()
+        if (code) map[code] = status
+        if (item.id !== undefined && item.id !== null) map[String(item.id)] = status
+        if (item.email) map[String(item.email).toLowerCase().trim()] = status
+      })
+    }
+
+    registerInMap(pendingList, 'pending')
+    registerInMap(approvedList, 'approved_draft')
+    registerInMap(underReviewList, 'under_review')
+    registerInMap(rejectedList, 'rejected')
+
+    setAdminStatusMapCache(map)
+    setStatusMap(map)
+
+    const counts = {
+      pending: pendingList.length,
+      approved: approvedList.length,
+      underReview: underReviewList.length,
+      rejected: rejectedList.length,
+      total: totalList.length
+    }
+    setAdminStatusCountsCache(counts)
+    setStatusCounts(counts)
+  }, [adminToken])
 
   useEffect(() => {
     fetchRegistrations()
   }, [fetchRegistrations])
 
-  // Filter Pipeline (Client-side)
+  // Fetch counts once on mount (and after cache clear = remount)
+  useEffect(() => {
+    fetchStatusCounts()
+  }, [fetchStatusCounts])
+
+  // Enrich registrations with resolved status from statusMap when status is missing (All tab)
+  const enrichedRegistrations = useMemo(() => {
+    return registrations.map(r => {
+      if (r.status && r.status !== '—' && r.status !== '') {
+        return r
+      }
+      const code = String(r.registration_code || r.code || '').trim()
+      const idKey = r.id !== undefined && r.id !== null ? String(r.id) : ''
+      const emailKey = r.email ? String(r.email).toLowerCase().trim() : ''
+
+      const mappedStatus =
+        (code && statusMap[code]) ||
+        (idKey && statusMap[idKey]) ||
+        (emailKey && statusMap[emailKey]) ||
+        'pending'
+
+      return {
+        ...r,
+        status: mappedStatus
+      }
+    })
+  }, [registrations, statusMap])
+
+  // Filter Pipeline (Client-side — status filtering is now server-side via API)
   const filtered = useMemo(() => {
-    return registrations.filter(r => {
-      // 1. Search Query
+    return enrichedRegistrations.filter(r => {
+      // 1. Search Query (client-side for instant UX within server-filtered results)
       if (search.trim()) {
         const q = search.toLowerCase().trim()
         const fullName = (r.full_name || r.name || '').toLowerCase()
@@ -209,17 +331,9 @@ export function AdminDashboard({
         if (!matches) return false
       }
 
-      // 2. Status Filter
-      if (statusFilter !== 'All') {
-        const itemStatus = (r.status || 'pending').toLowerCase()
-        if (statusFilter === 'pending') {
-          if (itemStatus !== 'pending' && itemStatus !== 'submitted' && itemStatus !== '') return false
-        } else if (itemStatus !== statusFilter.toLowerCase()) {
-          return false
-        }
-      }
+      // NOTE: Status filtering is handled server-side (API sends only matching status records)
 
-      // 3. Category Filter
+      // 2. Category Filter
       if (categoryFilter !== 'All') {
         const cat = (r.player_category || r.category || '').toLowerCase()
         const target = categoryFilter.toLowerCase()
@@ -230,13 +344,13 @@ export function AdminDashboard({
         if (target === 'emerging' && !cat.includes('emerging') && !cat.includes('under-23') && cat !== '9' && cat !== '') return false
       }
 
-      // 4. Nationality Filter
+      // 3. Nationality Filter
       if (nationalityFilter !== 'All') {
         const nat = (r.nationality || r.representing_country || r.country_of_residence || '').toLowerCase()
         if (!nat.includes(nationalityFilter.toLowerCase())) return false
       }
 
-      // 5. Date Range Filter
+      // 4. Date Range Filter
       if (dateFrom || dateTo) {
         const createdDate = r.created_at || (r as any).createdAt || (r as any).date
         if (createdDate) {
@@ -256,7 +370,7 @@ export function AdminDashboard({
 
       return true
     })
-  }, [registrations, search, statusFilter, categoryFilter, nationalityFilter, dateFrom, dateTo])
+  }, [enrichedRegistrations, search, categoryFilter, nationalityFilter, dateFrom, dateTo])
 
   // Pagination Logic
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
@@ -290,33 +404,26 @@ export function AdminDashboard({
     setDateTo('')
   }
 
-  // Calculated Metrics
+  // Calculated Metrics — use server-side statusCounts since search API has no status field in responses
   const stats: AdminStats = useMemo(() => {
-    const total = registrations.length
-    const approved = registrations.filter(r => (r.status || '').toLowerCase() === 'approved').length
-    const pending = registrations.filter(r => (r.status || '').toLowerCase() === 'pending' || !r.status).length
-    const underReview = registrations.filter(r => (r.status || '').toLowerCase() === 'under_review').length
-    const rejected = registrations.filter(r => (r.status || '').toLowerCase() === 'rejected').length
-
+    const total = statusCounts.total || registrations.length
     const uniqueCountries = new Set(
       registrations.map(r => (r.nationality || '').trim().toLowerCase()).filter(Boolean)
     ).size
-
     const overseas = registrations.filter(r => {
       const nat = (r.nationality || '').toLowerCase()
       return nat && nat !== 'afghanistan' && nat !== 'afghan'
     }).length
-
     return {
       total,
-      approved,
-      pending,
-      underReview,
-      rejected,
+      approved: statusCounts.approved,
+      pending: statusCounts.pending,
+      underReview: statusCounts.underReview,
+      rejected: statusCounts.rejected,
       overseas,
       uniqueCountries
     }
-  }, [registrations])
+  }, [statusCounts, registrations])
 
   // Dynamic Country Registrations
   const registrationsByCountry = useMemo(() => {
@@ -494,7 +601,7 @@ export function AdminDashboard({
 
     try {
       const token = adminToken || localStorage.getItem('apl_admin_token') || ''
-      const res = await fetch(buildApiUrl('/admin/players/export'), {
+      const res = await authFetch(buildApiUrl('/admin/players/export'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -505,12 +612,15 @@ export function AdminDashboard({
           status: statusFilter === 'All' ? '' : statusFilter,
           category: categoryFilter === 'All' ? '' : categoryFilter,
           startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
-          endDate: dateTo ? `${dateTo}T23:59:59.000Z` : ''
+          endDate: dateTo ? `${dateTo}T23:59:59.000Z` : '',
+          format: 'excel'
         })
       })
 
-      if (!res.ok) {
-        throw new Error('Export service returned an error.')
+      const contentType = res.headers.get('content-type') || ''
+      if (!res.ok || contentType.includes('application/json')) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error(json.message || json.error?.message || 'Export service returned an error.')
       }
 
       const blob = await res.blob()
@@ -522,8 +632,8 @@ export function AdminDashboard({
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-    } catch {
-      setError('Unable to download Excel export. Please try again.')
+    } catch (err: any) {
+      setError(err?.message || 'Unable to download Excel export. Please try again.')
     } finally {
       setIsExportingXLSX(false)
     }
@@ -536,7 +646,7 @@ export function AdminDashboard({
 
     try {
       const token = adminToken || localStorage.getItem('apl_admin_token') || ''
-      const res = await fetch(buildApiUrl('/admin/players/export-photos'), {
+      const res = await authFetch(buildApiUrl('/admin/players/export-photos'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -551,8 +661,10 @@ export function AdminDashboard({
         })
       })
 
-      if (!res.ok) {
-        throw new Error('Photo export service returned an error.')
+      const contentType = res.headers.get('content-type') || ''
+      if (!res.ok || contentType.includes('application/json')) {
+        const json = await res.json().catch(() => ({}))
+        throw new Error(json.message || json.error?.message || 'Photo export service returned an error.')
       }
 
       const blob = await res.blob()
@@ -564,8 +676,8 @@ export function AdminDashboard({
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-    } catch {
-      setError('Unable to download Photos ZIP export. Please try again.')
+    } catch (err: any) {
+      setError(err?.message || 'Unable to download Photos ZIP export. Please try again.')
     } finally {
       setIsExportingPhotos(false)
     }
@@ -582,7 +694,7 @@ export function AdminDashboard({
 
           {/* Top Navigation Tabs */}
           <div className="apl-admin-nav-tabs desktop-only-nav">
-            {isSuperAdmin && (
+            {(isSuperAdmin || isPlayerManagement) && (
               <button
                 type="button"
                 className={`apl-admin-nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
@@ -591,13 +703,15 @@ export function AdminDashboard({
                 Player Registrations
               </button>
             )}
-            <button
-              type="button"
-              className={`apl-admin-nav-tab ${activeTab === 'teams' ? 'active' : ''}`}
-              onClick={() => setActiveTab('teams')}
-            >
-              Teams & Sponsors
-            </button>
+            {!isPlayerManagement && (
+              <button
+                type="button"
+                className={`apl-admin-nav-tab ${activeTab === 'teams' ? 'active' : ''}`}
+                onClick={() => setActiveTab('teams')}
+              >
+                Teams & Sponsors
+              </button>
+            )}
             {isSuperAdmin && (
               <button
                 type="button"
@@ -662,7 +776,7 @@ export function AdminDashboard({
         </div>
 
         <ul className="mobile-nav-list">
-          {isSuperAdmin && (
+          {(isSuperAdmin || isPlayerManagement) && (
             <li className="mobile-nav-item">
               <button
                 type="button"
@@ -676,18 +790,20 @@ export function AdminDashboard({
               </button>
             </li>
           )}
-          <li className="mobile-nav-item">
-            <button
-              type="button"
-              className={`mobile-nav-link ${activeTab === 'teams' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('teams')
-                setMobileMenuOpen(false)
-              }}
-            >
-              Teams & Sponsors
-            </button>
-          </li>
+          {!isPlayerManagement && (
+            <li className="mobile-nav-item">
+              <button
+                type="button"
+                className={`mobile-nav-link ${activeTab === 'teams' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('teams')
+                  setMobileMenuOpen(false)
+                }}
+              >
+                Teams & Sponsors
+              </button>
+            </li>
+          )}
           {isSuperAdmin && (
             <li className="mobile-nav-item">
               <button
@@ -733,7 +849,7 @@ export function AdminDashboard({
       <main className="apl-admin-main-container">
         {activeTab === 'users' && isSuperAdmin ? (
           <UserManagement onLogout={onLogout} />
-        ) : activeTab === 'dashboard' && isSuperAdmin ? (
+        ) : activeTab === 'dashboard' && (isSuperAdmin || isPlayerManagement) ? (
           <>
             {/* 1. KPI Cards & Trends Charts */}
             <AdminStatsSection

@@ -4,24 +4,129 @@
 // This avoids exporting non-component functions from component files (which breaks React Fast Refresh).
 const _cacheClearers: (() => void)[] = []
 
+// Global in-memory cache for admin data across view navigation
+let _registrationsCache: any[] | null = null
+let _statusCountsCache: { pending: number; approved: number; underReview: number; rejected: number; total: number } | null = null
+let _statusMapCache: Record<string, string> = {}
+
+export function getAdminRegistrationsCache(): any[] | null {
+  return _registrationsCache
+}
+
+export function setAdminRegistrationsCache(data: any[] | null) {
+  _registrationsCache = data
+}
+
+export function getAdminStatusCountsCache(): { pending: number; approved: number; underReview: number; rejected: number; total: number } | null {
+  return _statusCountsCache
+}
+
+export function setAdminStatusCountsCache(counts: { pending: number; approved: number; underReview: number; rejected: number; total: number } | null) {
+  _statusCountsCache = counts
+}
+
+export function getAdminStatusMapCache(): Record<string, string> {
+  return _statusMapCache
+}
+
+export function setAdminStatusMapCache(map: Record<string, string>) {
+  _statusMapCache = map
+}
+
+/**
+ * Optimistically updates a player's status across all in-memory caches.
+ * Ensures that returning from PlayerDetail to Dashboard instantly reflects the new status.
+ */
+export function updateCachedPlayerStatus(
+  identifier: { id?: string | number; code?: string; email?: string },
+  newStatus: string
+) {
+  const codeKey = identifier.code ? String(identifier.code).trim() : ''
+  const idKey = identifier.id !== undefined && identifier.id !== null ? String(identifier.id) : ''
+  const emailKey = identifier.email ? String(identifier.email).toLowerCase().trim() : ''
+
+  // 1. Update statusMap cache
+  if (codeKey) _statusMapCache[codeKey] = newStatus
+  if (idKey) _statusMapCache[idKey] = newStatus
+  if (emailKey) _statusMapCache[emailKey] = newStatus
+
+  // 2. Update registrationsCache list
+  if (_registrationsCache && Array.isArray(_registrationsCache)) {
+    _registrationsCache = _registrationsCache.map(r => {
+      const rCode = String(r.registration_code || r.code || '').trim()
+      const rId = r.id !== undefined && r.id !== null ? String(r.id) : ''
+      const rEmail = r.email ? String(r.email).toLowerCase().trim() : ''
+
+      const isMatch =
+        (codeKey && rCode === codeKey) ||
+        (idKey && rId === idKey) ||
+        (emailKey && rEmail === emailKey)
+
+      if (isMatch) {
+        return {
+          ...r,
+          status: newStatus
+        }
+      }
+      return r
+    })
+  }
+
+  // 3. Recalculate statusCounts cache if present
+  if (_registrationsCache && Array.isArray(_registrationsCache)) {
+    let pending = 0
+    let approved = 0
+    let underReview = 0
+    let rejected = 0
+
+    _registrationsCache.forEach(r => {
+      const code = String(r.registration_code || r.code || '').trim()
+      const idK = r.id !== undefined && r.id !== null ? String(r.id) : ''
+      const em = r.email ? String(r.email).toLowerCase().trim() : ''
+      const s = (r.status || _statusMapCache[code] || _statusMapCache[idK] || _statusMapCache[em] || 'pending').toLowerCase()
+
+      if (s === 'approved_draft' || s === 'approved' || s === 'shortlisted' || s === 'selected') approved++
+      else if (s === 'under_review') underReview++
+      else if (s === 'rejected') rejected++
+      else pending++
+    })
+
+    _statusCountsCache = {
+      pending,
+      approved,
+      underReview,
+      rejected,
+      total: _registrationsCache.length
+    }
+  }
+}
+
 /** Called by component modules to register their cache-clearing logic. */
 export function registerAdminCacheClearer(fn: () => void) {
   _cacheClearers.push(fn)
 }
 
-/** Clears all registered module-level caches — call on logout. */
+/** Clears all registered module-level caches — ONLY called on explicit logout. */
 export function clearAdminCaches() {
+  _registrationsCache = null
+  _statusCountsCache = null
+  _statusMapCache = {}
   _cacheClearers.forEach(fn => fn())
 }
 
 export function formatStatus(status?: string): string {
-  if (!status) return 'Pending'
-  return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  const s = (status || '').toLowerCase().trim()
+  if (!s || s === 'pending') return 'Pending Decision'
+  if (s === 'approved_draft' || s === 'approved' || s === 'shortlisted' || s === 'selected') return 'Approved for Drafts'
+  if (s === 'under_review') return 'Registration Under Review'
+  if (s === 'rejected') return 'Registration Rejected'
+  return status!.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 export function statusClass(status?: string): string {
-  const s = (status || '').toLowerCase()
-  if (s === 'approved') return 'status-approved'
+  const s = (status || '').toLowerCase().trim()
+  if (!s || s === 'pending') return 'status-pending'
+  if (s === 'approved_draft' || s === 'approved' || s === 'shortlisted' || s === 'selected') return 'status-approved'
   if (s === 'rejected') return 'status-rejected'
   if (s === 'under_review') return 'status-review'
   return 'status-pending'

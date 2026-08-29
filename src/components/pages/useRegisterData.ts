@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { COUNTRIES } from '../../constants/countries'
-import { API_BASE_URL, buildApiUrl } from '../../config/api'
+import { buildApiUrl, apiFetch } from '../../config/api'
 import { categoriesList } from '../registration/types'
 import type { ApiCategory, ApiAvailability } from '../registration/types'
 
@@ -54,7 +54,7 @@ export function useRegisterData() {
     const fetchNationalities = async () => {
       try {
         const url = buildApiUrl('/nationalities')
-        const res = await fetch(url)
+        const res = await apiFetch(url)
         if (res.ok) {
           const json = await res.json()
           const data = Array.isArray(json) ? json : (json.data || [])
@@ -76,8 +76,6 @@ export function useRegisterData() {
 
   // Fetch player categories and availabilities from API, fall back to hardcoded values
   useEffect(() => {
-    const BASE = API_BASE_URL
-
     const extractList = (json: any): any[] => {
       const data = Array.isArray(json) ? json : (json.data || [])
       return Array.isArray(data) ? data : []
@@ -86,7 +84,7 @@ export function useRegisterData() {
       typeof item === 'string' ? item : (item.name || '')
 
     // Fetch player categories
-    fetch(`${BASE}/player-categories`)
+    apiFetch(buildApiUrl('/player-categories'))
       .then(r => (r.ok ? r.json() : Promise.reject()))
       .then(json => {
         const items = extractList(json)
@@ -109,7 +107,7 @@ export function useRegisterData() {
       .catch(() => {})
 
     // Fetch player availabilities
-    fetch(`${BASE}/player-availabilities`)
+    apiFetch(buildApiUrl('/player-availabilities'))
       .then(r => (r.ok ? r.json() : Promise.reject()))
       .then(json => {
         const items = extractList(json)

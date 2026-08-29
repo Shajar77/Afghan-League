@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent, type Dispatch, type SetStateAction } from 'react'
-import { buildApiUrl } from '../../config/api'
+import { buildApiUrl, authFetch } from '../../config/api'
 import { compressImageFile } from '../../utils/imageCompression'
 import {
   Shield,
@@ -137,7 +137,7 @@ export function TeamsTab({
     const formData = new FormData()
     formData.append('file', compressedFile)
 
-    const uploadRes = await fetch(buildApiUrl('/uploads/image'), {
+    const uploadRes = await authFetch(buildApiUrl('/uploads/image'), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -188,7 +188,7 @@ export function TeamsTab({
         description: teamDescription.trim() || 'Official APL franchise team.'
       }
 
-      const res = await fetch(buildApiUrl('/teams'), {
+      const res = await authFetch(buildApiUrl('/teams'), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

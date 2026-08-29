@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { buildApiUrl } from '../../config/api'
+import { buildApiUrl, apiFetch } from '../../config/api'
 import './RegisterStatusPage.css'
 
 interface StatusResult {
@@ -43,7 +43,7 @@ export function RegisterStatusPage() {
 
     try {
       const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(trimmedEmail)}`)
-      const response = await fetch(url)
+      const response = await apiFetch(url)
       const json = await response.json()
 
       if (response.ok) {

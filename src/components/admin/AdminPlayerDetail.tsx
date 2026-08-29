@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
-import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
-import { formatStatus, statusClass, isAgentRegistration } from './adminUtils'
+import { buildApiUrl, normalizeMediaUrl, authFetch } from '../../config/api'
+import { formatStatus, statusClass, isAgentRegistration, updateCachedPlayerStatus } from './adminUtils'
 import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
 import {
@@ -103,7 +103,9 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
 
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
-  const [currentStatus, setCurrentStatus] = useState(reg.status || 'pending')
+  const [currentStatus, setCurrentStatus] = useState(
+    (reg.status || reg.registration_status || 'pending') as string
+  )
   const [copiedCode, setCopiedCode] = useState(false)
 
   // Guarantee instant scroll reset to top when viewing player detail page
@@ -164,8 +166,9 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
           const data = json.data || json
           if (data && typeof data === 'object') {
             setPlayerData(data)
-            if (data.status) {
-              setCurrentStatus(data.status)
+            const resolvedStatus = data.status || data.registration_status
+            if (resolvedStatus) {
+              setCurrentStatus(resolvedStatus)
             }
           }
         }
@@ -215,27 +218,47 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
       .filter((item): item is { label: string; value: string } => item !== null)
   }
 
-  const updateStatus = async (newStatus: string) => {
+  const updateStatus = async (newStatus: 'approved_draft' | 'under_review' | 'rejected') => {
     setActionLoading(newStatus)
     setActionError(null)
     const token = localStorage.getItem('apl_admin_token') || ''
+    const endpointUrl = buildApiUrl('/admin/players/update-status-by-credentials')
+    const playerEmail = String(reg.email || '').trim()
+    const regCode = String(reg.registration_code || reg.code || `APL-${reg.id}`).trim()
+
+    const payload = {
+      email: playerEmail,
+      registration_id: regCode,
+      status: newStatus,
+    }
+
+    console.log('🔄 [ADJUDICATION] Sending Status Update via V10 Endpoint...')
+    console.log('📍 Endpoint:', endpointUrl)
+    console.log('📦 Payload:', payload)
 
     try {
-      const res = await fetch(buildApiUrl(`/player-registrations/${encodeURIComponent(String(reg.id))}/status`), {
-        method: 'PATCH',
+      const res = await authFetch(endpointUrl, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(payload),
       })
       const json = await res.json()
-      if (res.ok) {
+
+      if (res.ok && json.success !== false) {
         setCurrentStatus(newStatus)
+        updateCachedPlayerStatus({
+          id: reg.id,
+          code: reg.registration_code || reg.code,
+          email: reg.email
+        }, newStatus)
       } else if (res.status === 401) {
         onLogout()
       } else {
-        setActionError(json.message || 'Status update failed. Please check backend connection.')
+        const errorMsg = json.message || json.error?.message || 'Status update failed. Please check backend connection.'
+        setActionError(errorMsg)
       }
     } catch {
       setActionError('Network error: Unable to update player status.')
@@ -247,6 +270,16 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
   const isIconPlayer = Boolean(reg.icon_player_nomination) || reg.consider_icon_player === 'yes'
   // accept_relegation may arrive as boolean or legacy 'yes'/'no' string from the API
   const acceptsRelegation = reg.accept_relegation === true || (reg.accept_relegation as unknown) === 'yes'
+
+  // Normalize normalized current status for button rendering rules
+  const normalizedStatus = (currentStatus || 'pending').toLowerCase()
+  const isRejected = normalizedStatus === 'rejected'
+  const isApprovedDraft = normalizedStatus === 'approved_draft' || normalizedStatus === 'approved' || normalizedStatus === 'shortlisted' || normalizedStatus === 'selected'
+  const isUnderReview = normalizedStatus === 'under_review'
+  const isPending = !isRejected && !isApprovedDraft && !isUnderReview
+
+  // Hide the entire Adjudication Action bar if status is rejected or approved_draft
+  const showAdjudicationBar = !isRejected && !isApprovedDraft
 
   return (
     <div ref={topRef} className="apl-detail-layout">
@@ -351,61 +384,69 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
             </div>
           </div>
 
-          <hr className="apl-hero-divider" />
+          {/* Bottom Row: Adjudication Status Actions (Hidden if rejected or approved_draft) */}
+          {showAdjudicationBar && (
+            <>
+              <hr className="apl-hero-divider" />
+              <div className="apl-hero-bottom-row">
+                <div className="apl-controller-info">
+                  <span className="apl-controller-title">Adjudication Action</span>
+                  <span className="apl-controller-sub">
+                    Change verification state for draft pool eligibility
+                  </span>
+                </div>
 
-          {/* Bottom Row: Adjudication Status Actions */}
-          <div className="apl-hero-bottom-row">
-            <div className="apl-controller-info">
-              <span className="apl-controller-title">Adjudication Action</span>
-              <span className="apl-controller-sub">
-                Change verification state for draft pool eligibility
-              </span>
-            </div>
+                <div className="apl-controller-buttons">
+                  {/* Approve for Draft button (Visible when pending or under_review) */}
+                  <button
+                    type="button"
+                    className={`apl-btn-status-action approve ${isApprovedDraft ? 'selected' : ''}`}
+                    disabled={!!actionLoading}
+                    onClick={() => updateStatus('approved_draft')}
+                  >
+                    {actionLoading === 'approved_draft' ? (
+                      <span className="apl-btn-spin" />
+                    ) : (
+                      <CheckCircle2 size={16} />
+                    )}
+                    <span>Approve for Draft</span>
+                  </button>
 
-            <div className="apl-controller-buttons">
-              <button
-                type="button"
-                className={`apl-btn-status-action approve ${currentStatus === 'approved' ? 'selected' : ''}`}
-                disabled={!!actionLoading}
-                onClick={() => updateStatus('approved')}
-              >
-                {actionLoading === 'approved' ? (
-                  <span className="apl-btn-spin" />
-                ) : (
-                  <CheckCircle2 size={16} />
-                )}
-                <span>Approve for Draft</span>
-              </button>
+                  {/* Under Review button (Only visible when status is pending) */}
+                  {isPending && (
+                    <button
+                      type="button"
+                      className={`apl-btn-status-action review ${isUnderReview ? 'selected' : ''}`}
+                      disabled={!!actionLoading}
+                      onClick={() => updateStatus('under_review')}
+                    >
+                      {actionLoading === 'under_review' ? (
+                        <span className="apl-btn-spin" />
+                      ) : (
+                        <AlertCircle size={16} />
+                      )}
+                      <span>Under Review</span>
+                    </button>
+                  )}
 
-              <button
-                type="button"
-                className={`apl-btn-status-action review ${currentStatus === 'under_review' ? 'selected' : ''}`}
-                disabled={!!actionLoading}
-                onClick={() => updateStatus('under_review')}
-              >
-                {actionLoading === 'under_review' ? (
-                  <span className="apl-btn-spin" />
-                ) : (
-                  <AlertCircle size={16} />
-                )}
-                <span>Under Review</span>
-              </button>
-
-              <button
-                type="button"
-                className={`apl-btn-status-action reject ${currentStatus === 'rejected' ? 'selected' : ''}`}
-                disabled={!!actionLoading}
-                onClick={() => updateStatus('rejected')}
-              >
-                {actionLoading === 'rejected' ? (
-                  <span className="apl-btn-spin" />
-                ) : (
-                  <XCircle size={16} />
-                )}
-                <span>Reject Registration</span>
-              </button>
-            </div>
-          </div>
+                  {/* Reject Registration button (Visible when pending or under_review) */}
+                  <button
+                    type="button"
+                    className={`apl-btn-status-action reject ${isRejected ? 'selected' : ''}`}
+                    disabled={!!actionLoading}
+                    onClick={() => updateStatus('rejected')}
+                  >
+                    {actionLoading === 'rejected' ? (
+                      <span className="apl-btn-spin" />
+                    ) : (
+                      <XCircle size={16} />
+                    )}
+                    <span>Reject Registration</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {actionError && (
             <div className="apl-controller-error">

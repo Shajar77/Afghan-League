@@ -16,7 +16,6 @@ import { TeamSponsorManagement } from './TeamSponsorManagement'
 import {
   AlertCircle,
   LogOut,
-  Home,
   Menu,
   X
 } from 'lucide-react'
@@ -726,18 +725,6 @@ export function AdminDashboard({
           <div className="apl-admin-brand-right desktop-only-nav">
             <button
               type="button"
-              className="apl-btn-back-home"
-              onClick={() => {
-                window.location.hash = ''
-              }}
-              title="Go back to public website"
-            >
-              <Home size={14} />
-              <span>Back to Home</span>
-            </button>
-
-            <button
-              type="button"
               className="apl-btn-red-logout"
               onClick={onLogout}
               title="Sign out"
@@ -818,18 +805,6 @@ export function AdminDashboard({
               </button>
             </li>
           )}
-          <li className="mobile-nav-item">
-            <button
-              type="button"
-              className="mobile-nav-link"
-              onClick={() => {
-                setMobileMenuOpen(false)
-                window.location.hash = ''
-              }}
-            >
-              Back to Home
-            </button>
-          </li>
           <li className="mobile-nav-item">
             <button
               type="button"

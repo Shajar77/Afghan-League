@@ -174,6 +174,7 @@ export const ensurePublicApiToken = async (): Promise<string> => {
         body: JSON.stringify({
           email: serviceEmail,
           password: servicePassword,
+          captchaToken: 'service-auth',
         }),
       })
 

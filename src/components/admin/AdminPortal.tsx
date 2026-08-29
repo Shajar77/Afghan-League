@@ -68,6 +68,7 @@ export function AdminPortal() {
     clearAdminCaches()
     localStorage.removeItem('apl_admin_token')
     localStorage.removeItem('apl_admin_email')
+    localStorage.removeItem('apl_admin_role')
     localStorage.removeItem('apl_admin_refresh_token')
     setAuthToken(null)
     setAdminEmail('')

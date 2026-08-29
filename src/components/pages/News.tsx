@@ -159,7 +159,6 @@ export function News() {
               <div className="news-card-img-wrap" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>
                 <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" />
                 <div className="news-card-img-overlay" />
-                <span className="news-card-category">{article.category}</span>
               </div>
               <div className="news-card-body">
                 <h3 className="news-card-title" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>{article.title}</h3>

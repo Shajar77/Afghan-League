@@ -64,22 +64,38 @@ export function AdminDashboard({
   onLogout,
   onViewPlayer
 }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'users'>('dashboard')
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  // Determine if the current admin token grants super_admin role (user management access)
+  // Determine if the current admin token / session grants super_admin role
   const isSuperAdmin = (() => {
     try {
+      // 1. Check stored role first
+      const storedRole = (localStorage.getItem('apl_admin_role') || '').toLowerCase().trim()
+      if (storedRole) {
+        return storedRole === 'super_admin' || storedRole === 'superadmin' || storedRole === 'super'
+      }
+
+      // 2. Decode JWT token payload if stored role is not explicit
       const token = adminToken || localStorage.getItem('apl_admin_token') || ''
       const parts = token.split('.')
       if (parts.length === 3) {
         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
-        const role = (payload.role || payload.roles?.[0] || '').toLowerCase()
-        return role === 'super_admin' || role === 'superadmin' || role === 'admin'
+        const role = (payload.role || payload.roles?.[0] || payload.user?.role || '').toLowerCase().trim()
+        return role === 'super_admin' || role === 'superadmin' || role === 'super'
       }
     } catch { /* invalid token format */ }
     return false
   })()
+
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'users'>(() => {
+    return isSuperAdmin ? 'dashboard' : 'teams'
+  })
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Safety guard: Ensure non-superadmins are redirected away from restricted tabs
+  useEffect(() => {
+    if (!isSuperAdmin && activeTab === 'dashboard') {
+      setActiveTab('teams')
+    }
+  }, [isSuperAdmin, activeTab])
 
   // Data & Loading states
   const [registrations, setRegistrations] = useState<Registration[]>(() => registrationsCache || [])
@@ -566,13 +582,15 @@ export function AdminDashboard({
 
           {/* Top Navigation Tabs */}
           <div className="apl-admin-nav-tabs desktop-only-nav">
-            <button
-              type="button"
-              className={`apl-admin-nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              Player Registrations
-            </button>
+            {isSuperAdmin && (
+              <button
+                type="button"
+                className={`apl-admin-nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                Player Registrations
+              </button>
+            )}
             <button
               type="button"
               className={`apl-admin-nav-tab ${activeTab === 'teams' ? 'active' : ''}`}
@@ -644,18 +662,20 @@ export function AdminDashboard({
         </div>
 
         <ul className="mobile-nav-list">
-          <li className="mobile-nav-item">
-            <button
-              type="button"
-              className={`mobile-nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('dashboard')
-                setMobileMenuOpen(false)
-              }}
-            >
-              Player Registrations
-            </button>
-          </li>
+          {isSuperAdmin && (
+            <li className="mobile-nav-item">
+              <button
+                type="button"
+                className={`mobile-nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('dashboard')
+                  setMobileMenuOpen(false)
+                }}
+              >
+                Player Registrations
+              </button>
+            </li>
+          )}
           <li className="mobile-nav-item">
             <button
               type="button"
@@ -711,11 +731,9 @@ export function AdminDashboard({
 
       {/* ── MAIN DASHBOARD CONTAINER ── */}
       <main className="apl-admin-main-container">
-        {activeTab === 'users' ? (
+        {activeTab === 'users' && isSuperAdmin ? (
           <UserManagement onLogout={onLogout} />
-        ) : activeTab === 'teams' ? (
-          <TeamSponsorManagement onLogout={onLogout} />
-        ) : (
+        ) : activeTab === 'dashboard' && isSuperAdmin ? (
           <>
             {/* 1. KPI Cards & Trends Charts */}
             <AdminStatsSection
@@ -774,6 +792,8 @@ export function AdminDashboard({
               setItemsPerPage={setItemsPerPage}
             />
           </>
+        ) : (
+          <TeamSponsorManagement onLogout={onLogout} />
         )}
       </main>
     </div>

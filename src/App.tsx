@@ -176,24 +176,16 @@ function App() {
           <main className="app-main">
             {FEATURES.SHOW_TEAMS && <TeamsGridSection />}
 
-            {FEATURES.SHOW_NEWS && (
-              <>
-                <div className="section-divider-line" />
-                <HomeNewsSection />
-              </>
-            )}
-
-            <CricketBallSeam currentPage={currentPage} />
+            {FEATURES.SHOW_NEWS && <HomeNewsSection />}
 
             {FEATURES.SHOW_POINTS_TABLE && <PointsTableSection />}
 
+            <CricketBallSeam currentPage={currentPage} />
+
             {FEATURES.SHOW_MOMENTS && (
-              <>
-                <div className="section-divider-line" />
-                <Suspense fallback={<div className="skeleton-placeholder" style={{ minHeight: '300px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', margin: '2rem 0' }} />}>
-                  <Moments />
-                </Suspense>
-              </>
+              <Suspense fallback={<div className="skeleton-placeholder" style={{ minHeight: '300px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', margin: '2rem 0' }} />}>
+                <Moments />
+              </Suspense>
             )}
 
             {FEATURES.SHOW_LAUNCH_EVENT && <GrandLaunchSection />}

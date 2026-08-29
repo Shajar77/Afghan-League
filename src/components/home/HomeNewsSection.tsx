@@ -25,7 +25,6 @@ export function HomeNewsSection() {
             >
               <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" decoding="async" width="660" height="371" />
               <div className="news-card-img-overlay" />
-              <span className="news-card-category">{article.category}</span>
             </div>
             
             <div className="news-card-body">

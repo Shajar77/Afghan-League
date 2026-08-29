@@ -55,9 +55,13 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
       if (res.ok) {
         const data = json.data || json
         const token = data.access_token || data.token || ''
+        const userRole = (data.user?.role || data.role || data.roles?.[0] || '').toLowerCase()
         if (token) {
           localStorage.setItem('apl_admin_token', token)
           localStorage.setItem('apl_admin_email', email.trim())
+          if (userRole) {
+            localStorage.setItem('apl_admin_role', userRole)
+          }
           if (data.refresh_token) {
             localStorage.setItem('apl_admin_refresh_token', data.refresh_token)
           }

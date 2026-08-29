@@ -1,5 +1,5 @@
 import { useState, type Dispatch, type SetStateAction, type FormEvent } from 'react'
-import { buildApiUrl, authFetch } from '../../config/api'
+import { buildApiUrl, authFetch, safeExternalUrl } from '../../config/api'
 import { compressImageFile } from '../../utils/imageCompression'
 import {
   Award,
@@ -85,6 +85,7 @@ interface SponsorsTabProps {
   setShowSponsorModal: (show: boolean) => void
   setSuccessMessage: (msg: string | null) => void
   setError: (msg: string | null) => void
+  onLogout?: () => void
 }
 
 export function SponsorsTab({
@@ -93,7 +94,8 @@ export function SponsorsTab({
   showSponsorModal,
   setShowSponsorModal,
   setSuccessMessage,
-  setError
+  setError,
+  onLogout
 }: SponsorsTabProps) {
   // Create Sponsor Form State
   const [sponsorName, setSponsorName] = useState('')
@@ -115,16 +117,12 @@ export function SponsorsTab({
 
   const uploadLogoFile = async (file: File): Promise<string> => {
     const compressedFile = await compressImageFile(file, { maxSizeMB: 0.3, maxWidthOrHeight: 1200 })
-    const token = localStorage.getItem('apl_admin_token') || ''
 
     const formData = new FormData()
     formData.append('file', compressedFile)
 
     const uploadRes = await authFetch(buildApiUrl('/uploads/image'), {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
       body: formData
     })
 
@@ -159,7 +157,6 @@ export function SponsorsTab({
 
     try {
       const uploadedLogoUrl = await uploadLogoFile(sponsorLogoFile)
-      const token = localStorage.getItem('apl_admin_token') || ''
 
       const sponsorPayload = {
         name: sponsorName.trim(),
@@ -173,13 +170,16 @@ export function SponsorsTab({
       const res = await authFetch(buildApiUrl('/sponsors'), {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(sponsorPayload)
       })
 
       if (!res.ok) {
+        if (res.status === 401 && onLogout) {
+          onLogout()
+          return
+        }
         const errJson = await res.json().catch(() => ({}))
         throw new Error(parseServerError(errJson, 'Failed to create sponsor.'))
       }
@@ -243,9 +243,9 @@ export function SponsorsTab({
                   <span>Official Website</span>
                 </div>
                 <div className="apl-detail-value">
-                  {sponsor.website_url ? (
+                  {sponsor.website_url && safeExternalUrl(sponsor.website_url) ? (
                     <a
-                      href={/^https?:\/\//i.test(sponsor.website_url) ? sponsor.website_url : `https://${sponsor.website_url}`}
+                      href={safeExternalUrl(sponsor.website_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="apl-sponsor-link"

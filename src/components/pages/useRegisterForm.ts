@@ -4,6 +4,16 @@ import { initialFormData, validateFile } from '../registration/types'
 import { scrollToTop, scrollToElement } from '../../utils/lenis'
 import { compressImageFile } from '../../utils/imageCompression'
 
+const DRAFT_MAX_AGE_MS = 24 * 60 * 60 * 1000 // 24 hours TTL
+
+function safeSetStorage(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value)
+  } catch {
+    // Gracefully handle storage quota or private browsing exceptions
+  }
+}
+
 export function useRegisterForm() {
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [formData, setFormData] = useState<FormData>(initialFormData)
@@ -28,44 +38,56 @@ export function useRegisterForm() {
       scrollToTop(true)
     }, 50)
 
-    const savedStep = localStorage.getItem('apl_player_registration_step')
-    if (savedStep) {
-      const parsedStep = parseInt(savedStep, 10)
-      if (parsedStep >= 1 && parsedStep <= 5) {
-        setCurrentStep(parsedStep)
-      }
-    }
-
     const saved = localStorage.getItem('apl_player_registration_draft')
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
-        if (parsed.availability && !Array.isArray(parsed.availability)) {
-          parsed.availability = [parsed.availability]
+        const savedTime = typeof parsed._savedAt === 'number' ? parsed._savedAt : 0
+        const isExpired = savedTime > 0 && Date.now() - savedTime > DRAFT_MAX_AGE_MS
+
+        if (isExpired) {
+          localStorage.removeItem('apl_player_registration_draft')
+          localStorage.removeItem('apl_player_registration_step')
+          localStorage.removeItem('apl_player_registration_file_meta')
+        } else {
+          if (parsed.availability && !Array.isArray(parsed.availability)) {
+            parsed.availability = [parsed.availability]
+          }
+          if (typeof parsed.acceptRelegation === 'boolean') {
+            parsed.acceptRelegation = parsed.acceptRelegation ? 'yes' : 'no'
+          }
+          // Remove metadata property before loading into state
+          delete parsed._savedAt
+
+          setFormData(prev => ({
+            ...prev,
+            ...parsed,
+            passportPhoto: null,
+            passportScan: null,
+            actionShot: null,
+            rightProfilePhoto: null,
+            leftProfilePhoto: null,
+          }))
+
+          const savedStep = localStorage.getItem('apl_player_registration_step')
+          if (savedStep) {
+            const parsedStep = parseInt(savedStep, 10)
+            if (parsedStep >= 1 && parsedStep <= 5) {
+              setCurrentStep(parsedStep)
+            }
+          }
+
+          const savedFileMeta = localStorage.getItem('apl_player_registration_file_meta')
+          if (savedFileMeta) {
+            try {
+              setFileMeta(JSON.parse(savedFileMeta))
+            } catch {
+              // Could not parse file metadata — clear it silently
+            }
+          }
         }
-        if (typeof parsed.acceptRelegation === 'boolean') {
-          parsed.acceptRelegation = parsed.acceptRelegation ? 'yes' : 'no'
-        }
-        setFormData(prev => ({
-          ...prev,
-          ...parsed,
-          passportPhoto: null,
-          passportScan: null,
-          actionShot: null,
-          rightProfilePhoto: null,
-          leftProfilePhoto: null,
-        }))
       } catch {
         // Corrupted draft — start fresh
-      }
-    }
-
-    const savedFileMeta = localStorage.getItem('apl_player_registration_file_meta')
-    if (savedFileMeta) {
-      try {
-        setFileMeta(JSON.parse(savedFileMeta))
-      } catch {
-        // Could not parse file metadata — clear it silently
       }
     }
 
@@ -79,7 +101,7 @@ export function useRegisterForm() {
     }
   }, [])
 
-  // Auto-save form data draft to localStorage on any input change
+  // Auto-save form data draft to localStorage on any input change (with TTL timestamp)
   useEffect(() => {
     if (!isLoaded) return
     const {
@@ -88,21 +110,26 @@ export function useRegisterForm() {
       actionShot: _aShot,
       rightProfilePhoto: _rPhoto,
       leftProfilePhoto: _lPhoto,
+      passportNumber: _passportNumber, // Never persist government ID in browser storage
       ...serializable
     } = formData
-    localStorage.setItem('apl_player_registration_draft', JSON.stringify(serializable))
+    safeSetStorage('apl_player_registration_draft', JSON.stringify({ ...serializable, _savedAt: Date.now() }))
   }, [formData, isLoaded])
 
   // Auto-save current step to localStorage
   useEffect(() => {
     if (!isLoaded) return
-    localStorage.setItem('apl_player_registration_step', String(currentStep))
+    safeSetStorage('apl_player_registration_step', String(currentStep))
   }, [currentStep, isLoaded])
 
   const clearDraft = () => {
-    localStorage.removeItem('apl_player_registration_draft')
-    localStorage.removeItem('apl_player_registration_step')
-    localStorage.removeItem('apl_player_registration_file_meta')
+    try {
+      localStorage.removeItem('apl_player_registration_draft')
+      localStorage.removeItem('apl_player_registration_step')
+      localStorage.removeItem('apl_player_registration_file_meta')
+    } catch {
+      // Ignore cleanup error
+    }
   }
 
   const validateStep = (step: number): boolean => {
@@ -368,7 +395,7 @@ export function useRegisterForm() {
         setFileMeta(prev => {
           const copy = { ...prev }
           delete copy[fieldName]
-          localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(copy))
+          safeSetStorage('apl_player_registration_file_meta', JSON.stringify(copy))
           return copy
         })
       } else {
@@ -417,7 +444,7 @@ export function useRegisterForm() {
         setFileMeta(prev => {
           const copy = { ...prev }
           delete copy[fieldName]
-          localStorage.setItem('apl_player_registration_file_meta', JSON.stringify(copy))
+          safeSetStorage('apl_player_registration_file_meta', JSON.stringify(copy))
           return copy
         })
       } else {

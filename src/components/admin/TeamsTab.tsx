@@ -132,16 +132,12 @@ export function TeamsTab({
 
   const uploadLogoFile = async (file: File): Promise<string> => {
     const compressedFile = await compressImageFile(file, { maxSizeMB: 0.3, maxWidthOrHeight: 1200 })
-    const token = localStorage.getItem('apl_admin_token') || ''
 
     const formData = new FormData()
     formData.append('file', compressedFile)
 
     const uploadRes = await authFetch(buildApiUrl('/uploads/image'), {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
       body: formData
     })
 
@@ -176,8 +172,6 @@ export function TeamsTab({
 
     try {
       const uploadedLogoUrl = await uploadLogoFile(teamLogoFile)
-      const token = localStorage.getItem('apl_admin_token') || ''
-
       const teamPayload = {
         name: teamName.trim(),
         slug: (teamSlug.trim() || slugify(teamName)).toLowerCase(),
@@ -191,7 +185,6 @@ export function TeamsTab({
       const res = await authFetch(buildApiUrl('/teams'), {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(teamPayload)

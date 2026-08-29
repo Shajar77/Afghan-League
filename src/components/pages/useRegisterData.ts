@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { COUNTRIES } from '../../constants/countries'
-import { buildApiUrl, apiFetch } from '../../config/api'
+import { buildApiUrl, publicFetch } from '../../config/api'
 import { categoriesList } from '../registration/types'
 import type { ApiCategory, ApiAvailability } from '../registration/types'
 
@@ -54,7 +54,7 @@ export function useRegisterData() {
     const fetchNationalities = async () => {
       try {
         const url = buildApiUrl('/nationalities')
-        const res = await apiFetch(url)
+        const res = await publicFetch(url)
         if (res.ok) {
           const json = await res.json()
           const data = Array.isArray(json) ? json : (json.data || [])
@@ -84,7 +84,7 @@ export function useRegisterData() {
       typeof item === 'string' ? item : (item.name || '')
 
     // Fetch player categories
-    apiFetch(buildApiUrl('/player-categories'))
+    publicFetch(buildApiUrl('/player-categories'))
       .then(r => (r.ok ? r.json() : Promise.reject()))
       .then(json => {
         const items = extractList(json)
@@ -107,7 +107,7 @@ export function useRegisterData() {
       .catch(() => {})
 
     // Fetch player availabilities
-    apiFetch(buildApiUrl('/player-availabilities'))
+    publicFetch(buildApiUrl('/player-availabilities'))
       .then(r => (r.ok ? r.json() : Promise.reject()))
       .then(json => {
         const items = extractList(json)

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { Step1Personal } from '../registration/Step1Personal'
 import { Step2Cricket } from '../registration/Step2Cricket'
@@ -24,27 +24,9 @@ export function RegisterPage() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
   const [refCode, setRefCode] = useState<string>('')
 
-  // Check Private Access Guard (Option B)
-  const checkPrivateAccess = () => {
-    const fullUrl = window.location.href.toLowerCase()
-    return (
-      fullUrl.includes('key=apl2026') ||
-      fullUrl.includes('key=private') ||
-      fullUrl.includes('access=private') ||
-      fullUrl.includes('apl2026') ||
-      fullUrl.includes('private') ||
-      fullUrl.includes('invite') ||
-      Boolean(localStorage.getItem('apl_private_registration_access'))
-    )
-  }
-
-  const isAuthorized = checkPrivateAccess()
-
-  useEffect(() => {
-    if (isAuthorized) {
-      localStorage.setItem('apl_private_registration_access', 'true')
-    }
-  }, [isAuthorized])
+  // Registration access is controlled by a single environment variable.
+  // Set VITE_REGISTRATION_OPEN=true in Vercel to open, or remove/set false to close.
+  const isAuthorized = import.meta.env.VITE_REGISTRATION_OPEN === 'true'
 
   // Sub-hooks
   const {

@@ -52,13 +52,11 @@ export function UserManagement({ onLogout }: UserManagementProps) {
   const fetchUsers = useCallback(async () => {
     setIsLoading(true)
     setError(null)
-    const token = localStorage.getItem('apl_admin_token') || ''
 
     try {
       const res = await authFetch(buildApiUrl('/users'), {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       })
@@ -95,13 +93,11 @@ export function UserManagement({ onLogout }: UserManagementProps) {
     }
 
     setIsSubmitting(true)
-    const token = localStorage.getItem('apl_admin_token') || ''
 
     try {
       const res = await authFetch(buildApiUrl('/users'), {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

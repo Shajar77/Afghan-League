@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { buildApiUrl, apiFetch } from '../../config/api'
+import { buildApiUrl, publicFetch } from '../../config/api'
 import './RegisterStatusPage.css'
 
 interface StatusResult {
@@ -43,7 +43,7 @@ export function RegisterStatusPage() {
 
     try {
       const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(trimmedEmail)}`)
-      const response = await apiFetch(url)
+      const response = await publicFetch(url)
       const json = await response.json()
 
       if (response.ok) {
@@ -102,6 +102,8 @@ export function RegisterStatusPage() {
                   value={appId}
                   onChange={(e) => setAppId(e.target.value)}
                   className="status-search-input"
+                  autoComplete="off"
+                  aria-label="Application Reference Code"
                   required
                 />
               </div>
@@ -112,6 +114,8 @@ export function RegisterStatusPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="status-search-input"
+                  autoComplete="email"
+                  aria-label="Registered Email Address"
                   required
                 />
                 <p className="status-otp-hint">Enter the email used during registration</p>

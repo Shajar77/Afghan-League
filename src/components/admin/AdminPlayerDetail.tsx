@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
-import { buildApiUrl, normalizeMediaUrl, authFetch } from '../../config/api'
+import { buildApiUrl, normalizeMediaUrl, safeExternalUrl, authFetch } from '../../config/api'
 import { formatStatus, statusClass, isAgentRegistration, updateCachedPlayerStatus } from './adminUtils'
 import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
@@ -141,11 +141,6 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
   }, [])
 
   useEffect(() => {
-    const token = localStorage.getItem('apl_admin_token') || ''
-    if (!token) {
-      return
-    }
-
     const email = initialReg.email
     const code = initialReg.registration_code || (initialReg as any).code
 
@@ -155,12 +150,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
       setIsDataLoading(true)
       try {
         const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(String(code))}&email=${encodeURIComponent(String(email))}`)
-        const token = localStorage.getItem('apl_admin_token') || ''
-        const res = await fetch(url, {
-          headers: token ? {
-            'Authorization': `Bearer ${token}`
-          } : {}
-        })
+        const res = await authFetch(url)
         if (res.ok) {
           const json = await res.json()
           const data = json.data || json
@@ -232,9 +222,6 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
       status: newStatus,
     }
 
-    console.log('🔄 [ADJUDICATION] Sending Status Update via V10 Endpoint...')
-    console.log('📍 Endpoint:', endpointUrl)
-    console.log('📦 Payload:', payload)
 
     try {
       const res = await authFetch(endpointUrl, {
@@ -584,11 +571,11 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
                 <span className="apl-data-label">Total T20 Matches</span>
                 <span className="apl-data-value badge-pill">{reg.twtenty_matches_count ?? '—'}</span>
               </div>
-              {reg.profile_link && (
+              {reg.profile_link && safeExternalUrl(reg.profile_link) && (
                 <div className="apl-data-row">
                   <span className="apl-data-label">ESPNcricinfo or Cricbuzz Profile Link</span>
                   <a
-                    href={/^https?:\/\//i.test(reg.profile_link) ? reg.profile_link : `https://${reg.profile_link}`}
+                    href={safeExternalUrl(reg.profile_link)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="apl-data-link"

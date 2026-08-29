@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { API_BASE_URL, buildApiUrl, getApiToken, normalizeMediaUrl } from '../../config/api'
+import { API_BASE_URL, buildApiUrl, publicFetch, normalizeMediaUrl } from '../../config/api'
+import { compressImageFile } from '../../utils/imageCompression'
 import type { FormData } from '../registration/types'
 
 const AVAILABILITY_SHORT_MAP: Record<string, string> = {
@@ -63,26 +64,35 @@ export function useRegisterSubmit() {
     setSubmitError(null)
 
     try {
-      // 1. Upload player images in bulk
-      const uploadForm = new FormData()
-      if (formData.passportScan) uploadForm.append('passport', formData.passportScan)
-      if (formData.actionShot) uploadForm.append('action_shot', formData.actionShot)
-      if (formData.passportPhoto) uploadForm.append('photo', formData.passportPhoto)
-      if (formData.rightProfilePhoto) uploadForm.append('right_profile', formData.rightProfilePhoto)
-      if (formData.leftProfilePhoto) uploadForm.append('left_profile', formData.leftProfilePhoto)
+      // 1. Upload player images in bulk (with client-side compression)
+      const [compressedScan, compressedAction, compressedPhoto, compressedRight, compressedLeft] =
+        await Promise.all([
+          formData.passportScan ? compressImageFile(formData.passportScan) : null,
+          formData.actionShot ? compressImageFile(formData.actionShot) : null,
+          formData.passportPhoto ? compressImageFile(formData.passportPhoto) : null,
+          formData.rightProfilePhoto ? compressImageFile(formData.rightProfilePhoto) : null,
+          formData.leftProfilePhoto ? compressImageFile(formData.leftProfilePhoto) : null,
+        ])
 
-      const token = getApiToken()
-      const uploadRes = await fetch(buildApiUrl('/uploads/player-images'), {
+      const uploadForm = new FormData()
+      if (compressedScan) uploadForm.append('passport', compressedScan)
+      if (compressedAction) uploadForm.append('action_shot', compressedAction)
+      if (compressedPhoto) uploadForm.append('photo', compressedPhoto)
+      if (compressedRight) uploadForm.append('right_profile', compressedRight)
+      if (compressedLeft) uploadForm.append('left_profile', compressedLeft)
+
+      const uploadRes = await publicFetch(buildApiUrl('/uploads/player-images'), {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: uploadForm,
       })
 
       if (!uploadRes.ok) {
         const errJson = await uploadRes.json().catch(() => ({}))
-        throw new Error(
-          errJson.message || 'Image upload failed. Please verify MIME types and try again.'
-        )
+        const errorMsg =
+          errJson.message ||
+          (errJson.error && typeof errJson.error === 'string' ? errJson.error : errJson.error?.message) ||
+          'Image upload failed. Please verify the image file formats and sizes, then try again.'
+        throw new Error(errorMsg)
       }
 
       const uploadJson = await uploadRes.json()
@@ -183,18 +193,13 @@ export function useRegisterSubmit() {
         accept_relegation: formData.acceptRelegation === 'yes',
         relegation_category:
           formData.acceptRelegation === 'yes' ? formData.relegationLimit || '' : '',
-        relegation_limit: formData.relegationLimit || 'None',
-        consider_icon_player: formData.considerIconPlayer || 'no',
-        representing_country: formData.representingCountry || '',
       }
 
       // 2. Submit player registration
-      const apiAuthToken = getApiToken()
-      const regRes = await fetch(buildApiUrl('/player-registrations'), {
+      const regRes = await publicFetch(buildApiUrl('/player-registrations'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(apiAuthToken ? { Authorization: `Bearer ${apiAuthToken}` } : {}),
         },
         body: JSON.stringify(regPayload),
       })

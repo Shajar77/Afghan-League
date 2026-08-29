@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
 import { buildApiUrl } from '../../config/api'
 import aplLogo from '../../assets/Asset 2@2x.png'
@@ -17,34 +17,30 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const [error, setError] = useState<string | null>(null)
 
   const recaptchaRef = useRef<ReCAPTCHA>(null)
-  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeJJ5stAAAAACIKFdw7SX1nejknA7VAn_gLfLJq'
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 
-  // Private Admin Access Check (Option B)
-  const checkAdminPrivateAccess = () => {
-    const fullUrl = window.location.href.toLowerCase()
-    const token = localStorage.getItem('apl_admin_token')
-    return (
-      Boolean(token) ||
-      fullUrl.includes('key=apl2026') ||
-      fullUrl.includes('key=admin') ||
-      fullUrl.includes('access=private') ||
-      fullUrl.includes('access=admin') ||
-      fullUrl.includes('apl2026') ||
-      fullUrl.includes('admin') ||
-      Boolean(localStorage.getItem('apl_private_admin_access'))
-    )
-  }
+  // Login throttle — locks out after 5 consecutive failed attempts for 30 seconds
+  const [failedAttempts, setFailedAttempts] = useState(() => {
+    const saved = sessionStorage.getItem('apl_admin_failed_attempts')
+    return saved ? parseInt(saved, 10) || 0 : 0
+  })
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(() => {
+    const saved = sessionStorage.getItem('apl_admin_lockout_until')
+    return saved ? parseInt(saved, 10) || null : null
+  })
 
-  const isAdminAuthorized = checkAdminPrivateAccess()
-
-  useEffect(() => {
-    if (isAdminAuthorized) {
-      localStorage.setItem('apl_private_admin_access', 'true')
-    }
-  }, [isAdminAuthorized])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Check lockout before processing
+    const now = Date.now()
+    if (lockoutUntil && now < lockoutUntil) {
+      const secondsLeft = Math.ceil((lockoutUntil - now) / 1000)
+      setError(`Too many failed attempts. Please wait ${secondsLeft} second${secondsLeft !== 1 ? 's' : ''} before trying again.`)
+      return
+    }
+
     setError(null)
     setIsLoading(true)
 
@@ -53,11 +49,8 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
       try {
         captchaToken = (await recaptchaRef.current.executeAsync()) || ''
       } catch {
-        // Fallback if reCAPTCHA execution fails or is blocked
+        // reCAPTCHA execution failed — proceed without token
       }
-    }
-    if (!captchaToken) {
-      captchaToken = siteKey
     }
 
     try {
@@ -67,7 +60,7 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         body: JSON.stringify({
           email: email.trim(),
           password,
-          captchaToken
+          ...(captchaToken ? { captchaToken } : {})
         }),
       })
       const json = await res.json()
@@ -85,12 +78,32 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
           if (data.refresh_token) {
             localStorage.setItem('apl_admin_refresh_token', data.refresh_token)
           }
+          // Reset throttle on successful login
+          setFailedAttempts(0)
+          setLockoutUntil(null)
+          sessionStorage.removeItem('apl_admin_failed_attempts')
+          sessionStorage.removeItem('apl_admin_lockout_until')
           onLoginSuccess(token, email.trim())
           return
         }
       }
 
-      setError(json.error?.message || json.message || 'Invalid email or password. Please try again.')
+      // Track failed attempt
+      const newAttempts = failedAttempts + 1
+      setFailedAttempts(newAttempts)
+      sessionStorage.setItem('apl_admin_failed_attempts', String(newAttempts))
+      if (newAttempts >= 5) {
+        const lockoutTime = Date.now() + 30000
+        setLockoutUntil(lockoutTime)
+        sessionStorage.setItem('apl_admin_lockout_until', String(lockoutTime))
+        setFailedAttempts(0)
+        sessionStorage.removeItem('apl_admin_failed_attempts')
+        setError('Too many failed attempts. Please wait 30 seconds before trying again.')
+      } else {
+        setError(json.error?.message || json.message || 'Invalid email or password. Please try again.')
+      }
+
+      if (recaptchaRef.current) recaptchaRef.current.reset()
     } catch {
       setError('Unable to connect to backend server. Please verify your connection or try again later.')
     } finally {
@@ -98,106 +111,6 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     }
   }
 
-  if (!isAdminAuthorized) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#040b1e',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem'
-      }}>
-        <div style={{
-          maxWidth: '560px',
-          width: '100%',
-          background: '#081438',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          borderRadius: '16px',
-          padding: '3rem 2rem',
-          textAlign: 'center',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '1.25rem'
-        }}>
-          <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '50%',
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1.5px solid #ef4444',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.75rem',
-            color: '#ef4444'
-          }}>
-            🛡️
-          </div>
-
-          <span style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.8rem',
-            fontWeight: 800,
-            letterSpacing: '0.15em',
-            color: '#ef4444',
-            textTransform: 'uppercase',
-            background: 'rgba(239, 68, 68, 0.12)',
-            padding: '0.35rem 1rem',
-            borderRadius: '20px',
-            border: '1px solid rgba(239, 68, 68, 0.3)'
-          }}>
-            ADMIN PORTAL • RESTRICTED ACCESS
-          </span>
-
-          <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
-            fontWeight: 900,
-            color: '#ffffff',
-            margin: 0,
-            lineHeight: 1.15,
-            textTransform: 'uppercase'
-          }}>
-            ACCESS RESTRICTED
-          </h2>
-
-          <p style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: '0.98rem',
-            lineHeight: 1.7,
-            color: '#94a3b8',
-            margin: 0,
-            maxWidth: '460px'
-          }}>
-            The APL Administration Portal is reserved exclusively for tournament officials and league management. Access requires valid administrative authorization parameters.
-          </p>
-
-          <a href="#home" style={{
-            background: 'var(--brand-gold)',
-            color: '#0f172a',
-            fontFamily: 'var(--font-display)',
-            fontWeight: 800,
-            fontSize: '0.9rem',
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            padding: '0.85rem 2rem',
-            borderRadius: '4px',
-            textDecoration: 'none',
-            marginTop: '0.5rem',
-            minHeight: '44px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            Back to Home Page
-          </a>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="apl-admin-fullscreen-wrapper">
@@ -280,6 +193,7 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
                   type="button"
                   className="apl-toggle-pw-btn"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

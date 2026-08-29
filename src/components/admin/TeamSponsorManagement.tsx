@@ -182,6 +182,7 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
           setShowSponsorModal={setShowSponsorModal}
           setSuccessMessage={setSuccessMessage}
           setError={setError}
+          onLogout={onLogout}
         />
       )}
     </div>

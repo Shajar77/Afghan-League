@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { buildApiUrl, normalizeMediaUrl, safeExternalUrl, authFetch } from '../../config/api'
-import { formatStatus, statusClass, isAgentRegistration, updateCachedPlayerStatus } from './adminUtils'
+import { formatStatus, statusClass, isAgentRegistration, updateCachedPlayerStatus, registerAdminCacheClearer } from './adminUtils'
 import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
 import {
@@ -35,7 +35,12 @@ interface AdminPlayerDetailProps {
   adminEmail: string
 }
 
-// formatStatus and statusClass are now imported from ./adminUtils
+// In-memory cache for player dossier data across detail views
+const playerDetailCache = new Map<string, any>()
+
+registerAdminCacheClearer(() => {
+  playerDetailCache.clear()
+})
 
 function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }) {
   const [lightbox, setLightbox] = useState(false)
@@ -97,7 +102,16 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
 
 export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, adminEmail: _adminEmail }: AdminPlayerDetailProps) {
   const topRef = useRef<HTMLDivElement>(null)
-  const [playerData, setPlayerData] = useState<Registration>(initialReg)
+  const regCode = String(initialReg.registration_code || (initialReg as any).code || '').trim()
+  const email = String(initialReg.email || '').trim().toLowerCase()
+  const cacheKey = regCode && email ? `${regCode}_${email}` : ''
+
+  const [playerData, setPlayerData] = useState<Registration>(() => {
+    if (cacheKey && playerDetailCache.has(cacheKey)) {
+      return { ...initialReg, ...playerDetailCache.get(cacheKey) }
+    }
+    return initialReg
+  })
   const [isDataLoading, setIsDataLoading] = useState(false)
   const reg: any = playerData
 
@@ -141,21 +155,29 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
   }, [])
 
   useEffect(() => {
-    const email = initialReg.email
-    const code = initialReg.registration_code || (initialReg as any).code
+    if (!email || !regCode) return
 
-    if (!email || !code) return
+    // If full details already cached, apply cache directly
+    if (cacheKey && playerDetailCache.has(cacheKey)) {
+      const cached = playerDetailCache.get(cacheKey)
+      setPlayerData(prev => ({ ...prev, ...cached }))
+      const resolvedStatus = cached.status || cached.registration_status
+      if (resolvedStatus) setCurrentStatus(resolvedStatus)
+      return
+    }
 
+    let isMounted = true
     const fetchFullDetails = async () => {
       setIsDataLoading(true)
       try {
-        const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(String(code))}&email=${encodeURIComponent(String(email))}`)
+        const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(regCode)}&email=${encodeURIComponent(email)}`)
         const res = await authFetch(url)
-        if (res.ok) {
+        if (res.ok && isMounted) {
           const json = await res.json()
           const data = json.data || json
           if (data && typeof data === 'object') {
-            setPlayerData(data)
+            if (cacheKey) playerDetailCache.set(cacheKey, data)
+            setPlayerData(prev => ({ ...prev, ...data }))
             const resolvedStatus = data.status || data.registration_status
             if (resolvedStatus) {
               setCurrentStatus(resolvedStatus)
@@ -163,14 +185,17 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
           }
         }
       } catch {
-        // Network error — player data from table row is used as fallback
+        // Silently fall back to initial table row data on network issue
       } finally {
-        setIsDataLoading(false)
+        if (isMounted) setIsDataLoading(false)
       }
     }
 
     fetchFullDetails()
-  }, [initialReg])
+    return () => {
+      isMounted = false
+    }
+  }, [regCode, email, cacheKey])
 
   const handleCopyCode = () => {
     if (reg.registration_code) {
@@ -236,6 +261,10 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
 
       if (res.ok && json.success !== false) {
         setCurrentStatus(newStatus)
+        if (cacheKey && playerDetailCache.has(cacheKey)) {
+          const cached = playerDetailCache.get(cacheKey)
+          playerDetailCache.set(cacheKey, { ...cached, status: newStatus, registration_status: newStatus })
+        }
         updateCachedPlayerStatus({
           id: reg.id,
           code: reg.registration_code || reg.code,
@@ -452,11 +481,11 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
           </h2>
 
           <div className="apl-gallery-grid">
-            <ImageCard url={reg.photo_url} label="Official Headshot" icon={User} />
-            <ImageCard url={reg.action_shot_url} label="Match Action Shot" icon={Award} />
-            <ImageCard url={reg.right_profile_url} label="Right Profile" icon={Sparkles} />
-            <ImageCard url={reg.left_profile_url} label="Left Profile" icon={Sparkles} />
-            <ImageCard url={reg.passport_url} label="Passport Verification" icon={FileText} />
+            <ImageCard url={reg.photo_url || reg.photo || reg.headshot_url || reg.headshot_image_url} label="Official Headshot" icon={User} />
+            <ImageCard url={reg.action_shot_url || reg.action_url || reg.action_shot} label="Match Action Shot" icon={Award} />
+            <ImageCard url={reg.right_profile_url || reg.right_profile} label="Right Profile" icon={Sparkles} />
+            <ImageCard url={reg.left_profile_url || reg.left_profile} label="Left Profile" icon={Sparkles} />
+            <ImageCard url={reg.passport_url || reg.passport_image_url} label="Passport Verification" icon={FileText} />
           </div>
         </section>
 
@@ -483,11 +512,11 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
               </div>
               <div className="apl-data-row">
                 <span className="apl-data-label"><FileText size={13} /> Passport Number</span>
-                <span className="apl-data-value mono">{reg.passport_number || '—'}</span>
+                <span className="apl-data-value mono">{reg.passport_number || reg.passport_no || reg.passport || '—'}</span>
               </div>
               <div className="apl-data-row">
                 <span className="apl-data-label"><Globe size={13} /> Country of Residence</span>
-                <span className="apl-data-value">{toTitleCase(reg.country_of_residence) || '—'}</span>
+                <span className="apl-data-value">{toTitleCase(reg.country_of_residence || reg.residence_country) || '—'}</span>
               </div>
               <div className="apl-data-row">
                 <span className="apl-data-label"><MapPin size={13} /> City</span>
@@ -529,7 +558,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
               </div>
               <div className="apl-data-row">
                 <span className="apl-data-label">Batting Hand</span>
-                <span className="apl-data-value">{toTitleCase(reg.batting_hand) || '—'}</span>
+                <span className="apl-data-value">{toTitleCase(reg.batting_hand || reg.batting_style) || '—'}</span>
               </div>
               {reg.bowling_arm && (
                 <>
@@ -555,7 +584,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
               )}
               <div className="apl-data-row">
                 <span className="apl-data-label">Previous Major Teams</span>
-                <span className="apl-data-value">{toTitleCase(reg.previous_teams) || '—'}</span>
+                <span className="apl-data-value">{toTitleCase(reg.previous_teams || reg.previous_major_teams || reg.teams) || '—'}</span>
               </div>
               <div className="apl-data-row">
                 <span className="apl-data-label">Player Status</span>
@@ -569,7 +598,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
               )}
               <div className="apl-data-row">
                 <span className="apl-data-label">Total T20 Matches</span>
-                <span className="apl-data-value badge-pill">{reg.twtenty_matches_count ?? '—'}</span>
+                <span className="apl-data-value badge-pill">{reg.twtenty_matches_count ?? reg.twenty_matches_count ?? reg.t20_matches_count ?? reg.t20_matches ?? '—'}</span>
               </div>
               {reg.profile_link && safeExternalUrl(reg.profile_link) && (
                 <div className="apl-data-row">

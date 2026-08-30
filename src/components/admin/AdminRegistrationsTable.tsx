@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
-import { buildApiUrl, normalizeMediaUrl, authFetch } from '../../config/api'
-import { formatStatus, statusClass, registerAdminCacheClearer } from './adminUtils'
+import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
+import { normalizeMediaUrl } from '../../config/api'
+import { formatStatus, statusClass } from './adminUtils'
 import {
   Users,
   ChevronLeft,
@@ -36,97 +36,20 @@ export interface Registration {
   [key: string]: unknown
 }
 
-let avatarCache = new Map<string, string>()
-
-registerAdminCacheClearer(() => {
-  avatarCache.clear()
-})
-
 function PlayerAvatar({
   photoUrl,
   name,
-  regCode,
-  email,
-  token
 }: {
   photoUrl?: string
   name?: string
-  regCode?: string
-  email?: string
-  token?: string
 }) {
   const [src, setSrc] = useState<string>(normalizeMediaUrl(photoUrl || ''))
   const [error, setError] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (photoUrl) {
-      setSrc(normalizeMediaUrl(photoUrl))
-      setError(false)
-      return
-    }
-
-    if (!regCode || !email) return
-    const cacheKey = `${regCode}_${email}`
-
-    if (avatarCache.has(cacheKey)) {
-      setSrc(normalizeMediaUrl(avatarCache.get(cacheKey) || ''))
-      setError(false)
-      return
-    }
-
-    const container = containerRef.current
-    if (!container) return
-
-    let isMounted = true
-    const authToken = token || localStorage.getItem('apl_admin_token') || ''
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        observer.disconnect()
-
-        const fetchAvatar = async () => {
-          try {
-            const url = buildApiUrl(
-              `/player-registrations/lookup?code=${encodeURIComponent(regCode)}&email=${encodeURIComponent(email)}`
-            )
-            const res = await authFetch(url, {
-              headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
-            })
-            if (!res.ok || !isMounted) return
-            const json = await res.json()
-            const data = json.data || json
-            const imgPath =
-              data?.photo_url ||
-              data?.photo ||
-              data?.headshot_url ||
-              data?.profile_photo_url ||
-              data?.action_shot_url ||
-              data?.passport_url ||
-              ''
-            if (imgPath && isMounted) {
-              const fullUrl = normalizeMediaUrl(imgPath)
-              avatarCache.set(cacheKey, fullUrl)
-              setSrc(fullUrl)
-              setError(false)
-            }
-          } catch {
-            // Ignore background avatar prefetch error
-          }
-        }
-
-        fetchAvatar()
-      },
-      { rootMargin: '100px' }
-    )
-
-    observer.observe(container)
-    return () => {
-      isMounted = false
-      observer.disconnect()
-    }
-  }, [photoUrl, regCode, email, token])
+    setSrc(normalizeMediaUrl(photoUrl || ''))
+    setError(false)
+  }, [photoUrl])
 
   const initials = (name || '')
     .split(' ')
@@ -136,7 +59,7 @@ function PlayerAvatar({
     .toUpperCase() || 'PL'
 
   return (
-    <div ref={containerRef} className="apl-player-avatar-mini apl-avatar-wrap">
+    <div className="apl-player-avatar-mini apl-avatar-wrap">
       {src && !error ? (
         <img
           src={src}
@@ -170,7 +93,7 @@ export function AdminRegistrationsTable({
   paginated,
   filtered,
   onViewPlayer,
-  adminToken,
+  adminToken: _adminToken,
   safeCurrentPage,
   setCurrentPage,
   totalPages,
@@ -233,6 +156,9 @@ export function AdminRegistrationsTable({
                             reg.photo_url ||
                             (reg as any).photo ||
                             (reg as any).photoUrl ||
+                            (reg as any).headshot_image_url ||
+                            (reg as any).headshot_url ||
+                            (reg as any).profile_photo_url ||
                             reg.passport_url ||
                             (reg as any).passportUrl ||
                             reg.action_shot_url ||
@@ -240,9 +166,6 @@ export function AdminRegistrationsTable({
                             (reg as any).image_url
                           }
                           name={reg.full_name}
-                          regCode={reg.registration_code || (reg as any).code}
-                          email={reg.email}
-                          token={adminToken}
                         />
                         <div className="apl-player-text">
                           <div className="apl-player-name-row">

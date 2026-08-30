@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { CheckCircle2 } from 'lucide-react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { Step1Personal } from '../registration/Step1Personal'
 import { Step2Cricket } from '../registration/Step2Cricket'
 import { Step3Category } from '../registration/Step3Category'
@@ -23,6 +24,10 @@ const STEPS = [
 export function RegisterPage() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
   const [refCode, setRefCode] = useState<string>('')
+  const [honeypot, setHoneypot] = useState<string>('')
+
+  const recaptchaRef = useRef<ReCAPTCHA>(null)
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 
   // Registration access is controlled by a single environment variable.
   // Set VITE_REGISTRATION_OPEN=true in Vercel to open, or remove/set false to close.
@@ -68,20 +73,39 @@ export function RegisterPage() {
         scrollToFormTop()
         setCurrentStep(prev => prev + 1)
       } else {
+        // Anti-bot check: silent abort if honeypot is populated
+        if (honeypot.trim()) {
+          console.warn('Bot registration attempt blocked via honeypot.')
+          return
+        }
+
         // Guard: ensure all declarations/consents are accepted
         if (!consent1 || !consent2 || !consent3 || !consent4) {
           setErrors({ consents: 'Please accept all declarations before submitting.' })
           return
         }
 
+        let captchaToken = ''
+        if (siteKey && recaptchaRef.current) {
+          try {
+            captchaToken = (await recaptchaRef.current.executeAsync()) || ''
+          } catch {
+            // Fallback handled gracefully
+          }
+        }
+
         try {
-          const generatedCode = await submit(formData)
+          const generatedCode = await submit(formData, captchaToken)
           clearDraft()
           setRefCode(generatedCode)
           setIsSubmitted(true)
           scrollToTop(true)
         } catch {
           // Error state is handled inside useRegisterSubmit
+        } finally {
+          if (siteKey && recaptchaRef.current) {
+            recaptchaRef.current.reset()
+          }
         }
       }
     }
@@ -98,6 +122,7 @@ export function RegisterPage() {
     resetForm()
     setIsSubmitted(false)
     setRefCode('')
+    setHoneypot('')
   }
 
   if (!isAuthorized) {
@@ -232,6 +257,28 @@ export function RegisterPage() {
               />
             )}
           </div>
+
+          {/* Anti-Spam Bot Trap (Honeypot) */}
+          <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+            <label htmlFor="reg_hp_website">Leave this field blank</label>
+            <input
+              id="reg_hp_website"
+              type="text"
+              name="reg_hp_website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+            />
+          </div>
+
+          {siteKey && (
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={siteKey}
+              size="invisible"
+            />
+          )}
 
           {/* Form Action Buttons */}
           <div className="form-card-footer">

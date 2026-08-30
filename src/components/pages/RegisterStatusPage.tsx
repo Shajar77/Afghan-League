@@ -20,12 +20,20 @@ export function RegisterStatusPage() {
   const [statusResult, setStatusResult] = useState<StatusResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [honeypot, setHoneypot] = useState('')
 
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Anti-bot check
+    if (honeypot.trim()) {
+      console.warn('Bot status lookup blocked via honeypot.')
+      return
+    }
+
     const trimmedId = appId.trim()
     const trimmedEmail = email.trim().toLowerCase()
 
@@ -57,7 +65,13 @@ export function RegisterStatusPage() {
     try {
       const captchaParam = captchaToken ? `&captchaToken=${encodeURIComponent(captchaToken)}` : ''
       const url = buildApiUrl(`/player-registrations/lookup?code=${encodeURIComponent(formattedId)}&email=${encodeURIComponent(trimmedEmail)}${captchaParam}`)
-      const response = await publicFetch(url, {}, captchaToken)
+      const response = await publicFetch(url)
+
+      if (response.status === 429) {
+        setErrorMessage('Rate limit reached: Maximum 10 lookups per 15 minutes. Please wait before searching again.')
+        return
+      }
+
       const json = await response.json()
 
       if (response.ok) {
@@ -111,6 +125,20 @@ export function RegisterStatusPage() {
           </p>
 
           <form onSubmit={handleSearch} className="status-search-form">
+            {/* Anti-Spam Bot Trap (Honeypot) */}
+            <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+              <label htmlFor="status_hp_website">Leave this field blank</label>
+              <input
+                id="status_hp_website"
+                type="text"
+                name="status_hp_website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
+
             <div className="status-fields-stack">
               <div className="status-field-group">
                 <input

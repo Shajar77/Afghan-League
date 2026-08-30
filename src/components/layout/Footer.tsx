@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
-import { buildApiUrl, getApiToken } from '../../config/api'
+import { buildApiUrl, publicFetch } from '../../config/api'
 import aplLogo from '../../assets/Asset 2@2x.png'
 import { FEATURES } from '../../constants/features'
 import './Footer.css'
@@ -11,6 +11,7 @@ export function Footer() {
   const [newsletterError, setNewsletterError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [honeypot, setHoneypot] = useState('')
   const recaptchaRef = useRef<ReCAPTCHA>(null)
 
   const [newsletterFocused, setNewsletterFocused] = useState(false)
@@ -18,6 +19,13 @@ export function Footer() {
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Anti-bot check
+    if (honeypot.trim()) {
+      console.warn('Bot newsletter subscription blocked via honeypot.')
+      return
+    }
+
     const trimmedEmail = newsletterEmail.trim()
     if (!trimmedEmail) return
 
@@ -35,21 +43,25 @@ export function Footer() {
         }
       }
 
-      const token = getApiToken()
       const payload = {
         email: trimmedEmail,
-        recaptcha_token: activeCaptchaToken || undefined,
-        recaptchaToken: activeCaptchaToken || undefined
+        captchaToken: activeCaptchaToken || '',
+        recaptcha_token: activeCaptchaToken || '',
+        recaptchaToken: activeCaptchaToken || ''
       }
 
-      const res = await fetch(buildApiUrl('/newsletter/subscribe'), {
+      const res = await publicFetch(buildApiUrl('/newsletter/subscribe'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify(payload)
       })
+
+      if (res.status === 429) {
+        setNewsletterError('Rate limit reached: Maximum 5 attempts per 15 minutes. Please wait.')
+        return
+      }
 
       const json = await res.json().catch(() => ({}))
 
@@ -100,6 +112,19 @@ export function Footer() {
           </div>
           <div className="newsletter-action-wrap">
             <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
+              {/* Anti-Spam Bot Trap (Honeypot) */}
+              <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+                <label htmlFor="newsletter_hp_website">Leave this field blank</label>
+                <input
+                  id="newsletter_hp_website"
+                  type="text"
+                  name="newsletter_hp_website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                />
+              </div>
               <input 
                 type="email" 
                 placeholder="you@example.com" 

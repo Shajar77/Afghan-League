@@ -89,15 +89,6 @@ export const buildApiUrl = (path: string): string => {
   return `${API_BASE_URL}${cleanPath}`
 }
 
-export const apiFetch = (url: string, options: RequestInit = {}): Promise<Response> => {
-  const token = getApiToken()
-  const headers = new Headers(options.headers || {})
-  if (token && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${token}`)
-  }
-  return fetch(url, { ...options, headers })
-}
-
 /**
  * Enhanced fetch wrapper for admin requests. Automatically attempts a silent
  * token refresh and retries the request once if a 401 Unauthorized occurs.
@@ -131,102 +122,20 @@ export const authFetch = async (url: string, options: RequestInit = {}): Promise
   return res
 }
 
-// Shared promise to prevent duplicate concurrent service token requests
-let serviceTokenPromise: Promise<string> | null = null
-
 /**
- * Obtains a valid token for public registration & lookup requests.
- * Uses sessionStorage cache if unexpired, or calls /auth/login with the
- * service-account credentials stored in VITE_SERVICE_EMAIL / VITE_SERVICE_PASSWORD.
- * These env vars are set only in Vercel project settings — never hardcoded here.
- */
-export const ensurePublicApiToken = async (liveCaptchaToken?: string): Promise<string> => {
-  // 1. Check if admin token is active in localStorage
-  const adminToken = localStorage.getItem('apl_admin_token')
-  if (adminToken && !isJwtExpiringSoon(adminToken, 60)) {
-    return adminToken
-  }
-
-  // 2. Check if a valid service session token is already in sessionStorage
-  const cachedToken = sessionStorage.getItem('apl_service_token')
-  if (cachedToken && !isJwtExpiringSoon(cachedToken, 120)) {
-    return cachedToken
-  }
-
-  // 3. Return existing in-flight promise if one is already running
-  if (serviceTokenPromise) {
-    return serviceTokenPromise
-  }
-
-  serviceTokenPromise = (async () => {
-    try {
-      const serviceEmail = import.meta.env.VITE_ADMIN_EMAIL
-      const servicePassword = import.meta.env.VITE_ADMIN_PASSWORD
-
-      // Skip login if service credentials are not configured
-      if (!serviceEmail || !servicePassword) {
-        return ''
-      }
-
-      const res = await fetch(buildApiUrl('/auth/login'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: serviceEmail,
-          password: servicePassword,
-          captchaToken: liveCaptchaToken || 'service-auth',
-        }),
-      })
-
-      const json = await res.json().catch(() => ({}))
-      if (res.ok && json.data) {
-        const token = json.data.access_token || json.data.token || ''
-        if (token) {
-          sessionStorage.setItem('apl_service_token', token)
-          return token
-        }
-      }
-    } catch {
-      // Network error — return empty string, requests will proceed without auth
-    } finally {
-      serviceTokenPromise = null
-    }
-
-    return ''
-  })()
-
-  return serviceTokenPromise
-}
-
-/**
- * Fetch wrapper for public player registration and lookup endpoints.
- * Automatically acquires a valid token and retries if unauthorized.
+ * Fetch wrapper for public player registration, contact, newsletter, and lookup endpoints.
+ * Public endpoints do not require administrative session tokens.
  */
 export const publicFetch = async (
   url: string,
-  options: RequestInit = {},
-  liveCaptchaToken?: string
+  options: RequestInit = {}
 ): Promise<Response> => {
-  const token = await ensurePublicApiToken(liveCaptchaToken)
   const headers = new Headers(options.headers || {})
-  if (token && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${token}`)
+  if (!headers.has('Accept')) {
+    headers.set('Accept', 'application/json')
   }
 
-  let res = await fetch(url, { ...options, headers })
-
-  // If 401, clear cached session token, obtain a fresh one, and retry once
-  if (res.status === 401) {
-    sessionStorage.removeItem('apl_service_token')
-    const freshToken = await ensurePublicApiToken(liveCaptchaToken)
-    if (freshToken) {
-      const retryHeaders = new Headers(options.headers || {})
-      retryHeaders.set('Authorization', `Bearer ${freshToken}`)
-      res = await fetch(url, { ...options, headers: retryHeaders })
-    }
-  }
-
-  return res
+  return fetch(url, { ...options, headers })
 }
 
 const stripControlChars = (str: string): string => {

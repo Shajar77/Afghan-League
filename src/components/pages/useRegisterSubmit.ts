@@ -59,7 +59,7 @@ export function useRegisterSubmit() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const submit = async (formData: FormData): Promise<string> => {
+  const submit = async (formData: FormData, captchaToken?: string): Promise<string> => {
     setIsSubmitting(true)
     setSubmitError(null)
 
@@ -81,12 +81,25 @@ export function useRegisterSubmit() {
       if (compressedRight) uploadForm.append('right_profile', compressedRight)
       if (compressedLeft) uploadForm.append('left_profile', compressedLeft)
 
+      const uploadHeaders: Record<string, string> = {}
+      const authToken = localStorage.getItem('apl_admin_token')
+      if (authToken) {
+        uploadHeaders['Authorization'] = `Bearer ${authToken}`
+      }
+
       const uploadRes = await publicFetch(buildApiUrl('/uploads/player-images'), {
         method: 'POST',
+        headers: uploadHeaders,
         body: uploadForm,
       })
 
       if (!uploadRes.ok) {
+        if (uploadRes.status === 429) {
+          throw new Error('Too many image upload attempts. Please wait 15 minutes before trying again.')
+        }
+        if (uploadRes.status === 401) {
+          throw new Error('Server upload permission error (401). Please ensure image uploads are enabled.')
+        }
         const errJson = await uploadRes.json().catch(() => ({}))
         const errorMsg =
           errJson.message ||
@@ -153,6 +166,8 @@ export function useRegisterSubmit() {
           250
         )
 
+      const safeCaptchaToken = String(captchaToken || '').trim()
+
       const regPayload = {
         full_name: formData.fullName,
         dob: formData.dob,
@@ -193,6 +208,9 @@ export function useRegisterSubmit() {
         accept_relegation: formData.acceptRelegation === 'yes',
         relegation_category:
           formData.acceptRelegation === 'yes' ? formData.relegationLimit || '' : '',
+        captchaToken: safeCaptchaToken,
+        recaptcha_token: safeCaptchaToken,
+        recaptchaToken: safeCaptchaToken
       }
 
       // 2. Submit player registration
@@ -205,6 +223,9 @@ export function useRegisterSubmit() {
       })
 
       if (!regRes.ok) {
+        if (regRes.status === 429) {
+          throw new Error('Rate limit reached: Maximum 5 registration attempts per 15 minutes. Please wait before trying again.')
+        }
         const errJson = await regRes.json().catch(() => ({}))
         let details = ''
         if (errJson.details) details = formatErrorObj(errJson.details)
@@ -212,6 +233,11 @@ export function useRegisterSubmit() {
         else if (errJson.error) details = formatErrorObj(errJson.error)
         else if (errJson.message && errJson.message !== 'Validation failed') details = errJson.message
         else details = formatErrorObj(errJson)
+
+        if (details.toLowerCase().includes('captchatoken') || details.toLowerCase().includes('recaptcha')) {
+          throw new Error('Security verification failed. Please check your internet connection and try submitting again.')
+        }
+
         throw new Error(details || 'Validation failed. Please check your inputs and try again.')
       }
 

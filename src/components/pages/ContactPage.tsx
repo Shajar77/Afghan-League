@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
-import { buildApiUrl, getApiToken } from '../../config/api'
+import { buildApiUrl, publicFetch } from '../../config/api'
 import aboutHeroImg from '../../assets/about-hero-bg.jpeg'
 import './ContactPage.css'
 // Removed About.css import — shared hero styles have been moved into ContactPage.css
@@ -18,6 +18,7 @@ export function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [honeypot, setHoneypot] = useState('')
   const recaptchaRef = useRef<ReCAPTCHA>(null)
 
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
@@ -37,6 +38,13 @@ export function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Anti-bot honeypot check
+    if (honeypot.trim()) {
+      console.warn('Bot contact submission blocked via honeypot.')
+      return
+    }
+
     if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
       return
     }
@@ -55,35 +63,40 @@ export function ContactPage() {
         }
       }
 
-      const token = getApiToken()
+      const phoneVal = formData.phone.trim() || 'N/A'
       const payload = {
         // Primary Live V6 Postman Schema (PascalCase)
         FullName: formData.name.trim(),
         Email: formData.email.trim(),
-        PhoneNumber: formData.phone.trim() || undefined,
+        PhoneNumber: phoneVal,
         Subject: formData.subject.trim(),
         Message: formData.message.trim(),
-        recaptcha_token: activeCaptchaToken || undefined,
+        captchaToken: activeCaptchaToken || '',
+        recaptcha_token: activeCaptchaToken || '',
+        recaptchaToken: activeCaptchaToken || '',
         // Backwards-compatible aliases
         name: formData.name.trim(),
         email: formData.email.trim(),
-        phone: formData.phone.trim() || undefined,
+        phone: phoneVal,
         subject: formData.subject.trim(),
         message: formData.message.trim(),
-        recaptchaToken: activeCaptchaToken || undefined,
       }
 
-      const res = await fetch(buildApiUrl('/contact'), {
+      const res = await publicFetch(buildApiUrl('/contact'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify(payload),
       })
 
       if (res.ok || res.status === 201 || res.status === 204) {
         setSubmitted(true)
+        return
+      }
+
+      if (res.status === 429) {
+        setSubmitError('Rate limit reached: Maximum 5 messages per 15 minutes. Please wait before trying again.')
         return
       }
 
@@ -250,6 +263,20 @@ export function ContactPage() {
                 )}
 
                 <form className="contact-form-element" onSubmit={handleSubmit}>
+                  {/* Anti-Spam Bot Trap (Honeypot) */}
+                  <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+                    <label htmlFor="contact_hp_website">Leave this field blank</label>
+                    <input
+                      id="contact_hp_website"
+                      type="text"
+                      name="contact_hp_website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                    />
+                  </div>
+
                   <div className="form-input-wrapper">
                     <input
                       type="text"

@@ -25,13 +25,10 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
   const fetchData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
-    const token = localStorage.getItem('apl_admin_token') || ''
 
     try {
       // 1. Fetch Teams
-      const teamsRes = await authFetch(buildApiUrl('/teams'), {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+      const teamsRes = await authFetch(buildApiUrl('/teams'))
       if (teamsRes.ok) {
         const teamsJson = await teamsRes.json()
         const teamsList = Array.isArray(teamsJson)
@@ -47,9 +44,7 @@ export function TeamSponsorManagement({ onLogout }: { onLogout?: () => void }) {
       }
 
       // 2. Fetch Sponsors
-      const sponsorsRes = await authFetch(buildApiUrl('/sponsors'), {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+      const sponsorsRes = await authFetch(buildApiUrl('/sponsors'))
       if (sponsorsRes.ok) {
         const sponsorsJson = await sponsorsRes.json()
         const sponsorsList = Array.isArray(sponsorsJson)

@@ -360,3 +360,30 @@ export function isAgentRegistration(reg: any): boolean {
 
   return false
 }
+
+/**
+ * Retrieve the current admin's role from local storage or JWT payload.
+ */
+export function getAdminRole(): string {
+  try {
+    const storedRole = (localStorage.getItem('apl_admin_role') || '').toLowerCase().trim()
+    if (storedRole) return storedRole
+
+    const token = localStorage.getItem('apl_admin_token') || ''
+    const parts = token.split('.')
+    if (parts.length === 3) {
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+      const role = (payload.role || payload.roles?.[0] || payload.user?.role || '').toLowerCase().trim()
+      return role
+    }
+  } catch { /* invalid token format */ }
+  return ''
+}
+
+/**
+ * Check if the given role or the active logged-in user is a Super Administrator.
+ */
+export function isSuperAdminUser(role?: string): boolean {
+  const r = (role !== undefined && role !== '' ? role : getAdminRole()).toLowerCase().trim()
+  return r === 'super_admin' || r === 'superadmin' || r === 'super'
+}

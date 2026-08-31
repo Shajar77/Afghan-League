@@ -38,25 +38,25 @@ export function Step5Review({
         <p className="section-subtitle">Please review your registration before submitting.</p>
 
         <div className="review-mockup-wrap">
-          {/* AGENT DETAILS */}
+          {/* REPRESENTATIVE DETAILS */}
           {formData.regType === 'agent' && (
             <div className="review-section-block">
-              <span className="review-section-title-line">AGENT DETAILS</span>
+              <span className="review-section-title-line">REPRESENTATIVE DETAILS</span>
               <div className="review-lines-wrap">
                 <div className="review-line-item">
-                  <span className="review-line-label">Agent Full Name</span>
+                  <span className="review-line-label">Representative Full Name</span>
                   <span className="review-line-val">{formData.agentName || '—'}</span>
                 </div>
                 <div className="review-line-item">
-                  <span className="review-line-label">Agency / Company Name</span>
+                  <span className="review-line-label">Agency / Board Name</span>
                   <span className="review-line-val">{formData.agentAgency || '—'}</span>
                 </div>
                 <div className="review-line-item">
-                  <span className="review-line-label">Agent Phone Number</span>
+                  <span className="review-line-label">Representative Phone Number</span>
                   <span className="review-line-val">{formData.agentPhone || '—'}</span>
                 </div>
                 <div className="review-line-item">
-                  <span className="review-line-label">Agent Email Address</span>
+                  <span className="review-line-label">Representative Email Address</span>
                   <span className="review-line-val">{formData.agentEmail || '—'}</span>
                 </div>
               </div>

@@ -56,19 +56,19 @@ export function Step1Personal({
               }
             }}
           >
-            <span className="type-card-title">I am an Agent / Authorized Representative</span>
+            <span className="type-card-title">I am an Agency / Board Representative</span>
           </div>
         </div>
       </div>
 
       {formData.regType === 'agent' && (
         <div className="form-section">
-          <h3 className="section-title">Agent Details</h3>
-          <p className="section-subtitle">Information about the player's representative.</p>
+          <h3 className="section-title">Representative Details</h3>
+          <p className="section-subtitle">Information about the player's authorized representative.</p>
 
           <div className="form-grid-2col">
             <div className="form-group">
-              <label>Agent Full Name <span className="required">*</span></label>
+              <label>Representative Full Name <span className="required">*</span></label>
               <input
                 type="text"
                 name="agentName"
@@ -82,18 +82,18 @@ export function Step1Personal({
             </div>
 
             <div className="form-group">
-              <label>Agency / Company Name</label>
+              <label>Agency / Board Name</label>
               <input
                 type="text"
                 name="agentAgency"
                 value={formData.agentAgency}
                 onChange={handleInputChange}
-                placeholder="e.g. Apex Sports Management"
+                placeholder="e.g. Apex Sports Management / State Cricket Board"
               />
             </div>
 
             <div className="form-group">
-              <label>Agent Phone Number <span className="required">*</span></label>
+              <label>Representative Phone Number <span className="required">*</span></label>
               <input
                 type="tel"
                 name="agentPhone"
@@ -107,13 +107,13 @@ export function Step1Personal({
             </div>
 
             <div className="form-group">
-              <label>Agent Email Address <span className="required">*</span></label>
+              <label>Representative Email Address <span className="required">*</span></label>
               <input
                 type="email"
                 name="agentEmail"
                 value={formData.agentEmail}
                 onChange={handleInputChange}
-                placeholder="e.g. agent@agency.com"
+                placeholder="e.g. rep@agency.com"
                 className={errors.agentEmail ? 'input-error' : ''}
                 required
               />
@@ -122,7 +122,7 @@ export function Step1Personal({
           </div>
 
           <p className="field-group-desc" style={{ fontSize: '0.85rem', color: '#64748b', margin: '1rem 0 0 0', fontStyle: 'italic' }}>
-            Agent details may be reused, but complete player information and documents must be submitted separately for every player.
+            Representative details may be reused, but complete player information and documents must be submitted separately for every player.
           </p>
         </div>
       )}

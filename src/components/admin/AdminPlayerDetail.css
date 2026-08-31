@@ -309,12 +309,34 @@
   gap: 0.2rem;
 }
 
+.apl-controller-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .apl-controller-title {
   font-family: var(--font-display, "Big Shoulders Display", sans-serif);
   font-size: 1.25rem;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: #0f172a;
+}
+
+.apl-super-override-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(248, 200, 0, 0.15);
+  border: 1px solid rgba(248, 200, 0, 0.45);
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .apl-controller-sub {
@@ -382,6 +404,19 @@
 .apl-btn-status-action.reject.selected {
   opacity: 1;
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.apl-btn-status-action.pending {
+  background: #64748b;
+  border-color: #64748b;
+  color: #ffffff;
+  opacity: 0.65;
+}
+
+.apl-btn-status-action.pending:hover:not(:disabled),
+.apl-btn-status-action.pending.selected {
+  opacity: 1;
+  box-shadow: 0 4px 15px rgba(100, 116, 139, 0.3);
 }
 
 .apl-btn-status-action:disabled {

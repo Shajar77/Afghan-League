@@ -1,6 +1,14 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { buildApiUrl, normalizeMediaUrl, safeExternalUrl, authFetch } from '../../config/api'
-import { formatStatus, statusClass, isAgentRegistration, updateCachedPlayerStatus, registerAdminCacheClearer } from './adminUtils'
+import {
+  formatStatus,
+  statusClass,
+  isAgentRegistration,
+  updateCachedPlayerStatus,
+  registerAdminCacheClearer,
+  getAdminRole,
+  isSuperAdminUser
+} from './adminUtils'
 import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
 import {
@@ -8,6 +16,7 @@ import {
   CheckCircle2,
   AlertCircle,
   XCircle,
+  RotateCcw,
   User,
   Briefcase,
   Globe,
@@ -33,6 +42,7 @@ interface AdminPlayerDetailProps {
   onBack: () => void
   onLogout: () => void
   adminEmail: string
+  adminRole?: string
 }
 
 // In-memory cache for player dossier data across detail views
@@ -100,11 +110,20 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
   )
 }
 
-export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, adminEmail: _adminEmail }: AdminPlayerDetailProps) {
+export function AdminPlayerDetail({
+  registration: initialReg,
+  onBack,
+  onLogout,
+  adminEmail: _adminEmail,
+  adminRole
+}: AdminPlayerDetailProps) {
   const topRef = useRef<HTMLDivElement>(null)
   const regCode = String(initialReg.registration_code || (initialReg as any).code || '').trim()
   const email = String(initialReg.email || '').trim().toLowerCase()
   const cacheKey = regCode && email ? `${regCode}_${email}` : ''
+
+  const role = adminRole || getAdminRole()
+  const isSuper = isSuperAdminUser(role)
 
   const [playerData, setPlayerData] = useState<Registration>(() => {
     if (cacheKey && playerDetailCache.has(cacheKey)) {
@@ -233,7 +252,8 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
       .filter((item): item is { label: string; value: string } => item !== null)
   }
 
-  const updateStatus = async (newStatus: 'approved_draft' | 'under_review' | 'rejected') => {
+  const updateStatus = async (newStatus: 'approved_draft' | 'under_review' | 'rejected' | 'pending') => {
+    if (newStatus === currentStatus || (newStatus === 'approved_draft' && isApprovedDraft)) return
     setActionLoading(newStatus)
     setActionError(null)
     const token = localStorage.getItem('apl_admin_token') || ''
@@ -246,7 +266,6 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
       registration_id: regCode,
       status: newStatus,
     }
-
 
     try {
       const res = await authFetch(endpointUrl, {
@@ -287,15 +306,16 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
   // accept_relegation may arrive as boolean or legacy 'yes'/'no' string from the API
   const acceptsRelegation = reg.accept_relegation === true || (reg.accept_relegation as unknown) === 'yes'
 
-  // Normalize normalized current status for button rendering rules
-  const normalizedStatus = (currentStatus || 'pending').toLowerCase()
+  // Normalize current status for button rendering rules
+  const normalizedStatus = (currentStatus || 'pending').toLowerCase().trim()
   const isRejected = normalizedStatus === 'rejected'
   const isApprovedDraft = normalizedStatus === 'approved_draft' || normalizedStatus === 'approved' || normalizedStatus === 'shortlisted' || normalizedStatus === 'selected'
   const isUnderReview = normalizedStatus === 'under_review'
   const isPending = !isRejected && !isApprovedDraft && !isUnderReview
 
-  // Hide the entire Adjudication Action bar if status is rejected or approved_draft
-  const showAdjudicationBar = !isRejected && !isApprovedDraft
+  // For Super Admins, always show the adjudication bar.
+  // For standard admins, hide if status is already approved or rejected.
+  const showAdjudicationBar = isSuper || (!isRejected && !isApprovedDraft)
 
   return (
     <div ref={topRef} className="apl-detail-layout">
@@ -400,7 +420,7 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
             </div>
           </div>
 
-          {/* Bottom Row: Adjudication Status Actions (Hidden if rejected or approved_draft) */}
+          {/* Bottom Row: Adjudication Status Actions */}
           {showAdjudicationBar && (
             <>
               <hr className="apl-hero-divider" />
@@ -413,52 +433,77 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
                 </div>
 
                 <div className="apl-controller-buttons">
-                  {/* Approve for Draft button (Visible when pending or under_review) */}
-                  <button
-                    type="button"
-                    className={`apl-btn-status-action approve ${isApprovedDraft ? 'selected' : ''}`}
-                    disabled={!!actionLoading}
-                    onClick={() => updateStatus('approved_draft')}
-                  >
-                    {actionLoading === 'approved_draft' ? (
-                      <span className="apl-btn-spin" />
-                    ) : (
-                      <CheckCircle2 size={16} />
-                    )}
-                    <span>Approve for Draft</span>
-                  </button>
+                  {/* Approve for Draft button */}
+                  {(isSuper || isPending || isUnderReview) && (
+                    <button
+                      type="button"
+                      className={`apl-btn-status-action approve ${isApprovedDraft ? 'selected' : ''}`}
+                      disabled={!!actionLoading || isApprovedDraft}
+                      onClick={() => updateStatus('approved_draft')}
+                      title={isApprovedDraft ? 'Currently Approved for Drafts' : 'Approve Player for Drafts'}
+                    >
+                      {actionLoading === 'approved_draft' ? (
+                        <span className="apl-btn-spin" />
+                      ) : (
+                        <CheckCircle2 size={16} />
+                      )}
+                      <span>{isApprovedDraft ? 'Approved for Draft' : 'Approve for Draft'}</span>
+                    </button>
+                  )}
 
-                  {/* Under Review button (Only visible when status is pending) */}
-                  {isPending && (
+                  {/* Under Review button */}
+                  {(isSuper || isPending) && (
                     <button
                       type="button"
                       className={`apl-btn-status-action review ${isUnderReview ? 'selected' : ''}`}
-                      disabled={!!actionLoading}
+                      disabled={!!actionLoading || isUnderReview}
                       onClick={() => updateStatus('under_review')}
+                      title={isUnderReview ? 'Currently Under Review' : 'Mark Player Under Review'}
                     >
                       {actionLoading === 'under_review' ? (
                         <span className="apl-btn-spin" />
                       ) : (
                         <AlertCircle size={16} />
                       )}
-                      <span>Under Review</span>
+                      <span>{isUnderReview ? 'Under Review' : 'Mark Under Review'}</span>
                     </button>
                   )}
 
-                  {/* Reject Registration button (Visible when pending or under_review) */}
-                  <button
-                    type="button"
-                    className={`apl-btn-status-action reject ${isRejected ? 'selected' : ''}`}
-                    disabled={!!actionLoading}
-                    onClick={() => updateStatus('rejected')}
-                  >
-                    {actionLoading === 'rejected' ? (
-                      <span className="apl-btn-spin" />
-                    ) : (
-                      <XCircle size={16} />
-                    )}
-                    <span>Reject Registration</span>
-                  </button>
+                  {/* Reject Registration button */}
+                  {(isSuper || isPending || isUnderReview) && (
+                    <button
+                      type="button"
+                      className={`apl-btn-status-action reject ${isRejected ? 'selected' : ''}`}
+                      disabled={!!actionLoading || isRejected}
+                      onClick={() => updateStatus('rejected')}
+                      title={isRejected ? 'Currently Rejected' : 'Reject Player Registration'}
+                    >
+                      {actionLoading === 'rejected' ? (
+                        <span className="apl-btn-spin" />
+                      ) : (
+                        <XCircle size={16} />
+                      )}
+                      <span>{isRejected ? 'Registration Rejected' : 'Reject Registration'}</span>
+                    </button>
+                  )}
+
+                  {/* Reset to Pending button (Available for Super Admin when not in pending state) */}
+                  {isSuper && !isPending && (
+                    <button
+                      type="button"
+                      className="apl-btn-status-action pending"
+                      disabled={!!actionLoading}
+                      onClick={() => updateStatus('pending')}
+                      title="Reset status back to Pending Decision"
+                    >
+                      {actionLoading === 'pending' ? (
+                        <span className="apl-btn-spin" />
+                      ) : (
+                        <RotateCcw size={15} />
+                      )}
+                      <span>Reset to Pending</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </>
@@ -678,34 +723,34 @@ export function AdminPlayerDetail({ registration: initialReg, onBack, onLogout, 
             </div>
           </div>
 
-          {/* ── AGENT CARD (Step 1 Agent Details — only shown if agent registered) ── */}
+          {/* ── REPRESENTATIVE CARD (Step 1 Representative Details — only shown if representative registered) ── */}
           <div className="apl-matrix-card">
             <div className="apl-matrix-header">
-              <h3>Agent &amp; Agency Representation</h3>
+              <h3>Agency / Board Representation</h3>
             </div>
             <div className="apl-matrix-body">
               {!isAgentRegistration(reg) ? (
                 <div className="apl-empty-agent-box">
                   <User size={28} className="apl-agent-empty-icon" />
                   <span>Direct Player Registration</span>
-                  <p>No external sports agency or manager attached to this entry.</p>
+                  <p>No external sports agency, cricket board, or representative attached to this entry.</p>
                 </div>
               ) : (
                 <>
                   <div className="apl-data-row">
-                    <span className="apl-data-label">Agent Full Name</span>
+                    <span className="apl-data-label">Representative Full Name</span>
                     <span className="apl-data-value highlight">{toTitleCase(reg.agent_full_name) || 'Authorized Representative'}</span>
                   </div>
                   <div className="apl-data-row">
-                    <span className="apl-data-label">Agency / Company Name</span>
+                    <span className="apl-data-label">Agency / Board Name</span>
                     <span className="apl-data-value">{toTitleCase(reg.agent_company_name) || '—'}</span>
                   </div>
                   <div className="apl-data-row">
-                    <span className="apl-data-label">Agent Phone Number</span>
+                    <span className="apl-data-label">Representative Phone Number</span>
                     <span className="apl-data-value">{reg.agent_phone_number || '—'}</span>
                   </div>
                   <div className="apl-data-row">
-                    <span className="apl-data-label">Agent Email Address</span>
+                    <span className="apl-data-label">Representative Email Address</span>
                     <span className="apl-data-value email-wrap">{reg.agent_email_address || '—'}</span>
                   </div>
                 </>

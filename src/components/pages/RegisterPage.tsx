@@ -29,9 +29,18 @@ export function RegisterPage() {
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 
-  // Registration access is controlled by a single environment variable.
-  // Set VITE_REGISTRATION_OPEN=true in Vercel to open, or remove/set false to close.
-  const isAuthorized = import.meta.env.VITE_REGISTRATION_OPEN === 'true'
+  // Strict Private Access Guard Check — requires key in URL
+  const checkPrivateAccess = () => {
+    const fullUrl = window.location.href.toLowerCase()
+    return (
+      fullUrl.includes('key=apl2026') ||
+      fullUrl.includes('key=private') ||
+      fullUrl.includes('access=private') ||
+      fullUrl.includes('invite=apl2026')
+    )
+  }
+
+  const isAuthorized = checkPrivateAccess()
 
   // Sub-hooks
   const {
@@ -75,7 +84,6 @@ export function RegisterPage() {
       } else {
         // Anti-bot check: silent abort if honeypot is populated
         if (honeypot.trim()) {
-          console.warn('Bot registration attempt blocked via honeypot.')
           return
         }
 

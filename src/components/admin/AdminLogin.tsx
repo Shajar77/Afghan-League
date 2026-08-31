@@ -19,6 +19,20 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
 
+  // Strict Private Admin Access Check — requires key in URL or active session
+  const checkAdminPrivateAccess = () => {
+    const fullUrl = window.location.href.toLowerCase()
+    const token = localStorage.getItem('apl_admin_token')
+    return (
+      Boolean(token) ||
+      fullUrl.includes('key=apl2026') ||
+      fullUrl.includes('key=admin') ||
+      fullUrl.includes('access=admin')
+    )
+  }
+
+  const isAdminAuthorized = checkAdminPrivateAccess()
+
   // Login throttle — locks out after 5 consecutive failed attempts for 30 seconds
   const [failedAttempts, setFailedAttempts] = useState(() => {
     const saved = sessionStorage.getItem('apl_admin_failed_attempts')
@@ -48,8 +62,17 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     if (siteKey && recaptchaRef.current) {
       try {
         captchaToken = (await recaptchaRef.current.executeAsync()) || ''
+        if (!captchaToken) {
+          setError('Security verification failed. Please refresh the page and try again.')
+          setIsLoading(false)
+          return
+        }
       } catch {
-        // reCAPTCHA execution failed — proceed without token
+        // reCAPTCHA threw (CDN blocked, timeout, etc.) — do NOT proceed silently
+        setError('Security check could not complete. Please check your connection and try again.')
+        setIsLoading(false)
+        if (recaptchaRef.current) recaptchaRef.current.reset()
+        return
       }
     }
 
@@ -111,6 +134,106 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
     }
   }
 
+  if (!isAdminAuthorized) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#040b1e',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1.5rem'
+      }}>
+        <div style={{
+          maxWidth: '560px',
+          width: '100%',
+          background: '#081438',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: '16px',
+          padding: '2.5rem 1.5rem',
+          textAlign: 'center',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1.25rem'
+        }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1.5px solid #ef4444',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.75rem',
+            color: '#ef4444'
+          }}>
+            🛡️
+          </div>
+
+          <span style={{
+            fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+            fontSize: '0.8rem',
+            fontWeight: 800,
+            letterSpacing: '0.15em',
+            color: '#ef4444',
+            textTransform: 'uppercase',
+            background: 'rgba(239, 68, 68, 0.12)',
+            padding: '0.35rem 1rem',
+            borderRadius: '20px',
+            border: '1px solid rgba(239, 68, 68, 0.3)'
+          }}>
+            ADMIN PORTAL • RESTRICTED ACCESS
+          </span>
+
+          <h2 style={{
+            fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+            fontSize: 'clamp(1.8rem, 4vw, 2.5rem)',
+            fontWeight: 900,
+            color: '#ffffff',
+            margin: 0,
+            lineHeight: 1.15,
+            textTransform: 'uppercase'
+          }}>
+            ACCESS RESTRICTED
+          </h2>
+
+          <p style={{
+            fontFamily: 'var(--font-body, "Inter", sans-serif)',
+            fontSize: '0.98rem',
+            lineHeight: 1.7,
+            color: '#94a3b8',
+            margin: 0,
+            maxWidth: '460px'
+          }}>
+            The APL Administration Portal is reserved exclusively for tournament officials and league management. Access requires valid administrative authorization parameters.
+          </p>
+
+          <a href="#home" style={{
+            background: 'var(--brand-gold, #f8c800)',
+            color: '#0f172a',
+            fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+            fontWeight: 800,
+            fontSize: '0.9rem',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            padding: '0.85rem 2rem',
+            borderRadius: '4px',
+            textDecoration: 'none',
+            marginTop: '0.5rem',
+            minHeight: '44px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            Back to Home Page
+          </a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="apl-admin-fullscreen-wrapper">

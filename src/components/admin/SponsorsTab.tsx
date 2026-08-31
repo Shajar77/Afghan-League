@@ -1,5 +1,5 @@
-import { useState, type Dispatch, type SetStateAction, type FormEvent } from 'react'
-import { buildApiUrl, authFetch, safeExternalUrl } from '../../config/api'
+import { useState, useEffect, type Dispatch, type SetStateAction, type FormEvent } from 'react'
+import { buildApiUrl, authFetch, safeExternalUrl, normalizeMediaUrl } from '../../config/api'
 import { compressImageFile } from '../../utils/imageCompression'
 import {
   Award,
@@ -72,7 +72,15 @@ function formatTierLabel(tierKey: string) {
 function parseServerError(errJson: Record<string, unknown>, fallback: string): string {
   if (errJson.error && typeof errJson.error === 'object') {
     const sub = errJson.error as Record<string, unknown>
+    if (Array.isArray(sub.details) && sub.details.length > 0) {
+      const msgs = sub.details.map((d: any) => d.message || d.msg || '').filter(Boolean)
+      if (msgs.length > 0) return msgs.join('. ')
+    }
     if (typeof sub.message === 'string') return sub.message
+  }
+  if (Array.isArray(errJson.details) && errJson.details.length > 0) {
+    const msgs = (errJson.details as any[]).map((d: any) => d.message || d.msg || '').filter(Boolean)
+    if (msgs.length > 0) return msgs.join('. ')
   }
   if (typeof errJson.message === 'string') return errJson.message
   return fallback
@@ -106,7 +114,19 @@ export function SponsorsTab({
   const [sponsorLogoPreview, setSponsorLogoPreview] = useState<string>('')
   const [isSubmittingSponsor, setIsSubmittingSponsor] = useState(false)
 
+  // Clean up object URL on unmount or when preview changes
+  useEffect(() => {
+    return () => {
+      if (sponsorLogoPreview) {
+        URL.revokeObjectURL(sponsorLogoPreview)
+      }
+    }
+  }, [sponsorLogoPreview])
+
   const resetSponsorForm = () => {
+    if (sponsorLogoPreview) {
+      URL.revokeObjectURL(sponsorLogoPreview)
+    }
     setSponsorName('')
     setSponsorTier('official_partner')
     setSponsorWebsite('')
@@ -157,12 +177,19 @@ export function SponsorsTab({
 
     try {
       const uploadedLogoUrl = await uploadLogoFile(sponsorLogoFile)
+      const fullLogoUrl = normalizeMediaUrl(uploadedLogoUrl) || uploadedLogoUrl
+
+      let formattedWebsiteUrl: string | undefined = undefined
+      if (sponsorWebsite.trim()) {
+        const rawWeb = sponsorWebsite.trim()
+        formattedWebsiteUrl = /^https?:\/\//i.test(rawWeb) ? rawWeb : `https://${rawWeb}`
+      }
 
       const sponsorPayload = {
         name: sponsorName.trim(),
         tier: sponsorTier,
-        website_url: sponsorWebsite.trim() || undefined,
-        logo_url: uploadedLogoUrl,
+        website_url: formattedWebsiteUrl,
+        logo_url: fullLogoUrl,
         display_order: Number(sponsorDisplayOrder) || 1,
         is_active: true
       }

@@ -137,15 +137,15 @@ export function useRegisterForm() {
 
     if (step === 1) {
       if (formData.regType === 'agent') {
-        if (!formData.agentName.trim()) newErrors.agentName = 'Agent Full Name is required'
+        if (!formData.agentName.trim()) newErrors.agentName = 'Representative Full Name is required'
         if (!formData.agentPhone.trim()) {
-          newErrors.agentPhone = 'Agent Phone number is required'
+          newErrors.agentPhone = 'Representative Phone number is required'
         } else if (!/^\+?[0-9\s\-()]{8,20}$/.test(formData.agentPhone)) {
           newErrors.agentPhone = 'Please enter a valid phone number (at least 8 digits)'
         }
         if (!formData.agentEmail.trim()) {
-          newErrors.agentEmail = 'Agent Email address is required'
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.agentEmail)) {
+          newErrors.agentEmail = 'Representative Email address is required'
+        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.agentEmail)) {
           newErrors.agentEmail = 'Please enter a valid email address'
         }
       }
@@ -182,7 +182,7 @@ export function useRegisterForm() {
       }
       if (!formData.email.trim()) {
         newErrors.email = 'Email address is required'
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
         newErrors.email = 'Please enter a valid email address (e.g. player@domain.com)'
       }
       if (!formData.availability || formData.availability.length === 0) {

@@ -14,7 +14,7 @@ export function StatsBarSection() {
           <div className="stat-divider"></div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">18</div>
+          <div className="stat-value">24</div>
           <div className="stat-label">Thrilling Matches</div>
           <div className="stat-divider"></div>
         </div>

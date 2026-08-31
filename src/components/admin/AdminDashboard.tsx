@@ -6,7 +6,9 @@ import {
   getAdminStatusCountsCache,
   setAdminStatusCountsCache,
   getAdminStatusMapCache,
-  setAdminStatusMapCache
+  setAdminStatusMapCache,
+  getAdminRole,
+  isSuperAdminUser
 } from './adminUtils'
 import { AdminStatsSection, type AdminStats } from './AdminStatsSection'
 import { AdminFiltersBar } from './AdminFiltersBar'
@@ -65,27 +67,8 @@ export function AdminDashboard({
   onViewPlayer
 }: AdminDashboardProps) {
   // Determine current admin role
-  const adminRole = (() => {
-    try {
-      // 1. Check stored role first
-      const storedRole = (localStorage.getItem('apl_admin_role') || '').toLowerCase().trim()
-      if (storedRole) {
-        return storedRole
-      }
-
-      // 2. Decode JWT token payload if stored role is not explicit
-      const token = adminToken || localStorage.getItem('apl_admin_token') || ''
-      const parts = token.split('.')
-      if (parts.length === 3) {
-        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
-        const role = (payload.role || payload.roles?.[0] || payload.user?.role || '').toLowerCase().trim()
-        return role
-      }
-    } catch { /* invalid token format */ }
-    return ''
-  })()
-
-  const isSuperAdmin = adminRole === 'super_admin' || adminRole === 'superadmin' || adminRole === 'super'
+  const adminRole = getAdminRole()
+  const isSuperAdmin = isSuperAdminUser(adminRole)
   const isPlayerManagement = adminRole === 'league_ops' || adminRole === 'player_management' || adminRole === 'player_mgmt'
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'users'>(() => {

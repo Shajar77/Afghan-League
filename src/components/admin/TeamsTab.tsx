@@ -1,5 +1,5 @@
-import { useState, type ChangeEvent, type FormEvent, type Dispatch, type SetStateAction } from 'react'
-import { buildApiUrl, authFetch } from '../../config/api'
+import { useState, useEffect, type ChangeEvent, type FormEvent, type Dispatch, type SetStateAction } from 'react'
+import { buildApiUrl, authFetch, normalizeMediaUrl } from '../../config/api'
 import { compressImageFile } from '../../utils/imageCompression'
 import {
   Shield,
@@ -68,7 +68,15 @@ function slugify(text: string) {
 function parseServerError(errJson: Record<string, unknown>, fallback: string): string {
   if (errJson.error && typeof errJson.error === 'object') {
     const sub = errJson.error as Record<string, unknown>
+    if (Array.isArray(sub.details) && sub.details.length > 0) {
+      const msgs = sub.details.map((d: any) => d.message || d.msg || '').filter(Boolean)
+      if (msgs.length > 0) return msgs.join('. ')
+    }
     if (typeof sub.message === 'string') return sub.message
+  }
+  if (Array.isArray(errJson.details) && errJson.details.length > 0) {
+    const msgs = (errJson.details as any[]).map((d: any) => d.message || d.msg || '').filter(Boolean)
+    if (msgs.length > 0) return msgs.join('. ')
   }
   if (typeof errJson.message === 'string') return errJson.message
   return fallback
@@ -105,7 +113,19 @@ export function TeamsTab({
   const [teamLogoPreview, setTeamLogoPreview] = useState<string>('')
   const [isSubmittingTeam, setIsSubmittingTeam] = useState(false)
 
+  // Clean up object URL on unmount or when preview changes
+  useEffect(() => {
+    return () => {
+      if (teamLogoPreview) {
+        URL.revokeObjectURL(teamLogoPreview)
+      }
+    }
+  }, [teamLogoPreview])
+
   const resetTeamForm = () => {
+    if (teamLogoPreview) {
+      URL.revokeObjectURL(teamLogoPreview)
+    }
     setTeamName('')
     setTeamSlug('')
     setIsSlugUserModified(false)
@@ -172,11 +192,13 @@ export function TeamsTab({
 
     try {
       const uploadedLogoUrl = await uploadLogoFile(teamLogoFile)
+      const fullLogoUrl = normalizeMediaUrl(uploadedLogoUrl) || uploadedLogoUrl
+
       const teamPayload = {
         name: teamName.trim(),
         slug: (teamSlug.trim() || slugify(teamName)).toLowerCase(),
         city: teamCity.trim() || 'Kabul',
-        logo_url: uploadedLogoUrl,
+        logo_url: fullLogoUrl,
         primary_color: teamColor || '#0575E6',
         home_venue: teamHomeVenue.trim() || 'Kabul International Cricket Stadium',
         description: teamDescription.trim() || 'Official APL franchise team.'

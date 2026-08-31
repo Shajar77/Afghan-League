@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api-staging.chaptersquare.com/api/v1'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.apl-t20.com/api/v1'
 
 export const getApiToken = (): string => {
   // Only use the stored admin session token — never fall back to a build-time JWT env var
@@ -173,10 +173,7 @@ export const normalizeMediaUrl = (path?: string | null): string => {
     trimmed.startsWith('http://') ||
     trimmed.startsWith('https://') ||
     trimmed.startsWith('data:image/') ||
-    trimmed.startsWith('blob:') ||
-    trimmed.startsWith('/src/') ||
-    trimmed.startsWith('/@fs/') ||
-    trimmed.startsWith('@fs/')
+    trimmed.startsWith('blob:')
   ) {
     return trimmed
   }

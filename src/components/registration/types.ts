@@ -143,7 +143,7 @@ export const categoriesList: ApiCategory[] = [
   { id: 'Diamond Player', label: 'Diamond Player', desc: 'Established talent', price: '$35,000' },
   { id: 'Gold Player', label: 'Gold Player', desc: 'Strong domestic record', price: '$20,000' },
   { id: 'Silver Player', label: 'Silver Player', desc: 'Rising performers', price: '$10,000' },
-  { id: 'Emerging Under-23', label: 'Emerging Under-23', desc: 'Afghan National Players Emerging Talent', price: '$5,000' }
+  { id: 'Emerging Under 23-25', label: 'Emerging Under 23-25', desc: 'Afghan National Players Emerging Talent', price: '$5,000' }
 ]
 
 const MIME_MAP: Record<string, string[]> = {

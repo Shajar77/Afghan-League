@@ -33,7 +33,7 @@ const PRICE_MAP: Record<string, string> = {
   'diamond': '$35,000', 'diamond player': '$35,000',
   'gold': '$20,000', 'gold player': '$20,000',
   'silver': '$10,000', 'silver player': '$10,000',
-  'emerging': '$5,000', 'emerging under-23': '$5,000', 'emerging under 23-25': '$5,000', 'emerging under-23-25': '$5,000', 'emerging player': '$5,000',
+  'emerging': '$5,000', 'emerging under-25': '$5,000', 'emerging under 25': '$5,000', 'emerging under-23': '$5,000', 'emerging under 23-25': '$5,000', 'emerging player': '$5,000',
 }
 
 const DESC_MAP: Record<string, string> = {
@@ -41,7 +41,7 @@ const DESC_MAP: Record<string, string> = {
   'diamond': 'Established talent', 'diamond player': 'Established talent',
   'gold': 'Strong domestic record', 'gold player': 'Strong domestic record',
   'silver': 'Rising performers', 'silver player': 'Rising performers',
-  'emerging': 'Afghan National Players Emerging Talent', 'emerging under-23': 'Afghan National Players Emerging Talent', 'emerging under 23-25': 'Afghan National Players Emerging Talent', 'emerging under-23-25': 'Afghan National Players Emerging Talent', 'emerging player': 'Afghan National Players Emerging Talent',
+  'emerging': 'Afghan National Players Emerging Talent', 'emerging under-25': 'Afghan National Players Emerging Talent', 'emerging under 25': 'Afghan National Players Emerging Talent', 'emerging under-23': 'Afghan National Players Emerging Talent', 'emerging under 23-25': 'Afghan National Players Emerging Talent', 'emerging player': 'Afghan National Players Emerging Talent',
 }
 
 export function useRegisterData() {
@@ -93,7 +93,7 @@ export function useRegisterData() {
             .map((item: any) => {
               const name = toName(item)
               const key = name.toLowerCase()
-              const label = key.includes('emerging') ? 'Emerging Under 23-25' : name
+              const label = key.includes('emerging') ? 'Emerging Under-25' : name
               return {
                 id: name,
                 label: label,

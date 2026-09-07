@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
 import { buildApiUrl, publicFetch } from '../../config/api'
-import { RegisterAccessDeniedView } from './RegisterPageViews'
 import './RegisterStatusPage.css'
 
 interface StatusResult {
@@ -25,19 +24,6 @@ export function RegisterStatusPage() {
 
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
-
-  // Strict Private Access Guard Check — requires key in URL
-  const checkPrivateAccess = () => {
-    const fullUrl = window.location.href.toLowerCase()
-    return (
-      fullUrl.includes('key=apl2026') ||
-      fullUrl.includes('key=private') ||
-      fullUrl.includes('access=private') ||
-      fullUrl.includes('invite=apl2026')
-    )
-  }
-
-  const isAuthorized = checkPrivateAccess()
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,10 +98,6 @@ export function RegisterStatusPage() {
         recaptchaRef.current.reset()
       }
     }
-  }
-
-  if (!isAuthorized) {
-    return <RegisterAccessDeniedView />
   }
 
   return (

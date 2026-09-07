@@ -10,7 +10,7 @@ import { scrollToTop } from '../../utils/lenis'
 import { useRegisterData } from './useRegisterData'
 import { useRegisterForm } from './useRegisterForm'
 import { useRegisterSubmit } from './useRegisterSubmit'
-import { RegisterAccessDeniedView, RegisterSuccessView } from './RegisterPageViews'
+import { RegisterSuccessView } from './RegisterPageViews'
 import './RegisterPage.css'
 
 const STEPS = [
@@ -28,19 +28,6 @@ export function RegisterPage() {
 
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
-
-  // Strict Private Access Guard Check — requires key in URL
-  const checkPrivateAccess = () => {
-    const fullUrl = window.location.href.toLowerCase()
-    return (
-      fullUrl.includes('key=apl2026') ||
-      fullUrl.includes('key=private') ||
-      fullUrl.includes('access=private') ||
-      fullUrl.includes('invite=apl2026')
-    )
-  }
-
-  const isAuthorized = checkPrivateAccess()
 
   // Sub-hooks
   const {
@@ -131,10 +118,6 @@ export function RegisterPage() {
     setIsSubmitted(false)
     setRefCode('')
     setHoneypot('')
-  }
-
-  if (!isAuthorized) {
-    return <RegisterAccessDeniedView />
   }
 
   if (isSubmitted) {

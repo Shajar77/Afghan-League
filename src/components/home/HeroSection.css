@@ -131,6 +131,14 @@
   box-sizing: border-box;
 }
 
+.hero-actions .btn-register-now {
+  color: #ffffff;
+}
+
+.hero-actions .btn-register-now:hover {
+  color: #ffffff;
+}
+
 .hero-register-dropdown {
   position: absolute;
   top: calc(100% + 8px);

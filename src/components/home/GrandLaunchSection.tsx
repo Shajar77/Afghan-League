@@ -1,5 +1,48 @@
-import { VolumeX } from 'lucide-react'
+import { useState } from 'react'
+import { VolumeX, Play } from 'lucide-react'
 import { useAppStore } from '../../store/useAppStore'
+
+interface YouTubeFacadeProps {
+  videoId: string
+  iframeId: string
+  title: string
+  className: string
+}
+
+function YouTubeFacade({ videoId, iframeId, title, className }: YouTubeFacadeProps) {
+  const [loaded, setLoaded] = useState(false)
+
+  if (loaded) {
+    return (
+      <iframe
+        id={iframeId}
+        className={className}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&enablejsapi=1&rel=0&controls=1&playlist=${videoId}&loop=1`}
+        title={title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+      ></iframe>
+    )
+  }
+
+  return (
+    <button
+      className="yt-facade"
+      onClick={() => setLoaded(true)}
+      aria-label={`Play ${title}`}
+    >
+      <img
+        src={`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`}
+        alt={title}
+        className="yt-facade-thumb"
+        loading="lazy"
+      />
+      <div className="yt-facade-play">
+        <Play size={36} fill="#fff" />
+      </div>
+    </button>
+  )
+}
 
 export function GrandLaunchSection() {
   const {
@@ -34,15 +77,12 @@ export function GrandLaunchSection() {
           <div className="launch-main-video-panel">
             <div className="launch-video-glow-container">
               <div className="launch-video-wrapper">
-                <iframe
-                  id="launch-video-iframe"
-                  className="launch-video-iframe"
-                  src="https://www.youtube.com/embed/sq00E0Rmyjs?autoplay=1&mute=1&enablejsapi=1&rel=0&controls=1&playlist=sq00E0Rmyjs&loop=1"
+                <YouTubeFacade
+                  videoId="sq00E0Rmyjs"
+                  iframeId="launch-video-iframe"
                   title="The APL Grand Launch Event"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  loading="lazy"
-                ></iframe>
+                  className="launch-video-iframe"
+                />
                 {launchMuted && (
                   <div className="launch-video-overlay" onClick={() => handleUnmute('launch-video-iframe', setLaunchMuted)}>
                     <div className="launch-unmute-button-container">
@@ -61,15 +101,12 @@ export function GrandLaunchSection() {
           {/* Right Panel: 3 Stacked Side Videos */}
           <div className="launch-side-videos-panel">
             <div className="side-video-card animate-side-card">
-              <iframe
-                id="side-video-1"
-                className="side-video-iframe"
-                src="https://www.youtube.com/embed/ePIpdbzDgM4?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=ePIpdbzDgM4&loop=1"
+              <YouTubeFacade
+                videoId="ePIpdbzDgM4"
+                iframeId="side-video-1"
                 title="APL Launch Highlights 1"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-              ></iframe>
+                className="side-video-iframe"
+              />
               {side1Muted && (
                 <div className="side-video-overlay" onClick={() => handleUnmute('side-video-1', setSide1Muted)}>
                   <div className="side-unmute-button-container">
@@ -83,15 +120,12 @@ export function GrandLaunchSection() {
               )}
             </div>
             <div className="side-video-card animate-side-card">
-              <iframe
-                id="side-video-2"
-                className="side-video-iframe"
-                src="https://www.youtube.com/embed/OPLRXDmteCE?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=OPLRXDmteCE&loop=1"
+              <YouTubeFacade
+                videoId="OPLRXDmteCE"
+                iframeId="side-video-2"
                 title="APL Launch Highlights 2"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-              ></iframe>
+                className="side-video-iframe"
+              />
               {side2Muted && (
                 <div className="side-video-overlay" onClick={() => handleUnmute('side-video-2', setSide2Muted)}>
                   <div className="side-unmute-button-container">
@@ -105,15 +139,12 @@ export function GrandLaunchSection() {
               )}
             </div>
             <div className="side-video-card animate-side-card">
-              <iframe
-                id="side-video-3"
-                className="side-video-iframe"
-                src="https://www.youtube.com/embed/6PZfy6YCw88?autoplay=1&mute=1&enablejsapi=1&rel=0&playlist=6PZfy6YCw88&loop=1"
+              <YouTubeFacade
+                videoId="6PZfy6YCw88"
+                iframeId="side-video-3"
                 title="APL Launch Highlights 3"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-              ></iframe>
+                className="side-video-iframe"
+              />
               {side3Muted && (
                 <div className="side-video-overlay" onClick={() => handleUnmute('side-video-3', setSide3Muted)}>
                   <div className="side-unmute-button-container">

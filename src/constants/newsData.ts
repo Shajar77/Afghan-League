@@ -4,6 +4,7 @@ import downloadImg from '../assets/download.webp'
 import downloadWebp from '../assets/download.webp'
 import download1Img from '../assets/download (1).webp'
 import prImg from '../assets/PR.webp'
+import prDraftImg from '../assets/PR-draft-registrations.webp'
 
 export interface Article {
   id: string
@@ -18,6 +19,29 @@ export interface Article {
 }
 
 export const articles: Article[] = [
+  {
+    id: 'apl-press-release-sep08-2026',
+    category: 'PRESS RELEASE',
+    title: 'Player Registrations Underway for 2026 Afghanistan Premier League T20 Player Draft',
+    excerpt: 'Dubai, UAE — Player registrations for the inaugural season of the Afghanistan Premier League (APL) opened on 30 August 2026 and will close on September 19, 2026, the Afghanistan Cricket Board (ACB) confirmed today.',
+    date: 'SEP 8, 2026',
+    readTime: '3 MIN READ',
+    img: prDraftImg,
+    featured: true,
+    fullText: [
+      "Dubai, UAE — Player registrations for the inaugural season of the Afghanistan Premier League (APL) opened on 30 August 2026 and will close on September 19, 2026, the Afghanistan Cricket Board (ACB) confirmed today.",
+      "The APL is owned by the ACB and operated in partnership with Cricket Ventures. The inaugural season will be staged in the United Arab Emirates, with the first match set to be played on December 27, 2026.",
+      "All franchise squads for the inaugural season will be assembled through a Player Draft, to be held on September 27, 2026 in Dubai. Only players who complete registration before the deadline will be entered into the draft pool and become eligible for selection.",
+      "Registration is open to both Afghanistan and overseas players. Players may register directly or through their appointed representatives at the [Registration Link]. The deadline to register for the Draft is September 19, 2026 and enquiries about the process can be communicated to [players@apl-t20.com] up until September 15, 2026. Overseas players must confirm that they are able to obtain a No Objection Certificate from their home board for the duration of the tournament window.",
+      "Player categories, salary bands, squad composition, eligibility criteria and the full draft mechanism are set out in the APL Draft Rules & Regulations, which have been circulated to registered player agents and are available on request.",
+      '• Naseeb Khan, Chief Executive Officer, Afghanistan Cricket Board: "The draft is the point at which this league becomes real for players, and we want every cricketer who belongs in it to be in the pool. More than 150 have already registered in the first ten days, which tells us this league has been waited for and that the interest is there on both sides. For Afghan players in particular, the APL creates a professional stage at home alongside established international names. The commercial and operational framework is in place, and our focus now is on a clean, credible draft. I would urge all players and their representatives to complete their registration well before the 19th September deadline."',
+      "Franchise announcements and further details on the tournament window will follow in the coming weeks.",
+      "Players and representatives seeking further information should contact [players@apl-t20.com].",
+      "-ENDS-",
+      "For Media Enquiries:",
+      "contact@apl-t20.com"
+    ]
+  },
   {
     id: 'apl-press-release-aug25-2026',
     category: 'PRESS RELEASE',

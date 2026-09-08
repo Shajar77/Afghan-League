@@ -5,6 +5,67 @@ interface BlogDetailPageProps {
   article: Article
 }
 
+function renderInlineContent(rawText: string) {
+  // Regex to detect [Registration Link], [email@domain], email@domain, www.domain.com, [label](#hash/url)
+  const regex = /(\[Registration Link\]|\[[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\]|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|www\.apl-t20\.com)/g
+
+  const parts = rawText.split(regex)
+  if (parts.length === 1) return rawText
+
+  return parts.map((part, i) => {
+    if (part === '[Registration Link]') {
+      return (
+        <a
+          key={i}
+          href="#register"
+          className="blog-detail-inline-link"
+          onClick={(e) => {
+            e.preventDefault()
+            window.location.hash = '#register'
+          }}
+        >
+          Registration Portal
+        </a>
+      )
+    }
+
+    if (part.startsWith('[') && part.endsWith(']') && part.includes('@')) {
+      const email = part.slice(1, -1)
+      return (
+        <a key={i} href={`mailto:${email}`} className="blog-detail-inline-link">
+          {email}
+        </a>
+      )
+    }
+
+    if (part.includes('@') && !part.includes(' ')) {
+      return (
+        <a key={i} href={`mailto:${part}`} className="blog-detail-inline-link">
+          {part}
+        </a>
+      )
+    }
+
+    if (part === 'www.apl-t20.com') {
+      return (
+        <a
+          key={i}
+          href="#home"
+          className="blog-detail-inline-link"
+          onClick={(e) => {
+            e.preventDefault()
+            window.location.hash = '#home'
+          }}
+        >
+          www.apl-t20.com
+        </a>
+      )
+    }
+
+    return part
+  })
+}
+
 export function BlogDetailPage({ article }: BlogDetailPageProps) {
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -18,6 +79,10 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
 
   return (
     <div className="blog-detail-page">
+      <div className="blog-detail-bg-grid" />
+      <div className="blog-detail-glow-left" />
+      <div className="blog-detail-glow-right" />
+
       <div className="blog-detail-container">
         
         {/* Back Link */}
@@ -62,22 +127,31 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
                 if (!text) return null
 
                 // 1. ENDS Badge
-                if (text === '-ENDS-') {
+                const cleanEnds = text.replace(/[\s–—-]+/g, '').toUpperCase()
+                if (cleanEnds === 'ENDS') {
                   return (
                     <div key={idx} className="blog-detail-ends-badge">
-                      <span>- ENDS -</span>
+                      <span>– ENDS –</span>
                     </div>
                   )
                 }
 
                 // 2. Media enquiries / Email
-                if (text.toLowerCase().includes('media enquiries') || text.includes('contact@apl-t20.com') || text.includes('bid@apl-t20.com')) {
-                  const isEmail = text.includes('@')
+                if (
+                  text.toLowerCase().includes('media enquiries') ||
+                  text.toLowerCase().includes('for media enquiries') ||
+                  text === 'contact@apl-t20.com' ||
+                  text === 'bid@apl-t20.com' ||
+                  text === 'players@apl-t20.com' ||
+                  (text.startsWith('[') && text.endsWith(']') && text.includes('@'))
+                ) {
+                  const isEmail = text.includes('@') && !text.includes(' ')
+                  const cleanEmail = text.replace(/[[\]]/g, '')
                   return (
                     <div key={idx} className="blog-detail-contact-box">
                       {isEmail ? (
-                        <a href={`mailto:${text}`} className="blog-detail-contact-link">
-                          📧 {text}
+                        <a href={`mailto:${cleanEmail}`} className="blog-detail-contact-link">
+                          📧 {cleanEmail}
                         </a>
                       ) : (
                         <p className="blog-detail-contact-title">{text}</p>
@@ -130,10 +204,10 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
                         {hasLabel ? (
                           <>
                             <strong className="blog-detail-bullet-label">{parts[0]}: </strong>
-                            <span>{parts[1]}</span>
+                            <span>{renderInlineContent(parts[1])}</span>
                           </>
                         ) : (
-                          <span>{cleanBullet}</span>
+                          <span>{renderInlineContent(cleanBullet)}</span>
                         )}
                       </div>
                     </div>
@@ -162,7 +236,7 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
                 // 6. Regular Paragraph
                 return (
                   <p key={idx} className="blog-detail-paragraph">
-                    {text}
+                    {renderInlineContent(text)}
                   </p>
                 )
               })

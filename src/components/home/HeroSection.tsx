@@ -3,9 +3,8 @@ import { HeroCountdown } from './HeroCountdown'
 import { FEATURES } from '../../constants/features'
 import './HeroSection.css'
 
-// Optimized Cloudinary URLs: auto quality, 1280px width cap, 2Mbps bitrate limit
-const HERO_VIDEO_WEBM = 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,f_webm,w_1280,br_2m/v1787984907/APL_Trophy_v6_FHD_1.mp4'
-const HERO_VIDEO_MP4 = 'https://res.cloudinary.com/ihuz5bq6/video/upload/q_auto,f_mp4,w_1280,br_2m/v1787984907/APL_Trophy_v6_FHD_1.mp4'
+// Cloudflare R2 Stream URL
+const HERO_VIDEO_MP4 = 'https://pub-5470ece9eb504ca495abf5262e87e048.r2.dev/hero_compressed.mp4'
 
 // High-priority Poster: first frame extracted as lightweight WebP
 const HERO_POSTER = 'https://res.cloudinary.com/ihuz5bq6/video/upload/so_0,w_1280,q_auto,f_webp/v1787984907/APL_Trophy_v6_FHD_1.webp'
@@ -23,7 +22,6 @@ export function HeroSection() {
           preload="auto"
           poster={HERO_POSTER}
         >
-          <source src={HERO_VIDEO_WEBM} type="video/webm" />
           <source src={HERO_VIDEO_MP4} type="video/mp4" />
         </video>
         <div className="hero-overlay"></div>

@@ -1,10 +1,49 @@
 .blog-detail-page {
-  background: var(--bg-canvas);
+  position: relative;
+  width: 100%;
   min-height: 100vh;
-  padding: 6rem var(--page-padding) 8rem var(--page-padding);
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  background: linear-gradient(to right, #021B79, #0575E6);
+  background-attachment: fixed;
+  padding: 4rem var(--page-padding) 6rem var(--page-padding);
+  overflow: hidden;
+}
+
+/* Subtle dot-grid background */
+.blog-detail-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(248, 200, 0, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+/* Ambient glow orbs */
+.blog-detail-glow-left {
+  position: absolute;
+  top: -60px;
+  left: -80px;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(248, 200, 0, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.blog-detail-glow-right {
+  position: absolute;
+  top: 35%;
+  right: -80px;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(44, 50, 170, 0.28) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .blog-detail-container {
+  position: relative;
+  z-index: 2;
   max-width: 1000px;
   margin: 0 auto;
   display: flex;
@@ -43,8 +82,9 @@
   max-height: 520px;
   overflow: hidden;
   position: relative;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  border: 1px solid rgba(248, 200, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
 }
 
 .blog-detail-img {
@@ -60,7 +100,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(14, 16, 56, 0.2) 0%, rgba(14, 16, 56, 0) 100%);
+  background: linear-gradient(to bottom, rgba(2, 27, 121, 0.1) 0%, rgba(2, 27, 121, 0.4) 100%);
   pointer-events: none;
 }
 
@@ -124,7 +164,7 @@
   font-family: var(--font-body);
   font-size: 1.05rem;
   line-height: 1.75;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   margin: 0;
 }
 
@@ -144,9 +184,12 @@
 .blog-detail-quote-card {
   margin: 1.5rem 0;
   padding: 1.5rem 1.75rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(2, 27, 121, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(248, 200, 0, 0.2);
   border-left: 4px solid var(--brand-gold);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 10px 10px 0;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -245,6 +288,19 @@
 .blog-detail-contact-link:hover {
   color: #ffdb3b;
   text-decoration: underline;
+}
+
+.blog-detail-inline-link {
+  color: var(--brand-gold);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.blog-detail-inline-link:hover {
+  color: #ffdb3b;
+  opacity: 0.9;
 }
 
 .blog-detail-footer {

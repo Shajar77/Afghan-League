@@ -1,11 +1,14 @@
-# Logs
+# Logs & Network Traces
 logs
 *.log
+*.har
+localhost_*.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+hero_compressed.mp4
 
 # Dependencies & Build Output
 node_modules

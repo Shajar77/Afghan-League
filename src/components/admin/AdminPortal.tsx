@@ -109,21 +109,35 @@ export function AdminPortal() {
     }
   }, [view, authToken])
 
+  const [savedScrollPos, setSavedScrollPos] = useState<number>(0)
+  const [playersList, setPlayersList] = useState<Registration[]>([])
+
   const handleLoginSuccess = (token: string, email: string) => {
     setAuthToken(token)
     setAdminEmail(email)
     setView('dashboard')
   }
 
-  const handleViewPlayer = (reg: Registration) => {
+  const handleViewPlayer = (reg: Registration, list?: Registration[]) => {
+    setSavedScrollPos(window.scrollY || document.documentElement.scrollTop || 0)
     setSelectedPlayer(reg)
+    if (list && list.length > 0) {
+      setPlayersList(list)
+    }
     setView('player-detail')
+    scrollToTop(true)
+  }
+
+  const handleNavigatePlayer = (nextReg: Registration) => {
+    setSelectedPlayer(nextReg)
     scrollToTop(true)
   }
 
   const handleBackToDashboard = () => {
     setView('dashboard')
-    scrollToTop(true)
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: savedScrollPos, left: 0, behavior: 'instant' })
+    })
   }
 
   // Show a minimal loading state while verifying token — prevents dashboard flash
@@ -159,23 +173,28 @@ export function AdminPortal() {
     return <AdminLogin onLoginSuccess={handleLoginSuccess} />
   }
 
-  if (view === 'player-detail' && selectedPlayer) {
-    return (
-      <AdminPlayerDetail
-        registration={selectedPlayer as Parameters<typeof AdminPlayerDetail>[0]['registration']}
-        onBack={handleBackToDashboard}
-        onLogout={handleLogout}
-        adminEmail={adminEmail}
-      />
-    )
-  }
-
   return (
-    <AdminDashboard
-      adminEmail={adminEmail}
-      adminToken={authToken || ''}
-      onLogout={handleLogout}
-      onViewPlayer={(reg) => handleViewPlayer(reg as Registration)}
-    />
+    <>
+      <div style={{ display: view === 'dashboard' ? 'block' : 'none' }}>
+        <AdminDashboard
+          adminEmail={adminEmail}
+          adminToken={authToken || ''}
+          onLogout={handleLogout}
+          onViewPlayer={(reg, list) => handleViewPlayer(reg as Registration, list as Registration[])}
+        />
+      </div>
+
+      {view === 'player-detail' && selectedPlayer && (
+        <AdminPlayerDetail
+          key={selectedPlayer.id || String(selectedPlayer.registration_code || '')}
+          registration={selectedPlayer as Parameters<typeof AdminPlayerDetail>[0]['registration']}
+          playersList={playersList as Parameters<typeof AdminPlayerDetail>[0]['registration'][]}
+          onSelectPlayer={(p) => handleNavigatePlayer(p as Registration)}
+          onBack={handleBackToDashboard}
+          onLogout={handleLogout}
+          adminEmail={adminEmail}
+        />
+      )}
+    </>
   )
 }

@@ -57,7 +57,7 @@ interface AdminDashboardProps {
   adminEmail: string
   adminToken: string
   onLogout: () => void
-  onViewPlayer: (reg: Registration) => void
+  onViewPlayer: (reg: Registration, playerList?: Registration[]) => void
 }
 
 export function AdminDashboard({
@@ -146,7 +146,7 @@ export function AdminDashboard({
         startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
         endDate: dateTo ? `${dateTo}T23:59:59.000Z` : '',
         page: 1,
-        limit: 500
+        limit: 1000
       }
 
       const res = await authFetch(buildApiUrl('/admin/players/search'), {
@@ -204,7 +204,7 @@ export function AdminDashboard({
       startDate: '',
       endDate: '',
       page: 1,
-      limit: 500
+      limit: 1000
     }
     const makeStatusRequest = async (status: string): Promise<any[]> => {
       try {

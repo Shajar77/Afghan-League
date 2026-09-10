@@ -79,7 +79,7 @@ interface AdminRegistrationsTableProps {
   isLoading: boolean
   paginated: Registration[]
   filtered: Registration[]
-  onViewPlayer: (reg: Registration) => void
+  onViewPlayer: (reg: Registration, playerList?: Registration[]) => void
   adminToken: string
   safeCurrentPage: number
   setCurrentPage: Dispatch<SetStateAction<number>>
@@ -143,7 +143,7 @@ export function AdminRegistrationsTable({
                   <tr
                     key={reg.id}
                     className="apl-admin-row"
-                    onClick={() => onViewPlayer(reg)}
+                    onClick={() => onViewPlayer(reg, filtered)}
                     title="Click to view complete player dossier"
                   >
                     <td className="td-num">
@@ -208,7 +208,7 @@ export function AdminRegistrationsTable({
                       <button
                         type="button"
                         className="apl-btn-table-action"
-                        onClick={() => onViewPlayer(reg)}
+                        onClick={() => onViewPlayer(reg, filtered)}
                         title="Inspect Player Details"
                       >
                         <span>Inspect</span>

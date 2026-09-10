@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef } from 'react'
 import { buildApiUrl, normalizeMediaUrl, safeExternalUrl, authFetch } from '../../config/api'
 import {
   formatStatus,
@@ -13,6 +13,8 @@ import { formatAvailabilityDisplay } from '../registration/types'
 import { scrollToTop } from '../../utils/lenis'
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
   AlertCircle,
   XCircle,
@@ -39,6 +41,8 @@ import './AdminPlayerDetail.css'
 
 interface AdminPlayerDetailProps {
   registration: Registration
+  playersList?: Registration[]
+  onSelectPlayer?: (player: Registration) => void
   onBack: () => void
   onLogout: () => void
   adminEmail: string
@@ -112,6 +116,8 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
 
 export function AdminPlayerDetail({
   registration: initialReg,
+  playersList,
+  onSelectPlayer,
   onBack,
   onLogout,
   adminEmail: _adminEmail,
@@ -141,6 +147,56 @@ export function AdminPlayerDetail({
   )
   const [copiedCode, setCopiedCode] = useState(false)
 
+  // Determine active index within the filtered list
+  const currentIndex = useMemo(() => {
+    if (!playersList || playersList.length === 0) return -1
+    const regId = initialReg.id
+    const code = String(initialReg.registration_code || (initialReg as any).code || '').trim().toLowerCase()
+    return playersList.findIndex(p => {
+      if (regId && p.id === regId) return true
+      const pCode = String(p.registration_code || (p as any).code || '').trim().toLowerCase()
+      if (code && pCode && code === pCode) return true
+      return false
+    })
+  }, [playersList, initialReg])
+
+  const hasPrev = currentIndex > 0
+  const hasNext = currentIndex >= 0 && currentIndex < (playersList?.length || 0) - 1
+
+  const handlePrev = useCallback(() => {
+    if (hasPrev && playersList && onSelectPlayer) {
+      onSelectPlayer(playersList[currentIndex - 1])
+    }
+  }, [hasPrev, playersList, currentIndex, onSelectPlayer])
+
+  const handleNext = useCallback(() => {
+    if (hasNext && playersList && onSelectPlayer) {
+      onSelectPlayer(playersList[currentIndex + 1])
+    }
+  }, [hasNext, playersList, currentIndex, onSelectPlayer])
+
+  // Keyboard navigation: Left Arrow for Previous, Right Arrow for Next
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      const activeTag = target?.tagName.toLowerCase()
+      if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select' || target?.isContentEditable) {
+        return
+      }
+
+      if (e.key === 'ArrowLeft' && hasPrev) {
+        e.preventDefault()
+        handlePrev()
+      } else if (e.key === 'ArrowRight' && hasNext) {
+        e.preventDefault()
+        handleNext()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handlePrev, handleNext, hasPrev, hasNext])
+
   // Guarantee instant scroll reset to top when viewing player detail page
   useLayoutEffect(() => {
     scrollToTop(true)
@@ -150,7 +206,7 @@ export function AdminPlayerDetail({
     if (topRef.current) {
       topRef.current.scrollIntoView({ block: 'start', behavior: 'instant' })
     }
-  }, [])
+  }, [initialReg])
 
   useEffect(() => {
     const forceTop = () => {
@@ -171,7 +227,7 @@ export function AdminPlayerDetail({
       cancelAnimationFrame(rafId)
       clearTimeout(timerId)
     }
-  }, [])
+  }, [initialReg])
 
   useEffect(() => {
     if (!email || !regCode) return
@@ -342,17 +398,49 @@ export function AdminPlayerDetail({
 
       {/* ── DOSSIER MAIN BODY ── */}
       <main className="apl-detail-main">
-        {/* Navigation Breadcrumb */}
+        {/* Navigation Breadcrumb & Next/Prev Stepper */}
         <div className="apl-detail-breadcrumbs">
-          <button type="button" className="apl-detail-back-btn" onClick={onBack}>
-            <ArrowLeft size={16} />
-            <span>Return to Registrations</span>
-          </button>
-          {isDataLoading && (
-            <span className="apl-admin-loading-badge">
-              <span className="apl-loading-pulse-dot" />
-              Syncing Full Player Dossier...
-            </span>
+          <div className="apl-detail-breadcrumbs-left">
+            <button type="button" className="apl-detail-back-btn" onClick={onBack}>
+              <ArrowLeft size={16} />
+              <span>Return to Registrations</span>
+            </button>
+            {isDataLoading && (
+              <span className="apl-admin-loading-badge">
+                <span className="apl-loading-pulse-dot" />
+                Syncing Full Player Dossier...
+              </span>
+            )}
+          </div>
+
+          {playersList && playersList.length > 1 && (
+            <div className="apl-dossier-nav-group">
+              <button
+                type="button"
+                className="apl-dossier-nav-btn"
+                disabled={!hasPrev}
+                onClick={handlePrev}
+                title="Previous Player (Keyboard: ← Left Arrow)"
+              >
+                <ChevronLeft size={14} />
+                <span>PREV</span>
+              </button>
+              <div className="apl-dossier-nav-counter">
+                <span className="apl-dossier-nav-num">{currentIndex + 1}</span>
+                <span className="apl-dossier-nav-of">of</span>
+                <span className="apl-dossier-nav-num">{playersList.length}</span>
+              </div>
+              <button
+                type="button"
+                className="apl-dossier-nav-btn"
+                disabled={!hasNext}
+                onClick={handleNext}
+                title="Next Player (Keyboard: → Right Arrow)"
+              >
+                <span>NEXT</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
           )}
         </div>
 
@@ -527,7 +615,7 @@ export function AdminPlayerDetail({
 
           <div className="apl-gallery-grid">
             <ImageCard url={reg.photo_url || reg.photo || reg.headshot_url || reg.headshot_image_url} label="Official Headshot" icon={User} />
-            <ImageCard url={reg.action_shot_url || reg.action_url || reg.action_shot} label="Match Action Shot" icon={Award} />
+            <ImageCard url={reg.action_shot_url || reg.action_short_url || reg.action_url || reg.action_shot} label="Match Action Shot" icon={Award} />
             <ImageCard url={reg.right_profile_url || reg.right_profile} label="Right Profile" icon={Sparkles} />
             <ImageCard url={reg.left_profile_url || reg.left_profile} label="Left Profile" icon={Sparkles} />
             <ImageCard url={reg.passport_url || reg.passport_image_url} label="Passport Verification" icon={FileText} />
@@ -760,10 +848,45 @@ export function AdminPlayerDetail({
 
         </section>
 
+        {/* ── BOTTOM DOSSIER FOOTER NAV ── */}
+        <div className="apl-detail-footer-nav">
+          <button type="button" className="apl-detail-back-btn" onClick={onBack}>
+            <ArrowLeft size={16} />
+            <span>Return to Registrations</span>
+          </button>
 
+          {playersList && playersList.length > 1 && (
+            <div className="apl-dossier-nav-group">
+              <button
+                type="button"
+                className="apl-dossier-nav-btn"
+                disabled={!hasPrev}
+                onClick={handlePrev}
+                title="Previous Player (Keyboard: ← Left Arrow)"
+              >
+                <ChevronLeft size={14} />
+                <span>PREV</span>
+              </button>
+              <div className="apl-dossier-nav-counter">
+                <span className="apl-dossier-nav-num">{currentIndex + 1}</span>
+                <span className="apl-dossier-nav-of">of</span>
+                <span className="apl-dossier-nav-num">{playersList.length}</span>
+              </div>
+              <button
+                type="button"
+                className="apl-dossier-nav-btn"
+                disabled={!hasNext}
+                onClick={handleNext}
+                title="Next Player (Keyboard: → Right Arrow)"
+              >
+                <span>NEXT</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
+        </div>
 
       </main>
     </div>
   )
 }
-

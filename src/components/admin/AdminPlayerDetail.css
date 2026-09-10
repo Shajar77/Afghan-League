@@ -23,11 +23,22 @@
 }
 
 /* ──────────────────────────────────────────────────────────
-   1. BREADCRUMBS
+   1. BREADCRUMBS & DOSSIER NAVIGATION
    ────────────────────────────────────────────────────────── */
 .apl-detail-breadcrumbs {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.apl-detail-breadcrumbs-left {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .apl-detail-back-btn {
@@ -39,7 +50,7 @@
   color: rgba(255, 255, 255, 0.9);
   padding: 0.5rem 0;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   min-height: 40px;
   box-shadow: none;
@@ -47,8 +58,98 @@
 }
 
 .apl-detail-back-btn:hover {
+  color: var(--brand-gold, #F8C800);
+  transform: translateX(-3px);
+}
+
+/* Dossier Stepper Controls */
+.apl-dossier-nav-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(10, 25, 75, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 0.22rem 0.35rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+}
+
+.apl-dossier-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-family: var(--font-body, "Archivo", sans-serif);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 28px;
+  touch-action: manipulation;
+}
+
+.apl-dossier-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
   color: #ffffff;
-  opacity: 0.8;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.apl-dossier-nav-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.apl-dossier-nav-btn:disabled {
+  opacity: 0.22;
+  cursor: not-allowed;
+  border-color: transparent;
+  background: transparent;
+}
+
+.apl-dossier-nav-counter {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  padding: 0 0.35rem;
+  user-select: none;
+}
+
+.apl-dossier-nav-num {
+  font-family: var(--font-display, "Big Shoulders Display", sans-serif);
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.apl-dossier-nav-of {
+  font-family: var(--font-body, "Archivo", sans-serif);
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: lowercase;
+  margin: 0 0.32rem;
+  letter-spacing: 0.02em;
+}
+
+/* Bottom Dossier Nav Footer */
+.apl-detail-footer-nav {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 /* ──────────────────────────────────────────────────────────

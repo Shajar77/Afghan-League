@@ -217,7 +217,7 @@ export function AdminDashboard({
     } catch {
       // Silently fall back to cached/default counts
     }
-  }, [adminToken])
+  }, [])
 
   useEffect(() => {
     fetchRegistrations()
@@ -288,7 +288,7 @@ export function AdminDashboard({
       // 1. Status Filter
       if (statusFilter !== 'All') {
         const pStatus = (p.status || (p as any).registration_status || '').toLowerCase()
-        if (sFilter === 'approved') {
+        if (sFilter === 'approved' || sFilter === 'approved_draft') {
           if (pStatus !== 'approved' && pStatus !== 'approved_draft') return false
         } else if (pStatus !== sFilter) {
           return false
@@ -353,6 +353,26 @@ export function AdminDashboard({
 
     const playerCode = String(returnToPlayer.registration_code || (returnToPlayer as any).code || '').trim().toLowerCase()
     const playerId = returnToPlayer.id
+    const updatedStatus = returnToPlayer.status || (returnToPlayer as any).registration_status
+
+    // 1. Optimistically update local player record in registrations & allPlayersData
+    if (updatedStatus) {
+      setRegistrations(prev => prev.map(r => {
+        const isMatch = Boolean((playerId && r.id === playerId) ||
+          (playerCode && String(r.registration_code || (r as any).code || '').trim().toLowerCase() === playerCode))
+        return isMatch ? { ...r, status: updatedStatus } : r
+      }))
+      setAllPlayersData(prev => prev.map(r => {
+        const isMatch = Boolean((playerId && r.id === playerId) ||
+          (playerCode && String(r.registration_code || (r as any).code || '').trim().toLowerCase() === playerCode))
+        return isMatch ? { ...r, status: updatedStatus } : r
+      }))
+    }
+
+    // 2. Refresh server data in background (counts, table data, and stats)
+    fetchStatusCounts()
+    fetchRegistrations()
+    fetchAllPlayersForStats()
 
     const listToSearch = dossierPlayersList.length > 0 ? dossierPlayersList : allPlayersData
     const playerIndex = listToSearch.findIndex(p => {
@@ -375,7 +395,7 @@ export function AdminDashboard({
       scrollAndHighlightRow(returnToPlayer)
       onClearReturnToPlayer?.()
     }
-  }, [returnToPlayer, dossierPlayersList, allPlayersData, itemsPerPage, currentPage, scrollAndHighlightRow, onClearReturnToPlayer])
+  }, [returnToPlayer, dossierPlayersList, allPlayersData, itemsPerPage, currentPage, scrollAndHighlightRow, onClearReturnToPlayer, fetchStatusCounts, fetchRegistrations, fetchAllPlayersForStats])
 
   // Once table registrations load for the target page, scroll to and highlight the player
   useEffect(() => {
@@ -574,7 +594,7 @@ export function AdminDashboard({
     const emerging = allPlayersData.filter(r => {
       const cat = (r.player_category || '').toLowerCase()
       if (!cat) return true
-      return cat === '9' || cat.includes('emerging') || cat.includes('under-23')
+      return cat === '9' || cat.includes('emerging') || cat.includes('under-23') || cat.includes('under-25') || cat.includes('under 25')
     }).length
 
     return [

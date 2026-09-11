@@ -43,7 +43,7 @@ interface AdminPlayerDetailProps {
   registration: Registration
   playersList?: Registration[]
   onSelectPlayer?: (player: Registration) => void
-  onBack: () => void
+  onBack: (currentPlayer?: Registration) => void
   onLogout: () => void
   adminEmail: string
   adminRole?: string
@@ -371,7 +371,9 @@ export function AdminPlayerDetail({
 
   // For Super Admins, always show the adjudication bar.
   // For standard admins, hide if status is already approved or rejected.
-  const showAdjudicationBar = isSuper || (!isRejected && !isApprovedDraft)
+  // For Registration Viewers, hide adjudication status buttons entirely.
+  const isViewer = role === 'registration_viewer'
+  const showAdjudicationBar = !isViewer && (isSuper || (!isRejected && !isApprovedDraft))
 
   return (
     <div ref={topRef} className="apl-detail-layout">
@@ -401,7 +403,7 @@ export function AdminPlayerDetail({
         {/* Navigation Breadcrumb & Next/Prev Stepper */}
         <div className="apl-detail-breadcrumbs">
           <div className="apl-detail-breadcrumbs-left">
-            <button type="button" className="apl-detail-back-btn" onClick={onBack}>
+            <button type="button" className="apl-detail-back-btn" onClick={() => onBack(playerData || initialReg)}>
               <ArrowLeft size={16} />
               <span>Return to Registrations</span>
             </button>
@@ -850,7 +852,7 @@ export function AdminPlayerDetail({
 
         {/* ── BOTTOM DOSSIER FOOTER NAV ── */}
         <div className="apl-detail-footer-nav">
-          <button type="button" className="apl-detail-back-btn" onClick={onBack}>
+          <button type="button" className="apl-detail-back-btn" onClick={() => onBack(playerData || initialReg)}>
             <ArrowLeft size={16} />
             <span>Return to Registrations</span>
           </button>

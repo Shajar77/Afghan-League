@@ -387,3 +387,20 @@ export function isSuperAdminUser(role?: string): boolean {
   const r = (role !== undefined && role !== '' ? role : getAdminRole()).toLowerCase().trim()
   return r === 'super_admin' || r === 'superadmin' || r === 'super'
 }
+
+/**
+ * Check if the given role or the active logged-in user is a Registration Viewer (read-only).
+ */
+export function isRegistrationViewerUser(role?: string): boolean {
+  const r = (role !== undefined && role !== '' ? role : getAdminRole()).toLowerCase().trim()
+  return r === 'registration_viewer'
+}
+
+/**
+ * Check if the given role or the active logged-in user has player management access.
+ */
+export function isPlayerManagementUser(role?: string): boolean {
+  const r = (role !== undefined && role !== '' ? role : getAdminRole()).toLowerCase().trim()
+  return r === 'league_ops' || r === 'player_management' || r === 'player_mgmt' || r === 'registration_viewer'
+}
+

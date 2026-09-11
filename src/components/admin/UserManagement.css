@@ -308,6 +308,7 @@
 .role-badge-content,
 .role-badge-media,
 .role-badge-ops,
+.role-badge-viewer,
 .role-badge-default {
   color: inherit;
 }

@@ -27,6 +27,6 @@ export function scrollToElement(el: Element | null, offset = 0, immediate = true
     lenis.scrollTo(el as HTMLElement, { immediate, offset })
   } else {
     const y = el.getBoundingClientRect().top + window.scrollY + offset
-    window.scrollTo({ top: y, behavior: 'auto' })
+    window.scrollTo({ top: y, behavior: immediate ? 'auto' : 'smooth' })
   }
 }

@@ -1,6 +1,7 @@
-import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
+import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import { normalizeMediaUrl } from '../../config/api'
 import { formatStatus, statusClass } from './adminUtils'
+import { scrollToElement } from '../../utils/lenis'
 import {
   Users,
   ChevronLeft,
@@ -31,6 +32,7 @@ export interface Registration {
   profile_photo_url?: string
   passport_url?: string
   action_shot_url?: string
+  action_photo_url?: string
   created_at?: string
   date?: string
   [key: string]: unknown
@@ -38,9 +40,9 @@ export interface Registration {
 
 function PlayerAvatar({
   photoUrl,
-  name,
+  name
 }: {
-  photoUrl?: string
+  photoUrl?: string | null
   name?: string
 }) {
   const [src, setSrc] = useState<string>(normalizeMediaUrl(photoUrl || ''))
@@ -53,10 +55,9 @@ function PlayerAvatar({
 
   const initials = (name || '')
     .split(' ')
-    .map(w => w[0])
-    .join('')
     .slice(0, 2)
-    .toUpperCase() || 'PL'
+    .map(w => w[0]?.toUpperCase() || '')
+    .join('') || 'PL'
 
   return (
     <div className="apl-player-avatar-mini apl-avatar-wrap">
@@ -84,6 +85,7 @@ interface AdminRegistrationsTableProps {
   safeCurrentPage: number
   setCurrentPage: Dispatch<SetStateAction<number>>
   totalPages: number
+  totalCount?: number
   itemsPerPage: number
   setItemsPerPage: (num: number) => void
 }
@@ -97,13 +99,23 @@ export function AdminRegistrationsTable({
   safeCurrentPage,
   setCurrentPage,
   totalPages,
+  totalCount,
   itemsPerPage,
   setItemsPerPage
 }: AdminRegistrationsTableProps) {
+  const effectiveTotal = totalCount ?? filtered.length
+  const tableContainerRef = useRef<HTMLDivElement>(null)
+
+  const scrollToTableTop = () => {
+    requestAnimationFrame(() => {
+      scrollToElement(tableContainerRef.current, -90, false)
+    })
+  }
+
   return (
     <>
       {/* ── TABLE VIEW ── */}
-      <div className="apl-admin-table-card">
+      <div ref={tableContainerRef} className="apl-admin-table-card">
         <div className="apl-table-responsive">
           <table className="apl-admin-table">
             <thead>
@@ -142,6 +154,7 @@ export function AdminRegistrationsTable({
                 paginated.map((reg, idx) => (
                   <tr
                     key={reg.id}
+                    id={`player-row-${reg.id || reg.registration_code}`}
                     className="apl-admin-row"
                     onClick={() => onViewPlayer(reg, filtered)}
                     title="Click to view complete player dossier"
@@ -224,12 +237,12 @@ export function AdminRegistrationsTable({
       </div>
 
       {/* ── PAGINATION CONTROLS ── */}
-      {!isLoading && filtered.length > 0 && (
+      {!isLoading && effectiveTotal > 0 && (
         <div className="apl-pagination-bar">
           <div className="apl-pagination-count">
-            Showing <strong>{Math.min((safeCurrentPage - 1) * itemsPerPage + 1, filtered.length)}</strong> –{' '}
-            <strong>{Math.min(safeCurrentPage * itemsPerPage, filtered.length)}</strong> of{' '}
-            <strong>{filtered.length}</strong> cricketers
+            Showing <strong>{Math.min((safeCurrentPage - 1) * itemsPerPage + 1, effectiveTotal)}</strong> –{' '}
+            <strong>{Math.min(safeCurrentPage * itemsPerPage, effectiveTotal)}</strong> of{' '}
+            <strong>{effectiveTotal}</strong> cricketers
           </div>
 
           <div className="apl-pagination-nav">
@@ -237,7 +250,10 @@ export function AdminRegistrationsTable({
               type="button"
               className="apl-page-nav-btn"
               disabled={safeCurrentPage === 1}
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => {
+                setCurrentPage(p => Math.max(1, p - 1))
+                scrollToTableTop()
+              }}
             >
               <ChevronLeft size={16} />
               <span>Prev</span>
@@ -259,7 +275,10 @@ export function AdminRegistrationsTable({
                       key={p}
                       type="button"
                       className={`apl-page-number-btn ${safeCurrentPage === p ? 'active' : ''}`}
-                      onClick={() => setCurrentPage(p as number)}
+                      onClick={() => {
+                        setCurrentPage(p as number)
+                        scrollToTableTop()
+                      }}
                     >
                       {p}
                     </button>
@@ -271,7 +290,10 @@ export function AdminRegistrationsTable({
               type="button"
               className="apl-page-nav-btn"
               disabled={safeCurrentPage === totalPages}
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => {
+                setCurrentPage(p => Math.min(totalPages, p + 1))
+                scrollToTableTop()
+              }}
             >
               <span>Next</span>
               <ChevronRight size={16} />
@@ -282,7 +304,10 @@ export function AdminRegistrationsTable({
             <span>Show</span>
             <select
               value={itemsPerPage}
-              onChange={e => setItemsPerPage(Number(e.target.value))}
+              onChange={e => {
+                setItemsPerPage(Number(e.target.value))
+                scrollToTableTop()
+              }}
               className="apl-per-page-select"
             >
               <option value={10}>10</option>

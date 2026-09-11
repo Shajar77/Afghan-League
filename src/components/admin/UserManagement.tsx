@@ -30,7 +30,8 @@ const ROLE_OPTIONS = [
   { value: 'super_admin', label: 'Super Administrator' },
   { value: 'content_editor', label: 'Content Editor' },
   { value: 'media_manager', label: 'Media Manager' },
-  { value: 'league_ops', label: 'Player Management' }
+  { value: 'league_ops', label: 'Player Management' },
+  { value: 'registration_viewer', label: 'Registration Viewer' }
 ]
 
 export function UserManagement({ onLogout }: UserManagementProps) {
@@ -139,6 +140,7 @@ export function UserManagement({ onLogout }: UserManagementProps) {
       case 'content_editor': return 'role-badge-content'
       case 'media_manager': return 'role-badge-media'
       case 'league_ops': return 'role-badge-ops'
+      case 'registration_viewer': return 'role-badge-viewer'
       default: return 'role-badge-default'
     }
   }

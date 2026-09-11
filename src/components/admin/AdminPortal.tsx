@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AdminLogin } from './AdminLogin'
 import { AdminDashboard } from './AdminDashboard'
-import { clearAdminCaches } from './adminUtils'
+import { clearAdminCaches, getAdminRole } from './adminUtils'
 import { AdminPlayerDetail } from './AdminPlayerDetail'
 import { scrollToTop } from '../../utils/lenis'
 import { refreshAdminToken, isJwtExpiringSoon } from '../../config/api'
@@ -133,11 +133,18 @@ export function AdminPortal() {
     scrollToTop(true)
   }
 
-  const handleBackToDashboard = () => {
+  const [returnToPlayer, setReturnToPlayer] = useState<Registration | null>(null)
+
+  const handleBackToDashboard = (currentPlayer?: Registration) => {
+    const playerToReturn = currentPlayer || selectedPlayer
+    if (playerToReturn) {
+      setReturnToPlayer(playerToReturn)
+    } else {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScrollPos, left: 0, behavior: 'instant' })
+      })
+    }
     setView('dashboard')
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: savedScrollPos, left: 0, behavior: 'instant' })
-    })
   }
 
   // Show a minimal loading state while verifying token — prevents dashboard flash
@@ -181,6 +188,8 @@ export function AdminPortal() {
           adminToken={authToken || ''}
           onLogout={handleLogout}
           onViewPlayer={(reg, list) => handleViewPlayer(reg as Registration, list as Registration[])}
+          returnToPlayer={returnToPlayer}
+          onClearReturnToPlayer={() => setReturnToPlayer(null)}
         />
       </div>
 
@@ -193,6 +202,7 @@ export function AdminPortal() {
           onBack={handleBackToDashboard}
           onLogout={handleLogout}
           adminEmail={adminEmail}
+          adminRole={getAdminRole()}
         />
       )}
     </>

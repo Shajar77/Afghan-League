@@ -2,7 +2,6 @@ import {
   Search,
   SlidersHorizontal,
   Star,
-  Globe,
   Calendar,
   X,
   Download,
@@ -20,9 +19,6 @@ interface AdminFiltersBarProps {
   categoryFilter: string
   setCategoryFilter: (val: string) => void
   categoryFilters: string[]
-  nationalityFilter: string
-  setNationalityFilter: (val: string) => void
-  uniqueNationalities: string[]
   dateFrom: string
   setDateFrom: (val: string) => void
   dateTo: string
@@ -35,6 +31,7 @@ interface AdminFiltersBarProps {
   isExportingXLSX: boolean
   handleExportPhotos: () => void
   isExportingPhotos: boolean
+  hideExportButtons?: boolean
 }
 
 export function AdminFiltersBar({
@@ -46,9 +43,6 @@ export function AdminFiltersBar({
   categoryFilter,
   setCategoryFilter,
   categoryFilters,
-  nationalityFilter,
-  setNationalityFilter,
-  uniqueNationalities,
   dateFrom,
   setDateFrom,
   dateTo,
@@ -60,7 +54,8 @@ export function AdminFiltersBar({
   handleExportXLSX,
   isExportingXLSX,
   handleExportPhotos,
-  isExportingPhotos
+  isExportingPhotos,
+  hideExportButtons = false
 }: AdminFiltersBarProps) {
   return (
     <>
@@ -75,47 +70,49 @@ export function AdminFiltersBar({
           </p>
         </div>
 
-        <div className="apl-export-buttons-group">
-          <button
-            type="button"
-            className="apl-export-excel-btn"
-            onClick={handleExportXLSX}
-            disabled={isExportingXLSX || totalCount === 0}
-            title="Download full player dossier spreadsheet as Excel (.xlsx) from server"
-          >
-            {isExportingXLSX ? (
-              <>
-                <Loader2 size={16} className="apl-btn-spin" />
-                <span>EXPORTING...</span>
-              </>
-            ) : (
-              <>
-                <Download size={16} />
-                <span>EXPORT EXCEL (.XLSX)</span>
-              </>
-            )}
-          </button>
+        {!hideExportButtons && (
+          <div className="apl-export-buttons-group">
+            <button
+              type="button"
+              className="apl-export-excel-btn"
+              onClick={handleExportXLSX}
+              disabled={isExportingXLSX || totalCount === 0}
+              title="Download full player dossier spreadsheet as Excel (.xlsx) from server"
+            >
+              {isExportingXLSX ? (
+                <>
+                  <Loader2 size={16} className="apl-btn-spin" />
+                  <span>EXPORTING...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>EXPORT EXCEL (.XLSX)</span>
+                </>
+              )}
+            </button>
 
-          <button
-            type="button"
-            className="apl-export-excel-btn"
-            onClick={handleExportPhotos}
-            disabled={isExportingPhotos || totalCount === 0}
-            title="Download ZIP folder of all player photos from server"
-          >
-            {isExportingPhotos ? (
-              <>
-                <Loader2 size={16} className="apl-btn-spin" />
-                <span>EXPORTING PHOTOS...</span>
-              </>
-            ) : (
-              <>
-                <Camera size={16} />
-                <span>EXPORT PHOTOS (.ZIP)</span>
-              </>
-            )}
-          </button>
-        </div>
+            <button
+              type="button"
+              className="apl-export-excel-btn"
+              onClick={handleExportPhotos}
+              disabled={isExportingPhotos || totalCount === 0}
+              title="Download ZIP folder of all player photos from server"
+            >
+              {isExportingPhotos ? (
+                <>
+                  <Loader2 size={16} className="apl-btn-spin" />
+                  <span>EXPORTING PHOTOS...</span>
+                </>
+              ) : (
+                <>
+                  <Camera size={16} />
+                  <span>EXPORT PHOTOS (.ZIP)</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ── ADVANCED FILTERS BAR ── */}
@@ -173,22 +170,6 @@ export function AdminFiltersBar({
             </select>
           </div>
 
-          {/* Nationality Filter */}
-          <div className="apl-select-wrap">
-            <Globe size={14} className="apl-select-icon" />
-            <select
-              value={nationalityFilter}
-              onChange={e => setNationalityFilter(e.target.value)}
-              className="apl-filter-select"
-            >
-              <option value="All">All Nationalities</option>
-              {uniqueNationalities.map(n => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </div>
 
           {/* Date Range */}
           <div className="apl-date-range-box">

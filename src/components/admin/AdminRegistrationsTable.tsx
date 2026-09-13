@@ -136,11 +136,11 @@ export function AdminRegistrationsTable({
             <thead>
               <tr>
                 <th className="th-num">#</th>
-                <th>PLAYER &amp; IDENTITY</th>
-                <th>REG CODE</th>
-                <th>CATEGORY</th>
-                <th>PLAYING ROLE</th>
-                <th>STATUS</th>
+                <th className="th-player">PLAYER &amp; IDENTITY</th>
+                <th className="th-code">REG CODE</th>
+                <th className="th-category">CATEGORY</th>
+                <th className="th-role">PLAYING ROLE</th>
+                <th className="th-status">STATUS</th>
                 <th className="th-action">ACTION</th>
               </tr>
             </thead>

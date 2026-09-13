@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
 import { buildApiUrl, publicFetch } from '../../config/api'
-import aboutHeroImg from '../../assets/about-hero-bg.jpeg'
+import aboutHeroImg from '../../assets/about-hero-bg.webp'
 import './ContactPage.css'
 // Removed About.css import — shared hero styles have been moved into ContactPage.css
 
@@ -129,7 +129,13 @@ export function ContactPage() {
       {/* Hero Section */}
       <section className="hero-section contact-hero-section">
         <div className="hero-bg">
-          <img src={aboutHeroImg} alt="Contact Us Hero" className="hero-video" />
+          <img
+            src={aboutHeroImg}
+            alt="Contact Us Hero"
+            className="hero-video"
+            decoding="async"
+            fetchPriority="high"
+          />
           <div className="hero-overlay"></div>
         </div>
 

@@ -90,7 +90,7 @@ export function News() {
                 className={`news-featured-card ${index === activeSlide ? 'active' : 'inactive'}`}
               >
                 <div className="news-featured-img-wrap" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>
-                  <img src={article.img} alt={article.title} className="news-featured-img" loading="lazy" />
+                  <img src={article.img} alt={article.title} className="news-featured-img" loading="lazy" decoding="async" />
                   <div className="news-featured-img-overlay" />
                 </div>
                 <div className="news-featured-content">
@@ -157,7 +157,7 @@ export function News() {
           {gridArticles.map(article => (
             <article key={article.id} className="news-card">
               <div className="news-card-img-wrap" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>
-                <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" />
+                <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" decoding="async" />
                 <div className="news-card-img-overlay" />
               </div>
               <div className="news-card-body">

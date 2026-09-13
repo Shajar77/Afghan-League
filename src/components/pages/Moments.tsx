@@ -211,6 +211,7 @@ export function Moments() {
                   alt={reel.title}
                   className="reel-thumbnail"
                   loading="lazy"
+                  decoding="async"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
                 <div className="reel-card-overlay">
@@ -269,6 +270,7 @@ export function Moments() {
                       alt={hl.title}
                       className="reel-thumbnail"
                       loading="lazy"
+                      decoding="async"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     <div className="reel-card-overlay">

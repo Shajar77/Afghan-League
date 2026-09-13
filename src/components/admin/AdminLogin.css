@@ -24,7 +24,7 @@
   width: 45%;
   height: 100%;
   position: relative;
-  background: url('/admin-showcase.png') center/cover no-repeat;
+  background: url('/admin-showcase.webp') center/cover no-repeat;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -437,7 +437,7 @@
     height: 100vh;
     height: 100dvh;
     position: relative;
-    background: url('/admin-showcase.png') center/cover no-repeat;
+    background: url('/admin-showcase.webp') center/cover no-repeat;
     overflow: hidden;
   }
 

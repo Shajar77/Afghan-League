@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { OptimizedImage } from './OptimizedImage';
 import './Masonry.css';
 
 export interface MasonryItem {
@@ -57,19 +58,6 @@ const useMeasure = (): [React.RefObject<HTMLDivElement | null>, { width: number;
   return [ref, size];
 };
 
-const preloadImages = async (urls: string[]) => {
-  await Promise.all(
-    urls.map(
-      src =>
-        new Promise<void>(resolve => {
-          const img = new Image();
-          img.src = src;
-          img.onload = img.onerror = () => resolve();
-        })
-    )
-  );
-};
-
 const MASONRY_QUERIES = ['(min-width:1500px)', '(min-width:1000px)', '(min-width:600px)', '(min-width:400px)'];
 const MASONRY_VALUES = [5, 4, 3, 2];
 
@@ -92,7 +80,6 @@ export default function Masonry({
   );
 
   const [containerRef, { width }] = useMeasure();
-  const [imagesReady, setImagesReady] = useState(false);
 
   const getInitialPosition = (item: { x: number; y: number; w: number; h: number }) => {
     const containerRect = containerRef.current?.getBoundingClientRect();
@@ -124,10 +111,6 @@ export default function Masonry({
     }
   };
 
-  useEffect(() => {
-    preloadImages(items.map(i => i.img)).then(() => setImagesReady(true));
-  }, [items]);
-
   const grid = useMemo(() => {
     if (!width) return [];
 
@@ -149,7 +132,7 @@ export default function Masonry({
   const hasMounted = useRef(false);
 
   useLayoutEffect(() => {
-    if (!imagesReady) return;
+    if (!width || grid.length === 0) return;
 
     grid.forEach((item, index) => {
       const selector = `[data-key="${item.id}"]`;
@@ -191,7 +174,7 @@ export default function Masonry({
 
     hasMounted.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grid, imagesReady, stagger, animateFrom, blurToFocus, duration, ease]);
+  }, [grid, width, stagger, animateFrom, blurToFocus, duration, ease]);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>, item: MasonryItem) => {
     const element = e.currentTarget;
@@ -264,7 +247,14 @@ export default function Masonry({
             onMouseEnter={e => handleMouseEnter(e, item)}
             onMouseLeave={e => handleMouseLeave(e, item)}
           >
-            <div className="item-img" style={{ backgroundImage: `url(${item.img})` }}>
+            <div className="item-img">
+              <OptimizedImage
+                src={item.img}
+                alt="APL Gallery Item"
+                wrapperStyle={{ width: '100%', height: '100%' }}
+                style={{ width: '100%', height: '100%' }}
+                objectFit="cover"
+              />
               {colorShiftOnHover && (
                 <div
                   className="color-overlay"

@@ -611,6 +611,18 @@
   transition: transform 0.35s ease;
 }
 
+.apl-detail-img-card .apl-opt-img-wrap {
+  width: 100%;
+  height: 100%;
+}
+
+.apl-hero-avatar-wrap .apl-opt-img-wrap {
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
 .apl-detail-img-card:hover img {
   transform: scale(1.04);
 }

@@ -19,6 +19,7 @@ import {
   Menu,
   X
 } from 'lucide-react'
+import { scrollToElement } from '../../utils/lenis'
 import './AdminDashboard.css'
 
 export type { Registration }
@@ -107,6 +108,7 @@ export function AdminDashboard({
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
+  const [nationalityFilter, setNationalityFilter] = useState('All')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
 
@@ -140,11 +142,14 @@ export function AdminDashboard({
     try {
       const apiStatus = statusFilter === 'All' ? '' : statusFilter
       const apiCategory = categoryFilter === 'All' ? '' : categoryFilter
+      // Use the raw DB value for the selected country (fixes aliases like USA → United States)
+      const apiNationality = nationalityFilter === 'All' ? '' : (countryRawValueMap[nationalityFilter] || nationalityFilter)
 
       const searchBody = {
         search: debouncedSearch.trim(),
         status: apiStatus,
         category: apiCategory,
+        nationality: apiNationality,
         startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
         endDate: dateTo ? `${dateTo}T23:59:59.000Z` : '',
         page: currentPage,
@@ -190,7 +195,7 @@ export function AdminDashboard({
     } finally {
       setIsLoading(false)
     }
-  }, [adminToken, onLogout, debouncedSearch, statusFilter, categoryFilter, dateFrom, dateTo, currentPage, itemsPerPage])
+  }, [adminToken, onLogout, debouncedSearch, statusFilter, categoryFilter, nationalityFilter, dateFrom, dateTo, currentPage, itemsPerPage])
 
   // Fetch status counts from dedicated endpoint
   const fetchStatusCounts = useCallback(async () => {
@@ -259,12 +264,13 @@ export function AdminDashboard({
   const totalPages = serverTotalPages
   const safeCurrentPage = currentPage
 
-  const hasActiveFilters = Boolean(search || statusFilter !== 'All' || categoryFilter !== 'All' || dateFrom || dateTo)
+  const hasActiveFilters = Boolean(search || statusFilter !== 'All' || categoryFilter !== 'All' || nationalityFilter !== 'All' || dateFrom || dateTo)
 
   const clearAllFilters = () => {
     setSearch('')
     setStatusFilter('All')
     setCategoryFilter('All')
+    setNationalityFilter('All')
     setDateFrom('')
     setDateTo('')
     setCurrentPage(1)
@@ -437,9 +443,11 @@ export function AdminDashboard({
     }
   }, [statusCounts, serverTotalCount, allPlayersData])
 
-  // Dynamic Country Registrations
-  const registrationsByCountry = useMemo(() => {
+  // Dynamic Country Registrations + raw-value map for backend filtering
+  const { registrationsByCountry, countryRawValueMap } = useMemo(() => {
     const countsMap: Record<string, number> = {}
+    // Tracks the first (most representative) raw DB value per display group
+    const rawMap: Record<string, string> = {}
 
     allPlayersData.forEach(r => {
       const country = (r.nationality || r.representing_country || r.country_of_residence || '').trim()
@@ -467,6 +475,8 @@ export function AdminDashboard({
       else if (norm.includes('states') || norm.includes('usa')) stdName = 'USA'
 
       countsMap[stdName] = (countsMap[stdName] || 0) + 1
+      // Store the raw value the first time we see this group
+      if (!rawMap[stdName]) rawMap[stdName] = country
     })
 
     const activeCountries = Object.entries(countsMap)
@@ -483,11 +493,23 @@ export function AdminDashboard({
     const MAX_SLOTS = Math.max(21, activeCountries.length)
     const remainingSlotsNeeded = Math.max(0, MAX_SLOTS - activeCountries.length)
 
-    return [
-      ...activeCountries,
-      ...zeroCountDefaults.slice(0, remainingSlotsNeeded)
-    ]
+    return {
+      registrationsByCountry: [
+        ...activeCountries,
+        ...zeroCountDefaults.slice(0, remainingSlotsNeeded)
+      ],
+      countryRawValueMap: rawMap
+    }
   }, [allPlayersData])
+
+  // Dynamic list of nationalities for the filter dropdown
+  const dynamicNationalityFilters = useMemo(() => {
+    const set = new Set(CRICKETING_NATIONS)
+    registrationsByCountry.forEach(c => {
+      if (c.country && c.country !== '—') set.add(c.country)
+    })
+    return ['All', ...Array.from(set).sort((a, b) => a.localeCompare(b))]
+  }, [registrationsByCountry])
 
   // Draft Trend Data for Chart
   const draftTrendData = useMemo(() => {
@@ -623,6 +645,7 @@ export function AdminDashboard({
           search: search.trim(),
           status: statusFilter === 'All' ? '' : statusFilter,
           category: categoryFilter === 'All' ? '' : categoryFilter,
+          nationality: nationalityFilter === 'All' ? '' : (countryRawValueMap[nationalityFilter] || nationalityFilter),
           startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
           endDate: dateTo ? `${dateTo}T23:59:59.000Z` : '',
           format: 'excel'
@@ -668,6 +691,7 @@ export function AdminDashboard({
           search: search.trim(),
           status: statusFilter === 'All' ? '' : statusFilter,
           category: categoryFilter === 'All' ? '' : categoryFilter,
+          nationality: nationalityFilter === 'All' ? '' : (countryRawValueMap[nationalityFilter] || nationalityFilter),
           startDate: dateFrom ? `${dateFrom}T00:00:00.000Z` : '',
           endDate: dateTo ? `${dateTo}T23:59:59.000Z` : ''
         })
@@ -845,6 +869,11 @@ export function AdminDashboard({
               draftTrendData={draftTrendData}
               categoryChartData={categoryChartData}
               registrationsByCountry={registrationsByCountry}
+              onSelectCountry={(country) => {
+                setNationalityFilter(country)
+                setCurrentPage(1)
+                scrollToElement(document.getElementById('player-registrations-section'))
+              }}
             />
 
             {/* 2. Filters & Export Actions */}
@@ -857,6 +886,9 @@ export function AdminDashboard({
               categoryFilter={categoryFilter}
               setCategoryFilter={(val) => { setCategoryFilter(val); setCurrentPage(1) }}
               categoryFilters={CATEGORY_FILTERS}
+              nationalityFilter={nationalityFilter}
+              setNationalityFilter={(val) => { setNationalityFilter(val); setCurrentPage(1) }}
+              nationalityFilters={dynamicNationalityFilters}
               dateFrom={dateFrom}
               setDateFrom={(val) => { setDateFrom(val); setCurrentPage(1) }}
               dateTo={dateTo}

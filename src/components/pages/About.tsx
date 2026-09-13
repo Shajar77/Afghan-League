@@ -1,4 +1,4 @@
-import aboutHeroImg from '../../assets/about-hero-bg-new.jpg'
+import aboutHeroImg from '../../assets/about-hero-bg-new.webp'
 import introImg from '../../assets/gallery-8.webp'
 import acbLogo from '../../assets/ACBlogo.webp'
 import aplLogo from '../../assets/Asset 2@2x.png'
@@ -10,7 +10,13 @@ export function About() {
       {/* Hero Section */}
       <section className="hero-section about-hero-section">
         <div className="hero-bg">
-          <img src={aboutHeroImg} alt="About Us Hero" className="hero-video" />
+          <img
+            src={aboutHeroImg}
+            alt="About Us Hero"
+            className="hero-video"
+            decoding="async"
+            fetchPriority="high"
+          />
           <div className="hero-overlay"></div>
         </div>
 

@@ -37,6 +37,7 @@ import {
   LogOut
 } from 'lucide-react'
 import type { Registration } from './AdminDashboard'
+import { OptimizedImage } from '../common/OptimizedImage'
 import './AdminPlayerDetail.css'
 
 interface AdminPlayerDetailProps {
@@ -73,7 +74,12 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
   return (
     <>
       <div className="apl-detail-img-card" onClick={() => setLightbox(true)}>
-        <img src={src} alt={label} loading="lazy" />
+        <OptimizedImage
+          src={src}
+          alt={label}
+          aspectRatio="1 / 1"
+          objectFit="cover"
+        />
         <div className="apl-detail-img-overlay">
           <ZoomIn size={22} />
           <span>Inspect</span>
@@ -95,7 +101,12 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
             >
               <X size={20} />
             </button>
-            <img src={src} alt={label} className="apl-lightbox-image" />
+            <OptimizedImage
+              src={src}
+              alt={label}
+              className="apl-lightbox-image"
+              priority
+            />
             <div className="apl-lightbox-footer">
               <span>{label}</span>
               <a
@@ -453,10 +464,13 @@ export function AdminPlayerDetail({
             <div className="apl-hero-card-left">
               <div className="apl-hero-avatar-wrap">
                 {reg.photo_url ? (
-                  <img
+                  <OptimizedImage
                     src={normalizeMediaUrl(reg.photo_url)}
                     alt={reg.full_name || 'Player'}
                     className="apl-hero-avatar-img"
+                    aspectRatio="1 / 1"
+                    objectFit="cover"
+                    priority
                   />
                 ) : (
                   <div className="apl-hero-avatar-fallback" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', color: '#0284c7' }}>

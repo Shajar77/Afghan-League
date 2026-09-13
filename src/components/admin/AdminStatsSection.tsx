@@ -31,13 +31,15 @@ interface AdminStatsSectionProps {
   draftTrendData: TrendPoint[]
   categoryChartData: CategoryPoint[]
   registrationsByCountry: CountryCount[]
+  onSelectCountry?: (country: string) => void
 }
 
 export function AdminStatsSection({
   stats,
   draftTrendData,
   categoryChartData,
-  registrationsByCountry
+  registrationsByCountry,
+  onSelectCountry
 }: AdminStatsSectionProps) {
   return (
     <section className="exact-kikin-grid">
@@ -167,14 +169,22 @@ export function AdminStatsSection({
             {registrationsByCountry.map(({ country, count }) => (
               <div
                 key={country}
+                onClick={() => {
+                  if (count > 0 && onSelectCountry) {
+                    onSelectCountry(country)
+                  }
+                }}
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '0.45rem 0',
                   borderBottom: '1px solid #cbd5e1',
-                  opacity: count > 0 ? 1 : 0.65
+                  opacity: count > 0 ? 1 : 0.65,
+                  cursor: count > 0 && onSelectCountry ? 'pointer' : 'default',
+                  transition: 'opacity 0.15s ease'
                 }}
+                title={count > 0 && onSelectCountry ? `Click to filter registrations by ${country}` : undefined}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
                   <span style={{

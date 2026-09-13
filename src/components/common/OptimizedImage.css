@@ -1,0 +1,68 @@
+/* Mobile-first OptimizedImage styles */
+.apl-opt-img-wrap {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  width: 100%;
+  background: #101622;
+}
+
+/* Skeleton Shimmer */
+.apl-opt-img-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(212, 160, 23, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: apl-shimmer 1.8s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.apl-opt-img-skeleton.apl-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@keyframes apl-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* The actual image */
+.apl-opt-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+.apl-opt-img.apl-loaded {
+  opacity: 1;
+}
+
+/* Fallback / Error state */
+.apl-opt-img-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #131b2a;
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 500;
+  user-select: none;
+  z-index: 2;
+}

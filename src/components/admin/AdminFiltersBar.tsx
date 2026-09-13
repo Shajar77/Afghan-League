@@ -2,6 +2,7 @@ import {
   Search,
   SlidersHorizontal,
   Star,
+  Globe,
   Calendar,
   X,
   Download,
@@ -19,6 +20,9 @@ interface AdminFiltersBarProps {
   categoryFilter: string
   setCategoryFilter: (val: string) => void
   categoryFilters: string[]
+  nationalityFilter?: string
+  setNationalityFilter?: (val: string) => void
+  nationalityFilters?: string[]
   dateFrom: string
   setDateFrom: (val: string) => void
   dateTo: string
@@ -43,6 +47,9 @@ export function AdminFiltersBar({
   categoryFilter,
   setCategoryFilter,
   categoryFilters,
+  nationalityFilter,
+  setNationalityFilter,
+  nationalityFilters = [],
   dateFrom,
   setDateFrom,
   dateTo,
@@ -169,6 +176,24 @@ export function AdminFiltersBar({
               ))}
             </select>
           </div>
+
+          {/* Nationality Filter */}
+          {nationalityFilter !== undefined && setNationalityFilter && (
+            <div className="apl-select-wrap">
+              <Globe size={14} className="apl-select-icon" />
+              <select
+                value={nationalityFilter}
+                onChange={e => setNationalityFilter(e.target.value)}
+                className="apl-filter-select"
+              >
+                {nationalityFilters.map(n => (
+                  <option key={n} value={n}>
+                    {n === 'All' ? 'All Nationalities' : n}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
 
           {/* Date Range */}

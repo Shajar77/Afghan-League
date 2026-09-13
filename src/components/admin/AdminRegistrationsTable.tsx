@@ -46,12 +46,21 @@ function PlayerAvatar({
   name?: string
 }) {
   const [src, setSrc] = useState<string>(normalizeMediaUrl(photoUrl || ''))
+  const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
 
   useEffect(() => {
     setSrc(normalizeMediaUrl(photoUrl || ''))
+    setLoaded(false)
     setError(false)
   }, [photoUrl])
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setLoaded(true)
+    }
+  }, [src])
 
   const initials = (name || '')
     .split(' ')
@@ -62,13 +71,19 @@ function PlayerAvatar({
   return (
     <div className="apl-player-avatar-mini apl-avatar-wrap">
       {src && !error ? (
-        <img
-          src={src}
-          alt={name || 'Player'}
-          className="apl-avatar-img"
-          onError={() => setError(true)}
-          loading="lazy"
-        />
+        <>
+          {!loaded && <div className="apl-avatar-shimmer" />}
+          <img
+            ref={imgRef}
+            src={src}
+            alt={name || 'Player'}
+            className={`apl-avatar-img ${loaded ? 'loaded' : ''}`}
+            onLoad={() => setLoaded(true)}
+            onError={() => setError(true)}
+            loading="lazy"
+            decoding="async"
+          />
+        </>
       ) : (
         <div className="apl-avatar-fallback">{initials}</div>
       )}

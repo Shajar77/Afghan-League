@@ -350,6 +350,27 @@
   line-height: 1.4;
 }
 
+.footer-bottom-left-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-policy-link {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+
+.footer-policy-link:hover {
+  color: var(--brand-gold, #F8C800);
+  text-decoration: underline;
+}
+
 .footer-legal-links {
   display: flex;
   align-items: center;

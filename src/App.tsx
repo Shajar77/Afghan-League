@@ -38,6 +38,7 @@ const ComingSoonPage = lazy(() => import('./components/pages/ComingSoonPage').th
 const RegisterPage = lazy(() => import('./components/pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
 const RegisterStatusPage = lazy(() => import('./components/pages/RegisterStatusPage').then(m => ({ default: m.RegisterStatusPage })))
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })))
+const PrivacyPolicyPage = lazy(() => import('./components/pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })))
 
 const HASH_PAGE_MAP: Record<string, PageName> = {
   '#about': 'about',
@@ -56,6 +57,7 @@ const HASH_PAGE_MAP: Record<string, PageName> = {
   '#admin': 'admin-login',
   '#admin-login': 'admin-login',
   '#admin-dashboard': 'admin-dashboard',
+  '#privacy-policy': 'privacy-policy',
 }
 
 function PageLoadingSpinner() {
@@ -238,6 +240,8 @@ function App() {
               <ComingSoonPage title="LEAGUE FAQ" />
             ) : currentPage === 'media-kit' ? (
               <ComingSoonPage title="MEDIA KIT" />
+            ) : currentPage === 'privacy-policy' ? (
+              <PrivacyPolicyPage />
             ) : (
               <About />
             )}

@@ -207,11 +207,12 @@ export function Footer() {
 
           {/* Column 4: Info & Support Links */}
           <div className="footer-col links-col info-col">
-            <h4 className="footer-col-title">Info & Support</h4>
+            <h4 className="footer-col-title">Info &amp; Support</h4>
             <ul className="footer-links-list">
               {FEATURES.SHOW_ABOUT && <li><a href="#about">About APL</a></li>}
               {FEATURES.SHOW_PARTNERSHIPS && <li><a href="#partnerships">Partnerships</a></li>}
               {FEATURES.SHOW_CONTACT && <li><a href="#contact-us">Contact Us</a></li>}
+              <li><a href="#privacy-policy">Privacy Policy</a></li>
             </ul>
           </div>
 

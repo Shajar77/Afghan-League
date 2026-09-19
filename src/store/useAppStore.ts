@@ -20,6 +20,7 @@ export type PageName =
   | 'media-kit'
   | 'admin-login'
   | 'admin-dashboard'
+  | 'privacy-policy'
 
 interface AppState {
   currentPage: PageName

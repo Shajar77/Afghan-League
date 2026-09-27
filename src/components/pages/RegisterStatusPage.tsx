@@ -22,6 +22,9 @@ const AGREEMENT_TEXTS = [
   'I understand that submitting a video profile does not guarantee selection for the APL or any team.'
 ]
 
+// Temporary toggle: set to true to show video upload & preview section on lookup page
+const SHOW_VIDEO_UPLOAD_SECTION = false
+
 export function RegisterStatusPage() {
   const [appId, setAppId] = useState('')
   const [email, setEmail] = useState('')
@@ -335,8 +338,8 @@ export function RegisterStatusPage() {
              </div>
            )}
 
-           {/* ── VIDEO UPLOAD SECTION ── shown only after successful lookup */}
-           {searched && statusResult && (
+           {/* ── VIDEO UPLOAD SECTION ── shown only after successful lookup (temporarily hidden) */}
+           {SHOW_VIDEO_UPLOAD_SECTION && searched && statusResult && (
              <div className="status-video-upload-section">
 
                {/* Header */}

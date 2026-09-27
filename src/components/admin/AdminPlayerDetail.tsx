@@ -126,6 +126,9 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
   )
 }
 
+// Temporary toggle: set to true to show player highlight video & link in player detail dossier
+const SHOW_PLAYER_VIDEO = false
+
 function VideoPlayerCard({ url }: { url?: string | null }) {
   const [videoError, setVideoError] = useState(false)
   const resolvedUrl = normalizeMediaUrl(url)
@@ -745,7 +748,8 @@ export function AdminPlayerDetail({
                   </div>
                 ))
               )}
-              {(reg.video_url || reg.player_video_url) && (
+              {/* Player Video Link (temporarily hidden) */}
+              {SHOW_PLAYER_VIDEO && (reg.video_url || reg.player_video_url) && (
                 <div className="apl-data-row">
                   <span className="apl-data-label"><Video size={13} /> Player Video</span>
                   <a
@@ -930,8 +934,8 @@ export function AdminPlayerDetail({
 
         </section>
 
-        {/* ── PLAYER HIGHLIGHT VIDEO AT THE BOTTOM ── */}
-        {(reg.video_url || reg.player_video_url) && (
+        {/* ── PLAYER HIGHLIGHT VIDEO AT THE BOTTOM (temporarily hidden) ── */}
+        {SHOW_PLAYER_VIDEO && (reg.video_url || reg.player_video_url) && (
           <div className="apl-video-bottom-section">
             <VideoPlayerCard url={reg.video_url || reg.player_video_url} />
           </div>

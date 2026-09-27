@@ -22,8 +22,8 @@ const AGREEMENT_TEXTS = [
   'I understand that submitting a video profile does not guarantee selection for the APL or any team.'
 ]
 
-// Temporary toggle: set to true to show video upload & preview section on lookup page
-const SHOW_VIDEO_UPLOAD_SECTION = false
+// Toggle: set to true to show video upload & preview section on lookup page
+const SHOW_VIDEO_UPLOAD_SECTION = true
 
 export function RegisterStatusPage() {
   const [appId, setAppId] = useState('')

@@ -126,8 +126,8 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
   )
 }
 
-// Temporary toggle: set to true to show player highlight video & link in player detail dossier
-const SHOW_PLAYER_VIDEO = false
+// Toggle: set to true to show player highlight video & link in player detail dossier
+const SHOW_PLAYER_VIDEO = true
 
 function VideoPlayerCard({ url }: { url?: string | null }) {
   const [videoError, setVideoError] = useState(false)

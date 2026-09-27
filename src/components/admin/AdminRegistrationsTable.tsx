@@ -33,6 +33,8 @@ export interface Registration {
   passport_url?: string
   action_shot_url?: string
   action_photo_url?: string
+  video_url?: string            // player highlight video (new)
+  player_video_url?: string     // alternate field name from API
   created_at?: string
   date?: string
   [key: string]: unknown

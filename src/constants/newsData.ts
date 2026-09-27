@@ -5,6 +5,7 @@ import downloadWebp from '../assets/download.webp'
 import download1Img from '../assets/download (1).webp'
 import prImg from '../assets/PR.webp'
 import prDraftImg from '../assets/PR-draft-registrations.webp'
+import regExtendedImg from '../assets/player-registration-deadline-extended.webp'
 
 export interface Article {
   id: string
@@ -19,6 +20,28 @@ export interface Article {
 }
 
 export const articles: Article[] = [
+  {
+    id: 'apl-registration-window-extended-oct05-2026',
+    category: 'PRESS RELEASE',
+    title: 'APL Player Registration Window Extended Until October 5',
+    excerpt: 'The player registration window for the Afghanistan Premier League has been extended until October 5, following which, after a comprehensive assessment and evaluation of the registered players, the player draft will be held on October 24 in the United Arab Emirates.',
+    date: 'SEP 27, 2026',
+    readTime: '3 MIN READ',
+    img: regExtendedImg,
+    featured: true,
+    fullText: [
+      "The player registration window for the Afghanistan Premier League has been extended until October 5, following which, after a comprehensive assessment and evaluation of the registered players, the player draft will be held on October 24 in the United Arab Emirates.",
+      "The player registration process for the competition began earlier this month, with more than 1,000 players having registered so far, including over 500 international and overseas players. The extension of the registration window will provide the participating teams with additional time to conduct a thorough assessment of the registered players and will also help maximize the number of players participating in the draft.",
+      "Following the completion of the registration process, a joint committee comprising representatives from the Afghanistan Cricket Board and its partner company will assess the registered players and prepare the list of eligible players for the draft.",
+      "The Players’ Draft Ceremony will be held in the United Arab Emirates on October 24, following the completion of the filtration process by the joint committee.",
+      '• Mirwais Ashraf, Chairman of the Afghanistan Cricket Board and Chairman of the Afghanistan Premier League Committee: "The response from Afghan and international players has exceeded our expectations. Extending the registration window and giving franchises more time to review the player pool will help us conduct a stronger draft and create the best possible opportunity for players to participate. We appreciate the patience of everyone preparing for this important step in the APL’s return."',
+      "The final draft arrangements will be communicated through the official ACB and APL channels.",
+      "Players and representatives can complete registration at the [Registration Link]. For enquiries and support, contact [players@apl-t20.com] up until October 3, 2026.",
+      "-ENDS-",
+      "For Media Enquiries:",
+      "contact@apl-t20.com"
+    ]
+  },
   {
     id: 'apl-press-release-sep08-2026',
     category: 'PRESS RELEASE',

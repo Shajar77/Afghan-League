@@ -34,7 +34,8 @@ import {
   Calendar,
   MapPin,
   FileText,
-  LogOut
+  LogOut,
+  Video
 } from 'lucide-react'
 import type { Registration } from './AdminDashboard'
 import { OptimizedImage } from '../common/OptimizedImage'
@@ -122,6 +123,58 @@ function ImageCard({ url, label, icon: Icon }: { url?: string | null; label: str
         </div>
       )}
     </>
+  )
+}
+
+function VideoPlayerCard({ url }: { url?: string | null }) {
+  const [videoError, setVideoError] = useState(false)
+  const resolvedUrl = normalizeMediaUrl(url)
+
+  useEffect(() => {
+    setVideoError(false)
+  }, [resolvedUrl])
+
+  if (!resolvedUrl) return null
+
+  return (
+    <div className="apl-matrix-card apl-video-matrix-card">
+      <div className="apl-matrix-header">
+        <Video size={16} className="apl-matrix-icon" />
+        <h3>Player Highlight Video</h3>
+        <a
+          href={resolvedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="apl-detail-video-ext-link"
+          title="Open video in new tab"
+        >
+          <span>Open in new tab</span>
+          <ExternalLink size={13} />
+        </a>
+      </div>
+      <div className="apl-video-matrix-body">
+        {!videoError ? (
+          <video
+            key={resolvedUrl}
+            src={resolvedUrl}
+            controls
+            className="apl-detail-video-player"
+            onError={() => setVideoError(true)}
+            preload="metadata"
+            playsInline
+          >
+            Your browser does not support the video tag.
+          </video>
+        ) : (
+          <div className="apl-detail-video-error">
+            <span>Unable to load video preview.</span>
+            <a href={resolvedUrl} target="_blank" rel="noopener noreferrer">
+              Open video in new tab <ExternalLink size={12} />
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -692,6 +745,19 @@ export function AdminPlayerDetail({
                   </div>
                 ))
               )}
+              {(reg.video_url || reg.player_video_url) && (
+                <div className="apl-data-row">
+                  <span className="apl-data-label"><Video size={13} /> Player Video</span>
+                  <a
+                    href={normalizeMediaUrl(reg.video_url || reg.player_video_url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="apl-data-link"
+                  >
+                    Watch Video <ExternalLink size={13} />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
@@ -863,6 +929,13 @@ export function AdminPlayerDetail({
           </div>
 
         </section>
+
+        {/* ── PLAYER HIGHLIGHT VIDEO AT THE BOTTOM ── */}
+        {(reg.video_url || reg.player_video_url) && (
+          <div className="apl-video-bottom-section">
+            <VideoPlayerCard url={reg.video_url || reg.player_video_url} />
+          </div>
+        )}
 
         {/* ── BOTTOM DOSSIER FOOTER NAV ── */}
         <div className="apl-detail-footer-nav">

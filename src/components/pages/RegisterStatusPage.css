@@ -462,6 +462,116 @@
   color: #0d1e52;
 }
 
+/* ── Video Profile Locked (Already Submitted) ── */
+.status-video-locked-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.status-video-locked-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.status-video-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 0.4rem 0.85rem;
+  border-radius: 4px;
+}
+
+.status-video-locked-pill {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+}
+
+.status-video-locked-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.status-video-locked-title {
+  font-family: var(--font-display, "Big Shoulders Display", sans-serif);
+  font-size: 1.45rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #0d1e52;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.status-video-locked-desc {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.status-video-locked-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--brand-gold, #faa718);
+  border-radius: 4px;
+  padding: 0.85rem 1.15rem;
+}
+
+.status-video-locked-icon {
+  color: #0d1e52;
+  flex-shrink: 0;
+}
+
+.status-video-locked-footer-text {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.status-video-locked-footer-text strong {
+  color: #0d1e52;
+  font-weight: 700;
+}
+
+.status-video-locked-footer-text a {
+  color: var(--brand-navy, #0d1e52);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.status-video-locked-footer-text a:hover {
+  color: var(--brand-gold, #faa718);
+}
+
 /* Header */
 .status-video-upload-header {
   display: flex;
@@ -538,6 +648,165 @@
   color: #dc2626;
   font-weight: 500;
   line-height: 1.5;
+}
+
+/* ── Video Upload 50/50 Split (Drop Zone Left + Guidelines Graphic Right) ── */
+.status-video-upload-split {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  margin-bottom: 0.85rem;
+}
+
+.status-video-upload-drop-col {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-video-guide-img-col {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-video-guide-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.status-video-guide-img-wrap:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+.status-video-guide-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.status-video-guide-img-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(13, 30, 82, 0.88);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+/* Progressive scaling for 50/50 split on tablet and desktop (exact same size) */
+@media (min-width: 768px) {
+  .status-video-upload-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+
+  .status-video-upload-drop-col {
+    height: 100%;
+  }
+
+  .status-video-guide-img-col {
+    height: 100%;
+  }
+
+  .status-video-upload-drop-col .status-video-file-zone {
+    height: 100%;
+    aspect-ratio: 16 / 9;
+    box-sizing: border-box;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .status-video-guide-img-wrap {
+    height: 100%;
+    aspect-ratio: 16 / 9;
+    box-sizing: border-box;
+  }
+}
+
+/* Lightbox Modal for Guidelines Graphic */
+.status-video-img-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 16, 32, 0.88);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  animation: modalFadeIn 0.2s ease;
+}
+
+.status-video-img-modal-content {
+  position: relative;
+  max-width: 1100px;
+  width: 100%;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.status-video-img-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.status-video-img-modal-close:hover {
+  background: rgba(220, 38, 38, 0.95);
+  transform: scale(1.05);
+}
+
+.status-video-img-modal-full {
+  width: 100%;
+  height: auto;
+  max-height: 85vh;
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* File Drop Zone (White & Light Style) */
@@ -678,6 +947,18 @@
 .status-video-res-note-text strong {
   color: #dc2626;
   font-weight: 700;
+}
+
+.status-video-res-note-text a {
+  color: #dc2626;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+.status-video-res-note-text a:hover {
+  color: #991b1b;
 }
 
 /* Video Preview Player Block */

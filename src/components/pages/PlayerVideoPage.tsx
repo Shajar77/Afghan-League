@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
-import { Info } from 'lucide-react'
+import { Info, Lock } from 'lucide-react'
 import { buildApiUrl, publicFetch, normalizeMediaUrl } from '../../config/api'
+import videoGuidelinesImg from '../../assets/ChatGPT Image Sep 28, 2026 at 03_10_00 PM.png'
 import './RegisterStatusPage.css'
 
 interface StatusResult {
@@ -94,6 +95,7 @@ export function PlayerVideoPage() {
   const [videoUploadSuccess, setVideoUploadSuccess] = useState(false)
   const [videoUploadError, setVideoUploadError] = useState('')
   const [agreements, setAgreements] = useState<[boolean, boolean, boolean, boolean]>([false, false, false, false])
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
 
   const recaptchaRef = useRef<ReCAPTCHA>(null)
   const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
@@ -237,6 +239,10 @@ export function PlayerVideoPage() {
 
   const handleVideoUpload = async () => {
     if (!videoFile || !statusResult || !allAgreed) return
+    if (statusResult.video_url) {
+      setVideoUploadError('A video profile has already been submitted for this player registration and cannot be replaced.')
+      return
+    }
     setIsUploadingVideo(true)
     setVideoUploadError('')
     setVideoUploadSuccess(false)
@@ -464,7 +470,10 @@ export function PlayerVideoPage() {
         <div className="status-card">
           <h2 className="status-section-title">Player Introduction Video</h2>
           <p className="status-section-subtitle">
-            Enter your registration reference number and registered email address to verify your profile and submit your player introduction video.
+            Enter your registration reference number and email address to verify your profile and submit your video.
+            <span style={{ display: 'block', marginTop: '0.4rem', fontSize: '0.88rem', color: '#64748b' }}>
+              (Use the ID you already received when registering for the draft and the same email you used for registration.)
+            </span>
           </p>
 
           <form onSubmit={handleSearch} className="status-search-form">
@@ -566,201 +575,261 @@ export function PlayerVideoPage() {
 
               {/* ── VIDEO UPLOAD SECTION ── */}
               <div className="status-video-upload-section">
+                {statusResult.video_url ? (
+                  <div className="status-video-locked-container">
 
-                {/* Header */}
-                <div className="status-video-upload-header">
-                  <div className="status-video-upload-header-text">
-                    <p className="status-video-upload-title">Player Highlight Video</p>
-                    <p className="status-video-upload-subtitle">
-                      Upload your introduction video profile to strengthen your draft evaluation.
-                    </p>
+                    <div className="status-video-locked-body">
+                      <p className="status-video-locked-title">Your Video Profile Has Been Received</p>
+                      <p className="status-video-locked-desc">
+                        A video profile has already been uploaded and linked to this registration. To maintain evaluation integrity, video submissions are locked and cannot be replaced.
+                      </p>
+                    </div>
+
+
+                    <div className="status-video-locked-footer">
+                      <Lock size={15} className="status-video-locked-icon" />
+                      <p className="status-video-locked-footer-text">
+                        If you want to replace your video, please email at: <a href="mailto:Players@apl-t20.com">Players@apl-t20.com</a> with your reference code.
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                {/* Custom file drop zone */}
-                <div className={`status-video-file-zone${videoFile ? ' has-file' : ''}`}>
-                  <input
-                    id="player-video-input"
-                    type="file"
-                    accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
-                    className="status-video-file-input"
-                    disabled={isUploadingVideo}
-                    onChange={handleFileChange}
-                  />
-                  {videoFile ? (
-                    <div className="status-video-file-selected-card">
-                      <span className="status-video-file-selected-icon">📹</span>
-                      <div className="status-video-file-selected-details">
-                        <p className="status-video-file-selected-name">{videoFile.name}</p>
-                        <p className="status-video-file-selected-size">
-                          {(videoFile.size / (1024 * 1024)).toFixed(1)} MB · Tap or click to change video
+                ) : (
+                  <>
+                    {/* Header */}
+                    <div className="status-video-upload-header">
+                      <div className="status-video-upload-header-text">
+                        <p className="status-video-upload-title">Player Highlight Video</p>
+                        <p className="status-video-upload-subtitle">
+                          Upload your introduction video profile to strengthen your draft evaluation.
                         </p>
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      <span className="status-video-file-zone-icon">📁</span>
-                      <p className="status-video-file-zone-label">
-                        Drop video here or <span>browse</span>
+
+                    {/* 50/50 Split: Drag & Drop Box (Left) and Guidelines Infographic (Right) */}
+                    <div className="status-video-upload-split">
+                      {/* Left: Custom file drop zone */}
+                      <div className="status-video-upload-drop-col">
+                        <div className={`status-video-file-zone${videoFile ? ' has-file' : ''}`}>
+                          <input
+                            id="player-video-input"
+                            type="file"
+                            accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                            className="status-video-file-input"
+                            disabled={isUploadingVideo}
+                            onChange={handleFileChange}
+                          />
+                          {videoFile ? (
+                            <div className="status-video-file-selected-card">
+                              <span className="status-video-file-selected-icon">📹</span>
+                              <div className="status-video-file-selected-details">
+                                <p className="status-video-file-selected-name">{videoFile.name}</p>
+                                <p className="status-video-file-selected-size">
+                                  {(videoFile.size / (1024 * 1024)).toFixed(1)} MB · Tap or click to change video
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="status-video-file-zone-icon">📁</span>
+                              <p className="status-video-file-zone-label">
+                                Drop video here or <span>browse</span>
+                              </p>
+                              <p className="status-video-file-zone-hint">MP4, MOV, AVI, WebM · Max 100MB</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Guidelines Infographic */}
+                      <div className="status-video-guide-img-col">
+                        <div
+                          className="status-video-guide-img-wrap"
+                          onClick={() => setIsImageModalOpen(true)}
+                          title="Click to view full image"
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsImageModalOpen(true) }}
+                        >
+                          <img
+                            src={videoGuidelinesImg}
+                            alt="APL Player Video Profile Guidelines"
+                            className="status-video-guide-img"
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Replacement Note in separate line below */}
+                    <div className="status-video-res-note">
+                      <Info size={15} className="status-video-res-note-icon" />
+                      <p className="status-video-res-note-text">
+                        <strong>Note:</strong> If you want to replace your video please email at: <a href="mailto:Players@apl-t20.com">Players@apl-t20.com</a>
                       </p>
-                      <p className="status-video-file-zone-hint">MP4, MOV, AVI, WebM · Max 100MB</p>
-                    </>
-                  )}
-                </div>
+                    </div>
 
-                {/* 1080p Resolution Recommendation Note */}
-                <div className="status-video-res-note">
-                  <Info size={15} className="status-video-res-note-icon" />
-                  <p className="status-video-res-note-text">
-                    <strong>Note:</strong> Please record your video in <strong>1080p (Full HD)</strong>, not 4K.
-                  </p>
-                </div>
+                    {/* Modal for full resolution guidelines view */}
+                    {isImageModalOpen && (
+                      <div className="status-video-img-modal-backdrop" onClick={() => setIsImageModalOpen(false)}>
+                        <div className="status-video-img-modal-content" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className="status-video-img-modal-close"
+                            onClick={() => setIsImageModalOpen(false)}
+                            aria-label="Close"
+                          >
+                            ✕
+                          </button>
+                          <img
+                            src={videoGuidelinesImg}
+                            alt="APL Player Video Profile Guidelines"
+                            className="status-video-img-modal-full"
+                          />
+                        </div>
+                      </div>
+                    )}
 
-                {/* Preview of the video they uploaded / selected */}
-                {videoPreviewUrl && (
-                  <div className="status-video-preview-block">
-                    <div className="status-video-preview-header">
-                      <span className="status-video-preview-badge">▶ Video Preview</span>
+                    {/* Preview of the video they uploaded / selected */}
+                    {videoPreviewUrl && (
+                      <div className="status-video-preview-block">
+                        <div className="status-video-preview-header">
+                          <span className="status-video-preview-badge">▶ Video Preview</span>
+                          {videoUploadSuccess && (
+                            <span className="status-video-preview-tag success">Uploaded Successfully</span>
+                          )}
+                        </div>
+                        <video
+                          key={videoPreviewUrl}
+                          controls
+                          className="status-video-preview-player"
+                          preload="metadata"
+                          playsInline
+                        >
+                          <source src={videoPreviewUrl} type={videoFile?.type || 'video/mp4'} />
+                          Your browser does not support HTML5 video.
+                        </video>
+                      </div>
+                    )}
+
+                    {/* Video Profile Submission Guidelines & Instructions */}
+                    <div className="status-video-guide-card">
+                      <p className="status-video-guide-lead">
+                        Give APL teams a quick introduction to who you are as a player. Your video profile will help teams understand your experience, playing role, strengths and achievements during the draft review, especially if they have not seen you play before.
+                      </p>
+
+                      <div className="status-video-duration-callout">
+                        <span className="status-video-duration-icon">⏱</span>
+                        <span className="status-video-duration-text">
+                          Please record a <strong>60–120 second</strong> video and briefly introduce yourself.
+                        </span>
+                      </div>
+
+                      <div className="status-video-guide-group">
+                        <h4 className="status-video-group-title">What to Include in video:</h4>
+                        <ul className="status-video-guide-checklist">
+                          <li>
+                            <span className="status-video-check-icon">✓</span>
+                            <span>Your name, age and where you are from</span>
+                          </li>
+                          <li>
+                            <span className="status-video-check-icon">✓</span>
+                            <span>Your primary playing role and batting/bowling style</span>
+                          </li>
+                          <li>
+                            <span className="status-video-check-icon">✓</span>
+                            <span>Your cricket experience, clubs or teams you have played for</span>
+                          </li>
+                          <li>
+                            <span className="status-video-check-icon">✓</span>
+                            <span>Your key strengths and notable achievements</span>
+                          </li>
+                          <li>
+                            <span className="status-video-check-icon">✓</span>
+                            <span>What you can bring to an APL team</span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      <div className="status-video-guide-group">
+                        <h4 className="status-video-group-title">Submission</h4>
+                        <p className="status-video-submission-p">
+                          Please make sure your video is clear, your information is accurate, and your face and upper body are clearly visible.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 4 Required Agreements */}
+                    <div className="status-video-agreements-section">
+                      <p className="status-video-agreements-heading">Required Agreements</p>
+                      <div className="status-video-agreements-list">
+                        {AGREEMENT_TEXTS.map((statement, idx) => (
+                          <label
+                            key={idx}
+                            htmlFor={`agreement-check-${idx}`}
+                            className={`status-video-agreement-row${agreements[idx] ? ' is-checked' : ''}`}
+                          >
+                            <input
+                              id={`agreement-check-${idx}`}
+                              type="checkbox"
+                              className="status-video-agreement-checkbox"
+                              checked={agreements[idx]}
+                              onChange={() => handleAgreementToggle(idx)}
+                              disabled={isUploadingVideo}
+                            />
+                            <span className="status-video-agreement-label">{statement}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Upload Progress Bar */}
+                    {isUploadingVideo && (
+                      <div className="status-video-progress-container">
+                        <div className="status-video-progress-bar-wrap">
+                          <div className="status-video-progress-bar" />
+                        </div>
+                        <p className="status-video-uploading-text">Uploading your video, please wait…</p>
+                      </div>
+                    )}
+
+                    {/* Submit Action Block */}
+                    <div className="status-video-action-area">
+                      <button
+                        type="button"
+                        className="status-video-upload-btn"
+                        onClick={handleVideoUpload}
+                        disabled={!videoFile || isUploadingVideo || !allAgreed}
+                      >
+                        {isUploadingVideo ? 'Uploading Video…' : 'Submit Video Profile'}
+                      </button>
+
+                      {!videoFile && !isUploadingVideo && (
+                        <p className="status-video-btn-hint">
+                          Please choose a video file above to enable submission.
+                        </p>
+                      )}
+                      {videoFile && !allAgreed && !isUploadingVideo && (
+                        <p className="status-video-btn-hint warning">
+                          Please check all 4 agreements above to enable the submit button.
+                        </p>
+                      )}
+
+                      {/* Success Alert */}
                       {videoUploadSuccess && (
-                        <span className="status-video-preview-tag success">Uploaded Successfully</span>
+                        <div className="status-video-success">
+                          Your video profile has been uploaded and linked to your player record successfully.
+                        </div>
+                      )}
+
+                      {/* Error Alert */}
+                      {videoUploadError && (
+                        <div className="status-video-error-msg">
+                          ⚠ {videoUploadError}
+                        </div>
                       )}
                     </div>
-                    <video
-                      key={videoPreviewUrl}
-                      controls
-                      className="status-video-preview-player"
-                      preload="metadata"
-                      playsInline
-                    >
-                      <source src={videoPreviewUrl} type={videoFile?.type || 'video/mp4'} />
-                      Your browser does not support HTML5 video.
-                    </video>
-                  </div>
+                  </>
                 )}
-
-                {/* Video Profile Submission Guidelines & Instructions */}
-                <div className="status-video-guide-card">
-                  <p className="status-video-guide-lead">
-                    Give APL teams a quick introduction to who you are as a player. Your video profile will help teams understand your experience, playing role, strengths and achievements during the draft review, especially if they have not seen you play before.
-                  </p>
-
-                  <div className="status-video-duration-callout">
-                    <span className="status-video-duration-icon">⏱</span>
-                    <span className="status-video-duration-text">
-                      Please record a <strong>60–120 second</strong> video and briefly introduce yourself.
-                    </span>
-                  </div>
-
-                  <div className="status-video-guide-group">
-                    <h4 className="status-video-group-title">What to Include in video:</h4>
-                    <ul className="status-video-guide-checklist">
-                      <li>
-                        <span className="status-video-check-icon">✓</span>
-                        <span>Your name, age and where you are from</span>
-                      </li>
-                      <li>
-                        <span className="status-video-check-icon">✓</span>
-                        <span>Your primary playing role and batting/bowling style</span>
-                      </li>
-                      <li>
-                        <span className="status-video-check-icon">✓</span>
-                        <span>Your cricket experience, clubs or teams you have played for</span>
-                      </li>
-                      <li>
-                        <span className="status-video-check-icon">✓</span>
-                        <span>Your key strengths and notable achievements</span>
-                      </li>
-                      <li>
-                        <span className="status-video-check-icon">✓</span>
-                        <span>What you can bring to an APL team</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="status-video-guide-group">
-                    <h4 className="status-video-group-title">Submission</h4>
-                    <p className="status-video-submission-p">
-                      Enter your Full Name and Registration ID (the ID sent to you by email when you registered), then upload your video.
-                    </p>
-                    <p className="status-video-submission-p">
-                      Please make sure your video is clear, your information is accurate, and your face and upper body are clearly visible.
-                    </p>
-                    <p className="status-video-submission-disclaimer">
-                      A video profile does not guarantee selection.
-                    </p>
-                  </div>
-                </div>
-
-                {/* 4 Required Agreements */}
-                <div className="status-video-agreements-section">
-                  <p className="status-video-agreements-heading">Required Agreements</p>
-                  <div className="status-video-agreements-list">
-                    {AGREEMENT_TEXTS.map((statement, idx) => (
-                      <label
-                        key={idx}
-                        htmlFor={`agreement-check-${idx}`}
-                        className={`status-video-agreement-row${agreements[idx] ? ' is-checked' : ''}`}
-                      >
-                        <input
-                          id={`agreement-check-${idx}`}
-                          type="checkbox"
-                          className="status-video-agreement-checkbox"
-                          checked={agreements[idx]}
-                          onChange={() => handleAgreementToggle(idx)}
-                          disabled={isUploadingVideo}
-                        />
-                        <span className="status-video-agreement-label">{statement}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Upload Progress Bar */}
-                {isUploadingVideo && (
-                  <div className="status-video-progress-container">
-                    <div className="status-video-progress-bar-wrap">
-                      <div className="status-video-progress-bar" />
-                    </div>
-                    <p className="status-video-uploading-text">Uploading your video, please wait…</p>
-                  </div>
-                )}
-
-                {/* Submit Action Block */}
-                <div className="status-video-action-area">
-                  <button
-                    type="button"
-                    className="status-video-upload-btn"
-                    onClick={handleVideoUpload}
-                    disabled={!videoFile || isUploadingVideo || !allAgreed}
-                  >
-                    {isUploadingVideo ? 'Uploading Video…' : 'Submit Video Profile'}
-                  </button>
-
-                  {!videoFile && !isUploadingVideo && (
-                    <p className="status-video-btn-hint">
-                      Please choose a video file above to enable submission.
-                    </p>
-                  )}
-                  {videoFile && !allAgreed && !isUploadingVideo && (
-                    <p className="status-video-btn-hint warning">
-                      Please check all 4 agreements above to enable the submit button.
-                    </p>
-                  )}
-
-                  {/* Success Alert */}
-                  {videoUploadSuccess && (
-                    <div className="status-video-success">
-                      Your video profile has been uploaded and linked to your player record successfully.
-                    </div>
-                  )}
-
-                  {/* Error Alert */}
-                  {videoUploadError && (
-                    <div className="status-video-error-msg">
-                      ⚠ {videoUploadError}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           )}

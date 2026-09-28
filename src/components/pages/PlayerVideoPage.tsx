@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
+import { Info } from 'lucide-react'
 import { buildApiUrl, publicFetch, normalizeMediaUrl } from '../../config/api'
 import './RegisterStatusPage.css'
 
@@ -547,16 +548,16 @@ export function PlayerVideoPage() {
 
                 <div className="status-player-info-grid">
                   {statusResult.name && (
-                    <div className="status-info-col">
+                    <div className="status-info-col status-info-col--left">
                       <span className="status-info-lbl">Player Name</span>
                       <span className="status-info-val text-gold">{statusResult.name}</span>
                     </div>
                   )}
-                  <div className="status-info-col">
+                  <div className="status-info-col status-info-col--center">
                     <span className="status-info-lbl">Email Address</span>
                     <span className="status-info-val">{email.trim().toLowerCase()}</span>
                   </div>
-                  <div className="status-info-col">
+                  <div className="status-info-col status-info-col--right">
                     <span className="status-info-lbl">Registration Date</span>
                     <span className="status-info-val">{statusResult.date}</span>
                   </div>
@@ -605,6 +606,14 @@ export function PlayerVideoPage() {
                       <p className="status-video-file-zone-hint">MP4, MOV, AVI, WebM · Max 100MB</p>
                     </>
                   )}
+                </div>
+
+                {/* 1080p Resolution Recommendation Note */}
+                <div className="status-video-res-note">
+                  <Info size={15} className="status-video-res-note-icon" />
+                  <p className="status-video-res-note-text">
+                    <strong>Note:</strong> Please record your video in <strong>1080p (Full HD)</strong>, not 4K.
+                  </p>
                 </div>
 
                 {/* Preview of the video they uploaded / selected */}
@@ -677,7 +686,7 @@ export function PlayerVideoPage() {
                       Please make sure your video is clear, your information is accurate, and your face and upper body are clearly visible.
                     </p>
                     <p className="status-video-submission-disclaimer">
-                      Submission is optional. A video profile does not guarantee selection.
+                      A video profile does not guarantee selection.
                     </p>
                   </div>
                 </div>

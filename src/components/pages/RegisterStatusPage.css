@@ -650,6 +650,36 @@
   margin: 0;
 }
 
+/* 1080p Resolution Recommendation Note */
+.status-video-res-note {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.status-video-res-note-icon {
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+.status-video-res-note-text {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.85rem;
+  color: #dc2626;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.status-video-res-note-text strong {
+  color: #dc2626;
+  font-weight: 700;
+}
+
 /* Video Preview Player Block */
 .status-video-preview-block {
   display: flex;
@@ -1049,21 +1079,16 @@
 }
 
 .status-player-info-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 580px) {
-  .status-player-info-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
 }
 
 .status-info-col {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
 .status-info-lbl {
@@ -1072,12 +1097,41 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #64748b;
+  white-space: nowrap;
 }
 
 .status-info-val {
   font-size: 0.95rem;
   font-weight: 500;
   color: #0d1e52;
+  word-break: break-word;
+}
+
+@media (min-width: 580px) {
+  .status-player-info-grid {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .status-info-col--left,
+  .status-info-col:first-child {
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .status-info-col--center,
+  .status-info-col:nth-child(2) {
+    text-align: center;
+    align-items: center;
+  }
+
+  .status-info-col--right,
+  .status-info-col:last-child {
+    text-align: right;
+    align-items: flex-end;
+  }
 }
 
 /* ── Video CTA Box on Lookup Page ── */

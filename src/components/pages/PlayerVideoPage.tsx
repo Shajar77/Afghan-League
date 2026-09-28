@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import ReCAPTCHA from 'react-google-recaptcha'
-import { Info, Lock } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import { buildApiUrl, publicFetch, normalizeMediaUrl } from '../../config/api'
-import videoGuidelinesImg from '../../assets/ChatGPT Image Sep 28, 2026 at 03_10_00 PM.png'
+import videoGuidelinesImg from '../../assets/player-video-guidelines.webp'
 import './RegisterStatusPage.css'
 
 interface StatusResult {
@@ -634,7 +634,7 @@ export function PlayerVideoPage() {
                               <p className="status-video-file-zone-label">
                                 Drop video here or <span>browse</span>
                               </p>
-                              <p className="status-video-file-zone-hint">MP4, MOV, AVI, WebM · Max 100MB</p>
+                              <p className="status-video-file-zone-hint">MP4, MOV, AVI, WebM</p>
                             </>
                           )}
                         </div>
@@ -658,14 +658,6 @@ export function PlayerVideoPage() {
                           />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Replacement Note in separate line below */}
-                    <div className="status-video-res-note">
-                      <Info size={15} className="status-video-res-note-icon" />
-                      <p className="status-video-res-note-text">
-                        <strong>Note:</strong> If you want to replace your video please email at: <a href="mailto:Players@apl-t20.com">Players@apl-t20.com</a>
-                      </p>
                     </div>
 
                     {/* Modal for full resolution guidelines view */}

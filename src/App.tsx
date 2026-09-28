@@ -37,6 +37,7 @@ const TeamsPage = lazy(() => import('./components/pages/TeamsPage').then(m => ({
 const ComingSoonPage = lazy(() => import('./components/pages/ComingSoonPage').then(m => ({ default: m.ComingSoonPage })))
 const RegisterPage = lazy(() => import('./components/pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
 const RegisterStatusPage = lazy(() => import('./components/pages/RegisterStatusPage').then(m => ({ default: m.RegisterStatusPage })))
+const PlayerVideoPage = lazy(() => import('./components/pages/PlayerVideoPage').then(m => ({ default: m.PlayerVideoPage })))
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })))
 const PrivacyPolicyPage = lazy(() => import('./components/pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })))
 
@@ -54,6 +55,10 @@ const HASH_PAGE_MAP: Record<string, PageName> = {
   '#register': 'register-player',
   '#register-status': 'register-status',
   '#status': 'register-status',
+  '#player-video': 'player-video',
+  '#video-upload': 'player-video',
+  '#introduction-video': 'player-video',
+  '#video': 'player-video',
   '#admin': 'admin-login',
   '#admin-login': 'admin-login',
   '#admin-dashboard': 'admin-dashboard',
@@ -236,6 +241,8 @@ function App() {
               <RegisterPage />
             ) : currentPage === 'register-status' ? (
               <RegisterStatusPage />
+            ) : currentPage === 'player-video' ? (
+              <PlayerVideoPage />
             ) : currentPage === 'league-faq' ? (
               <ComingSoonPage title="LEAGUE FAQ" />
             ) : currentPage === 'media-kit' ? (

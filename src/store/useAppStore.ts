@@ -15,6 +15,7 @@ export type PageName =
   | 'register-player'
   | 'player-register'
   | 'register-status'
+  | 'player-video'
   | 'acb-governance'
   | 'league-faq'
   | 'media-kit'

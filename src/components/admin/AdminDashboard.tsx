@@ -5,7 +5,6 @@ import {
   setAdminStatusCountsCache,
   getAdminRole,
   isSuperAdminUser,
-  isRegistrationViewerUser,
   isPlayerManagementUser
 } from './adminUtils'
 import { AdminStatsSection, type AdminStats } from './AdminStatsSection'
@@ -72,7 +71,6 @@ export function AdminDashboard({
   // Determine current admin role
   const adminRole = getAdminRole()
   const isSuperAdmin = isSuperAdminUser(adminRole)
-  const isRegistrationViewer = isRegistrationViewerUser(adminRole)
   const isPlayerManagement = isPlayerManagementUser(adminRole)
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'users'>(() => {

@@ -901,7 +901,7 @@ export function AdminDashboard({
               isExportingXLSX={isExportingXLSX}
               handleExportPhotos={handleExportPhotos}
               isExportingPhotos={isExportingPhotos}
-              hideExportButtons={isRegistrationViewer}
+              hideExportButtons={false}
             />
 
             {/* Error banner */}

@@ -210,13 +210,6 @@ export function PlayerVideoPage() {
     setVideoUploadError('')
     setVideoUploadSuccess(false)
 
-    // Max 100MB client validation
-    if (file.size > 100 * 1024 * 1024) {
-      setVideoUploadError('Video file size exceeds the 100MB limit. Please choose a smaller file.')
-      e.target.value = ''
-      return
-    }
-
     // Revoke previous blob URL if needed
     if (videoPreviewUrl && videoPreviewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(videoPreviewUrl)

@@ -1,135 +1,6 @@
-import { useState, useRef } from 'react'
-import { CheckCircle2 } from 'lucide-react'
-import ReCAPTCHA from 'react-google-recaptcha'
-import { Step1Personal } from '../registration/Step1Personal'
-import { Step2Cricket } from '../registration/Step2Cricket'
-import { Step3Category } from '../registration/Step3Category'
-import { Step4Uploads } from '../registration/Step4Uploads'
-import { Step5Review } from '../registration/Step5Review'
-import { scrollToTop } from '../../utils/lenis'
-import { useRegisterData } from './useRegisterData'
-import { useRegisterForm } from './useRegisterForm'
-import { useRegisterSubmit } from './useRegisterSubmit'
-import { RegisterSuccessView } from './RegisterPageViews'
 import './RegisterPage.css'
 
-const STEPS = [
-  { id: 1, label: 'PERSONAL' },
-  { id: 2, label: 'CRICKET' },
-  { id: 3, label: 'CATEGORY' },
-  { id: 4, label: 'UPLOADS' },
-  { id: 5, label: 'REVIEW' },
-]
-
 export function RegisterPage() {
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false)
-  const [refCode, setRefCode] = useState<string>('')
-  const [honeypot, setHoneypot] = useState<string>('')
-
-  const recaptchaRef = useRef<ReCAPTCHA>(null)
-  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''
-
-  // Sub-hooks
-  const {
-    apiCountries,
-    apiCategories,
-    apiAvailabilities,
-    apiPlayerStatuses,
-    apiPlayingRoles,
-  } = useRegisterData()
-
-  const {
-    currentStep,
-    setCurrentStep,
-    formData,
-    errors,
-    setErrors,
-    fileMeta,
-    consent1, setConsent1,
-    consent2, setConsent2,
-    consent3, setConsent3,
-    consent4, setConsent4,
-    handleInputChange,
-    handleSelectOption,
-    handleToggleAvailability,
-    handleFileChange,
-    handleDragOver,
-    handleDrop,
-    validateStep,
-    scrollToFormTop,
-    clearDraft,
-    resetForm,
-  } = useRegisterForm()
-
-  const { isSubmitting, submitError, submit } = useRegisterSubmit()
-
-  const handleNext = async () => {
-    if (validateStep(currentStep)) {
-      if (currentStep < 5) {
-        scrollToFormTop()
-        setCurrentStep(prev => prev + 1)
-      } else {
-        // Anti-bot check: silent abort if honeypot is populated
-        if (honeypot.trim()) {
-          return
-        }
-
-        // Guard: ensure all declarations/consents are accepted
-        if (!consent1 || !consent2 || !consent3 || !consent4) {
-          setErrors({ consents: 'Please accept all declarations before submitting.' })
-          return
-        }
-
-        let captchaToken = ''
-        if (siteKey && recaptchaRef.current) {
-          try {
-            captchaToken = (await recaptchaRef.current.executeAsync()) || ''
-          } catch {
-            // Fallback handled gracefully
-          }
-        }
-
-        try {
-          const generatedCode = await submit(formData, captchaToken)
-          clearDraft()
-          setRefCode(generatedCode)
-          setIsSubmitted(true)
-          scrollToTop(true)
-        } catch {
-          // Error state is handled inside useRegisterSubmit
-        } finally {
-          if (siteKey && recaptchaRef.current) {
-            recaptchaRef.current.reset()
-          }
-        }
-      }
-    }
-  }
-
-  const handlePrev = () => {
-    if (currentStep > 1) {
-      scrollToFormTop()
-      setCurrentStep(prev => prev - 1)
-    }
-  }
-
-  const handleReset = () => {
-    resetForm()
-    setIsSubmitted(false)
-    setRefCode('')
-    setHoneypot('')
-  }
-
-  if (isSubmitted) {
-    return (
-      <RegisterSuccessView
-        formData={formData}
-        refCode={refCode}
-        onReset={handleReset}
-      />
-    )
-  }
-
   return (
     <div className="register-page-container">
       {/* Hero Section */}
@@ -146,200 +17,82 @@ export function RegisterPage() {
         </div>
       </section>
 
-      {/* Main Form Container */}
+      {/* Registrations Closed Notice */}
       <section className="register-content-section">
-        <div className="register-form-card">
-          {/* Progress Steps Header */}
-          <div className="register-steps-header">
-            <div className="steps-container">
-              {STEPS.map(step => {
-                const isActive = currentStep === step.id
-                const isCompleted = currentStep > step.id
-                return (
-                  <div
-                    key={step.id}
-                    className={`step-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
-                  >
-                    <div className="step-circle-wrapper">
-                      <button
-                        type="button"
-                        className="step-circle"
-                        aria-label={`Go to Step ${step.id}: ${step.label}`}
-                        onClick={() => {
-                          if (step.id < currentStep) {
-                            scrollToFormTop()
-                            setCurrentStep(step.id)
-                          }
-                        }}
-                        disabled={step.id > currentStep}
-                      >
-                        {isCompleted ? <CheckCircle2 size={16} /> : step.id}
-                      </button>
-                    </div>
-                    <span className="step-label">{step.label}</span>
-                  </div>
-                )
-              })}
-            </div>
+        <div className="register-form-card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+
+          <h2 style={{
+            fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+            fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            color: '#0d1e52',
+            letterSpacing: '0.02em',
+            margin: '0 0 1rem'
+          }}>
+            Player Registration Window Is Closed
+          </h2>
+
+          <p style={{
+            fontFamily: 'var(--font-body, "Inter", sans-serif)',
+            fontSize: '1rem',
+            color: '#475569',
+            lineHeight: 1.7,
+            maxWidth: '520px',
+            margin: '0 auto 1.75rem'
+          }}>
+            Player registrations for the APL 2026 Draft have officially closed. Thank you to everyone who applied — we received an overwhelming response from players all across the globe.
+          </p>
+
+          <p style={{
+            fontFamily: 'var(--font-body, "Inter", sans-serif)',
+            fontSize: '0.92rem',
+            color: '#64748b',
+            lineHeight: 1.6,
+            maxWidth: '460px',
+            margin: '0 auto 2rem'
+          }}>
+            If you have already registered, you can check your registration status and submit your player video using the links below.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', alignItems: 'center' }}>
+            <a
+              href="#register-status"
+              style={{
+                display: 'inline-block',
+                background: 'var(--brand-gold, #faa718)',
+                color: '#0d1e52',
+                fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+                fontWeight: 800,
+                fontSize: '1rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                padding: '0.85rem 2rem',
+                borderRadius: '4px',
+                textDecoration: 'none',
+                minWidth: '220px',
+                minHeight: '48px',
+                lineHeight: '1.4'
+              }}
+            >
+              Check Registration Status
+            </a>
+            <a
+              href="#home"
+              style={{
+                fontFamily: 'var(--font-body, "Inter", sans-serif)',
+                fontSize: '0.88rem',
+                color: '#64748b',
+                textDecoration: 'none',
+                fontWeight: 600
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = '#0d1e52')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+            >
+              ← Back to APL Homepage
+            </a>
           </div>
 
-          <div className="form-card-body">
-            {/* STEP 1: PERSONAL INFORMATION */}
-            {currentStep === 1 && (
-              <Step1Personal
-                formData={formData}
-                errors={errors}
-                apiCountries={apiCountries}
-                apiAvailabilities={apiAvailabilities}
-                handleInputChange={handleInputChange}
-                handleSelectOption={handleSelectOption}
-                handleToggleAvailability={handleToggleAvailability}
-              />
-            )}
-
-            {/* STEP 2: CRICKET INFORMATION */}
-            {currentStep === 2 && (
-              <Step2Cricket
-                formData={formData}
-                errors={errors}
-                apiPlayingRoles={apiPlayingRoles}
-                apiPlayerStatuses={apiPlayerStatuses}
-                apiCountries={apiCountries}
-                handleInputChange={handleInputChange}
-                handleSelectOption={handleSelectOption}
-              />
-            )}
-
-            {/* STEP 3: CATEGORY */}
-            {currentStep === 3 && (
-              <Step3Category
-                formData={formData}
-                errors={errors}
-                apiCategories={apiCategories}
-                handleSelectOption={handleSelectOption}
-              />
-            )}
-
-            {/* STEP 4: UPLOADS */}
-            {currentStep === 4 && (
-              <Step4Uploads
-                formData={formData}
-                errors={errors}
-                fileMeta={fileMeta}
-                handleDragOver={handleDragOver}
-                handleDrop={handleDrop}
-                handleFileChange={handleFileChange}
-              />
-            )}
-
-            {/* STEP 5: REVIEW */}
-            {currentStep === 5 && (
-              <Step5Review
-                formData={formData}
-                errors={errors}
-                consent1={consent1}
-                setConsent1={setConsent1}
-                consent2={consent2}
-                setConsent2={setConsent2}
-                consent3={consent3}
-                setConsent3={setConsent3}
-                consent4={consent4}
-                setConsent4={setConsent4}
-              />
-            )}
-          </div>
-
-          {/* Anti-Spam Bot Trap (Honeypot) */}
-          <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
-            <label htmlFor="reg_hp_website">Leave this field blank</label>
-            <input
-              id="reg_hp_website"
-              type="text"
-              name="reg_hp_website"
-              tabIndex={-1}
-              autoComplete="off"
-              value={honeypot}
-              onChange={(e) => setHoneypot(e.target.value)}
-            />
-          </div>
-
-          {siteKey && (
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey={siteKey}
-              size="invisible"
-            />
-          )}
-
-          {/* Form Action Buttons */}
-          <div className="form-card-footer">
-            {submitError && (
-              <div
-                className="error-message-banner animate-fade-in"
-                style={{
-                  padding: '1rem',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid #ef4444',
-                  borderRadius: '4px',
-                  color: '#f87171',
-                  marginBottom: '1.5rem',
-                  fontSize: '0.95rem',
-                  width: '100%',
-                  textAlign: 'center',
-                }}
-              >
-                {submitError}
-              </div>
-            )}
-
-            {currentStep === 5 ? (
-              <div className="review-footer-buttons">
-                <div className="review-top-buttons-row">
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={handlePrev}
-                    disabled={isSubmitting}
-                  >
-                    Back
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-submit-registration"
-                    onClick={handleNext}
-                    disabled={
-                      isSubmitting ||
-                      !consent1 ||
-                      !consent2 ||
-                      !consent3 ||
-                      !consent4
-                    }
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="buttons-row">
-                {currentStep > 1 && (
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={handlePrev}
-                  >
-                    Back
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={handleNext}
-                >
-                  Next Step
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       </section>
     </div>

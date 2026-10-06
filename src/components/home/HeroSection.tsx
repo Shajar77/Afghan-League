@@ -41,14 +41,9 @@ export function HeroSection() {
 
       <div className="hero-content">
         <h1 className="hero-title">A Legacy<br />in the Making!</h1>
-        <p className="hero-status-subtitle">REGISTRATIONS ARE OPEN</p>
         <div className="hero-actions">
-          <a href="#register-player" className="btn-register-now hero-btn">
-            <span className="skew-unskew-text">PLAYER REGISTRATION</span>
-          </a>
-
-          <a href="#register-status" className="btn-contact hero-btn">
-            <span>REGISTRATION STATUS</span>
+          <a href="#contact-us" className="btn-register-now hero-btn">
+            <span className="skew-unskew-text">ENQUIRE NOW</span>
           </a>
         </div>
       </div>

@@ -739,3 +739,358 @@
   color: #1e293b;
   text-align: right;
 }
+
+/* ══════════════════════════════════════════════════════
+   TEAM MANAGEMENT — apl-tm-* classes (mobile-first)
+   ══════════════════════════════════════════════════════ */
+
+/* Team Selector Pills */
+.apl-tm-team-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.apl-tm-team-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 1rem;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 40px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: var(--font-body, "Archivo", sans-serif);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.apl-tm-team-pill:hover {
+  color: #ffffff;
+}
+
+.apl-tm-team-pill.active {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-weight: 700;
+  border-bottom: 2px solid var(--brand-gold, #F8C800);
+  border-radius: 0;
+}
+
+.apl-tm-pill-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.apl-tm-pill-initials {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, "Big Shoulders Display", sans-serif);
+  font-weight: 800;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.apl-tm-pill-name {
+  line-height: 1;
+}
+
+/* Two-panel layout */
+.apl-tm-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .apl-tm-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+}
+
+/* Individual Panel */
+.apl-tm-panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.apl-tm-panel--roster {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+/* Panel Header */
+.apl-tm-panel-header {
+  padding: 1.25rem 1.25rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.apl-tm-panel-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.apl-tm-panel-title {
+  font-family: var(--font-display, "Big Shoulders Display", sans-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0d1e52;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.apl-tm-panel-sub {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
+.apl-tm-count-badge {
+  margin-left: auto;
+  background: transparent;
+  color: #0575E6;
+  border: none;
+  font-size: 1.35rem;
+  font-weight: 600;
+  padding: 0;
+  min-width: unset;
+  text-align: right;
+  font-family: var(--font-display, "Big Shoulders Display", sans-serif);
+  letter-spacing: -0.01em;
+}
+
+.apl-tm-count-badge--roster {
+  color: #0575E6;
+  background: transparent;
+  border: none;
+}
+
+/* Search */
+.apl-tm-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 0.65rem;
+}
+
+.apl-tm-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: #94a3b8;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.apl-tm-search-input {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.6rem 2.25rem 0.6rem 2.25rem;
+  color: #0f172a;
+  font-family: var(--font-body, "Archivo", sans-serif);
+  font-size: 0.85rem;
+  min-height: 40px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.apl-tm-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.apl-tm-search-input:focus {
+  border-color: #0575E6;
+}
+
+.apl-tm-search-clear {
+  position: absolute;
+  right: 0.65rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.apl-tm-search-clear:hover {
+  color: #0f172a;
+}
+
+/* Player List Scroll Area */
+.apl-tm-player-list {
+  max-height: 520px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem 0;
+}
+
+.apl-tm-player-list::-webkit-scrollbar {
+  width: 5px;
+}
+.apl-tm-player-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.apl-tm-player-list::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+/* Empty / Loading State */
+.apl-tm-list-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1.5rem;
+  color: #94a3b8;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Player Row */
+.apl-tm-player-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s ease;
+}
+
+.apl-tm-player-row:last-child {
+  border-bottom: none;
+}
+
+.apl-tm-player-row:hover {
+  background: #f8fafc;
+}
+
+.apl-tm-player-row--assigned:hover {
+  background: #eff6ff;
+}
+
+.apl-tm-player-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.apl-tm-player-name {
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apl-tm-player-meta {
+  font-size: 0.76rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apl-tm-player-cat {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--brand-gold, #F8C800);
+  background: rgba(248, 200, 0, 0.1);
+  border: 1px solid rgba(248, 200, 0, 0.2);
+  border-radius: 4px;
+  padding: 0.05rem 0.4rem;
+  max-width: fit-content;
+}
+
+/* Assign Button */
+.apl-tm-assign-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #0575E6;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.apl-tm-assign-btn:hover:not(:disabled) {
+  background: rgba(5, 117, 230, 0.08);
+  color: #045cb8;
+  transform: scale(1.08);
+}
+
+.apl-tm-assign-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Assigned Badge (Circle Tick) */
+.apl-tm-assigned-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #16a34a;
+  background: transparent;
+  border: none;
+  padding: 0.25rem;
+  flex-shrink: 0;
+}
+
+/* No team selected empty state */
+.apl-tm-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+

@@ -136,10 +136,50 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
                   )
                 }
 
+                // 1.5. Table Support (Markdown table)
+                if (text.startsWith('|') && text.includes('\n')) {
+                  const rawRows = text.split('\n').map(r => r.trim()).filter(r => r.startsWith('|'))
+                  if (rawRows.length >= 2) {
+                    const parseCells = (rowStr: string) => {
+                      const parts = rowStr.split('|').map(c => c.trim())
+                      return parts.slice(1, parts.length - 1)
+                    }
+                    const headerCells = parseCells(rawRows[0])
+                    const isSep = (r: string) => /^[|\s\-:]+$/.test(r)
+                    const bodyRows = rawRows.slice(1).filter(r => !isSep(r)).map(parseCells)
+
+                    return (
+                      <div key={idx} className="blog-detail-table-wrap">
+                        <table className="blog-detail-table">
+                          <thead>
+                            <tr>
+                              {headerCells.map((cell, cIdx) => (
+                                <th key={cIdx}>{cell}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bodyRows.map((cells, rIdx) => (
+                              <tr key={rIdx}>
+                                {cells.map((cell, cIdx) => (
+                                  <td key={cIdx}>
+                                    {cIdx === 0 ? <strong>{cell}</strong> : cell}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  }
+                }
+
                 // 2. Media enquiries / Email
                 if (
                   text.toLowerCase().includes('media enquiries') ||
                   text.toLowerCase().includes('for media enquiries') ||
+                  text.toLowerCase().includes('media contact') ||
                   text === 'contact@apl-t20.com' ||
                   text === 'bid@apl-t20.com' ||
                   text === 'players@apl-t20.com' ||

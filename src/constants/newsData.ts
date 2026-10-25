@@ -6,6 +6,7 @@ import download1Img from '../assets/download (1).webp'
 import prImg from '../assets/PR.webp'
 import prDraftImg from '../assets/PR-draft-registrations.webp'
 import regExtendedImg from '../assets/player-registration-deadline-extended.webp'
+import leadersDraftImg from '../assets/KV_.jpg'
 
 export interface Article {
   id: string
@@ -20,6 +21,37 @@ export interface Article {
 }
 
 export const articles: Article[] = [
+  {
+    id: 'apl-leaders-draft-confirms-captains-coaches-2026',
+    category: 'PRESS RELEASE',
+    title: 'APL Leaders’ Draft Confirms Captains and Head Coaches for All Five Franchises',
+    excerpt: 'Kandahar Warriors, Akcel United Kabul, Nangarhar, Paktia and Balkh confirm their leadership teams as the Afghanistan Premier League (APL T20) marks a key milestone in preparations for the competition.',
+    date: 'OCT 25, 2026',
+    readTime: '3 MIN READ',
+    img: leadersDraftImg,
+    featured: true,
+    fullText: [
+      "Kandahar Warriors, Akcel United Kabul, Nangarhar, Paktia and Balkh confirm their leadership teams",
+      "25 October 2026 — The Afghanistan Premier League (APL T20) today confirmed the captains and head coaches of all five franchises following its Leaders’ Draft, marking a key milestone in preparations for the competition.",
+      "Rashid Khan will captain Kandahar Warriors, Azmatullah Omarzai will lead Akcel United Kabul, Rahmanullah Gurbaz will captain Nangarhar, Rahmat Shah will lead Paktia, and Ibrahim Zadran will captain Balkh.",
+      "The franchises also confirmed their head coaches, with Ravi Bopara joining Kandahar Warriors, Shane McDermott joining Akcel United Kabul, Toby Radford joining Nangarhar, Azhar Mahmood joining Paktia, and Mickey Arthur joining Balkh.",
+      "Mentors represent the five franchises",
+      "Hosted by Farveez Maharoof, the Leaders’ Draft brought together the five franchise mentors to determine their teams’ captains and head coaches across two rounds.",
+      "Kandahar Warriors were represented by Irfan Pathan, Akcel United Kabul by Nikhil Chopra, Nangarhar by Mark Boucher, Paktia by Waqar Younis, and Balkh by Tillakaratne Dilshan.",
+      "Before proceedings began, Maharoof held a short discussion with each mentor about their involvement in the APL and their ambitions for their respective franchises.",
+      "Two rounds complete the leadership line-up",
+      "The opening round confirmed the five captains, with the franchise order running from Kandahar Warriors to Akcel United Kabul, Nangarhar, Paktia and Balkh.",
+      "The order changed for the head coach round, with Akcel United Kabul opening proceedings, followed by Kandahar Warriors, Balkh, Paktia and Nangarhar.",
+      "The completed leadership line-up is:",
+      "| Franchise | Captain | Head Coach | Mentor |\n|---|---|---|---|\n| Kandahar Warriors | Rashid Khan | Ravi Bopara | Irfan Pathan |\n| Akcel United Kabul | Azmatullah Omarzai | Shane McDermott | Nikhil Chopra |\n| Nangarhar | Rahmanullah Gurbaz | Toby Radford | Mark Boucher |\n| Paktia | Rahmat Shah | Azhar Mahmood | Waqar Younis |\n| Balkh | Ibrahim Zadran | Mickey Arthur | Tillakaratne Dilshan |",
+      "The appointments bring together Afghan playing leadership and international coaching experience, establishing the leadership teams that will guide the five franchises through their preparations and into the competition.",
+      "About the Afghanistan Premier League",
+      "The Afghanistan Premier League (APL T20) is Afghanistan’s premier franchise Twenty20 cricket competition. Bringing together Afghan and international cricketers, the league provides a platform to showcase talent, create opportunities for Afghan players and connect supporters with the game.",
+      "-ENDS-",
+      "For Media Enquiries:",
+      "contact@apl-t20.com"
+    ]
+  },
   {
     id: 'apl-registration-window-extended-oct05-2026',
     category: 'PRESS RELEASE',

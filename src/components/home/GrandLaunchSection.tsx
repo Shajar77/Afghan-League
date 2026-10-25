@@ -69,8 +69,8 @@ export function GrandLaunchSection() {
     <>
       <div className="section-divider-line" />
       <section className="launch-section">
-        <h2 className="section-heading">Apl Grand <span>Launch</span> Event</h2>
-        <p className="section-description">Relive the highlights and spectacular event celebrations from the league opening.</p>
+        <h2 className="section-heading">APL Leaders <span>Draft</span> 2026</h2>
+        <p className="section-description">Meet the official captains and coaches selected to lead the franchises for the inaugural APL 2026 season.</p>
 
         <div className="launch-grid-container">
           {/* Left Panel: Main Large Video */}
@@ -78,9 +78,9 @@ export function GrandLaunchSection() {
             <div className="launch-video-glow-container">
               <div className="launch-video-wrapper">
                 <YouTubeFacade
-                  videoId="sq00E0Rmyjs"
+                  videoId="WPeZ8XCQATs"
                   iframeId="launch-video-iframe"
-                  title="The APL Grand Launch Event"
+                  title="APL Leaders Draft 2026"
                   className="launch-video-iframe"
                 />
                 {launchMuted && (
@@ -90,7 +90,7 @@ export function GrandLaunchSection() {
                         <VolumeX size={44} className="launch-unmute-icon" />
                       </div>
                       <h3 className="launch-unmute-title">TAP TO UNMUTE & WATCH</h3>
-                      <p className="launch-unmute-subtitle">APL GRAND LAUNCH CEREMONY</p>
+                      <p className="launch-unmute-subtitle">APL LEADERS DRAFT 2026</p>
                     </div>
                   </div>
                 )}

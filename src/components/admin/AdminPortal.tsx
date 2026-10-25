@@ -111,6 +111,7 @@ export function AdminPortal() {
 
   const [savedScrollPos, setSavedScrollPos] = useState<number>(0)
   const [playersList, setPlayersList] = useState<Registration[]>([])
+  const [fromTeamManagement, setFromTeamManagement] = useState(false)
 
   const handleLoginSuccess = (token: string, email: string) => {
     setAuthToken(token)
@@ -118,9 +119,10 @@ export function AdminPortal() {
     setView('dashboard')
   }
 
-  const handleViewPlayer = (reg: Registration, list?: Registration[]) => {
+  const handleViewPlayer = (reg: Registration, list?: Registration[], hideActions?: boolean) => {
     setSavedScrollPos(window.scrollY || document.documentElement.scrollTop || 0)
     setSelectedPlayer(reg)
+    setFromTeamManagement(hideActions === true)
     if (list && list.length > 0) {
       setPlayersList(list)
     }
@@ -187,7 +189,7 @@ export function AdminPortal() {
           adminEmail={adminEmail}
           adminToken={authToken || ''}
           onLogout={handleLogout}
-          onViewPlayer={(reg, list) => handleViewPlayer(reg as Registration, list as Registration[])}
+          onViewPlayer={(reg, list, hideActions) => handleViewPlayer(reg as Registration, list as Registration[], hideActions)}
           returnToPlayer={returnToPlayer}
           onClearReturnToPlayer={() => setReturnToPlayer(null)}
         />
@@ -203,6 +205,7 @@ export function AdminPortal() {
           onLogout={handleLogout}
           adminEmail={adminEmail}
           adminRole={getAdminRole()}
+          hideActions={fromTeamManagement}
         />
       )}
     </>

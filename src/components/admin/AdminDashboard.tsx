@@ -12,6 +12,8 @@ import { AdminFiltersBar } from './AdminFiltersBar'
 import { AdminRegistrationsTable, type Registration } from './AdminRegistrationsTable'
 import { UserManagement } from './UserManagement'
 import { TeamSponsorManagement } from './TeamSponsorManagement'
+import { TeamManagement } from './TeamManagement'
+import { FixturesManagement } from './FixturesManagement'
 import {
   AlertCircle,
   LogOut,
@@ -55,7 +57,7 @@ interface AdminDashboardProps {
   adminEmail: string
   adminToken: string
   onLogout: () => void
-  onViewPlayer: (reg: Registration, playerList?: Registration[]) => void
+  onViewPlayer: (reg: Registration, playerList?: Registration[], hideActions?: boolean) => void
   returnToPlayer?: Registration | null
   onClearReturnToPlayer?: () => void
 }
@@ -73,7 +75,7 @@ export function AdminDashboard({
   const isSuperAdmin = isSuperAdminUser(adminRole)
   const isPlayerManagement = isPlayerManagementUser(adminRole)
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'users'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'squad' | 'fixtures' | 'users'>(() => {
     if (isSuperAdmin || isPlayerManagement) return 'dashboard'
     return 'teams'
   })
@@ -87,6 +89,8 @@ export function AdminDashboard({
       setActiveTab('teams')
     } else if (!isSuperAdmin && activeTab === 'users') {
       setActiveTab(isPlayerManagement ? 'dashboard' : 'teams')
+    } else if (activeTab === 'squad' || activeTab === 'fixtures') {
+      setActiveTab(isSuperAdmin || isPlayerManagement ? 'dashboard' : 'teams')
     }
   }, [isSuperAdmin, isPlayerManagement, activeTab])
 
@@ -743,9 +747,30 @@ export function AdminDashboard({
                 className={`apl-admin-nav-tab ${activeTab === 'teams' ? 'active' : ''}`}
                 onClick={() => setActiveTab('teams')}
               >
-                Teams & Sponsors
+                Teams &amp; Sponsors
               </button>
             )}
+            {/* Temporarily hidden: Team Management & Fixtures (restore when needed) */}
+            {/*
+            {!isPlayerManagement && (
+              <button
+                type="button"
+                className={`apl-admin-nav-tab ${activeTab === 'squad' ? 'active' : ''}`}
+                onClick={() => setActiveTab('squad')}
+              >
+                Team Management
+              </button>
+            )}
+            {!isPlayerManagement && (
+              <button
+                type="button"
+                className={`apl-admin-nav-tab ${activeTab === 'fixtures' ? 'active' : ''}`}
+                onClick={() => setActiveTab('fixtures')}
+              >
+                Fixtures
+              </button>
+            )}
+            */}
             {isSuperAdmin && (
               <button
                 type="button"
@@ -822,10 +847,41 @@ export function AdminDashboard({
                   setMobileMenuOpen(false)
                 }}
               >
-                Teams & Sponsors
+                Teams &amp; Sponsors
               </button>
             </li>
           )}
+          {/* Temporarily hidden: Team Management & Fixtures (restore when needed) */}
+          {/*
+          {!isPlayerManagement && (
+            <li className="mobile-nav-item">
+              <button
+                type="button"
+                className={`mobile-nav-link ${activeTab === 'squad' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('squad')
+                  setMobileMenuOpen(false)
+                }}
+              >
+                Team Management
+              </button>
+            </li>
+          )}
+          {!isPlayerManagement && (
+            <li className="mobile-nav-item">
+              <button
+                type="button"
+                className={`mobile-nav-link ${activeTab === 'fixtures' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveTab('fixtures')
+                  setMobileMenuOpen(false)
+                }}
+              >
+                Fixtures
+              </button>
+            </li>
+          )}
+          */}
           {isSuperAdmin && (
             <li className="mobile-nav-item">
               <button
@@ -925,6 +981,15 @@ export function AdminDashboard({
               setItemsPerPage={(num) => { setItemsPerPage(num); setCurrentPage(1) }}
             />
           </>
+        ) : activeTab === 'squad' ? (
+          <TeamManagement
+            onLogout={onLogout}
+            onViewPlayer={(player) =>
+              onViewPlayer(player as unknown as Registration, [], true)
+            }
+          />
+        ) : activeTab === 'fixtures' ? (
+          <FixturesManagement onLogout={onLogout} />
         ) : (
           <TeamSponsorManagement onLogout={onLogout} />
         )}

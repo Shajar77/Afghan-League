@@ -49,6 +49,7 @@ interface AdminPlayerDetailProps {
   onLogout: () => void
   adminEmail: string
   adminRole?: string
+  hideActions?: boolean
 }
 
 // In-memory cache for player dossier data across detail views
@@ -188,7 +189,8 @@ export function AdminPlayerDetail({
   onBack,
   onLogout,
   adminEmail: _adminEmail,
-  adminRole
+  adminRole,
+  hideActions = false
 }: AdminPlayerDetailProps) {
   const topRef = useRef<HTMLDivElement>(null)
   const regCode = String(initialReg.registration_code || (initialReg as any).code || '').trim()
@@ -438,9 +440,9 @@ export function AdminPlayerDetail({
 
   // For Super Admins, always show the adjudication bar.
   // For standard admins, hide if status is already approved or rejected.
-  // For Registration Viewers, hide adjudication status buttons entirely.
+  // For Registration Viewers or hideActions flag, hide adjudication status buttons entirely.
   const isViewer = role === 'registration_viewer'
-  const showAdjudicationBar = !isViewer && (isSuper || (!isRejected && !isApprovedDraft))
+  const showAdjudicationBar = !hideActions && !isViewer && (isSuper || (!isRejected && !isApprovedDraft))
 
   return (
     <div ref={topRef} className="apl-detail-layout">

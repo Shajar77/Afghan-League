@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { buildApiUrl, authFetch } from '../../config/api'
 import {
   Users,
@@ -75,6 +75,7 @@ function PlayerAvatar({
       <img
         src={photoUrl}
         alt={name}
+        loading="lazy"
         onError={() => setErr(true)}
         style={{
           width: size,
@@ -126,10 +127,21 @@ export function TeamManagement({ onLogout, onViewPlayer }: TeamManagementProps) 
   const [isLoadingAvailable, setIsLoadingAvailable] = useState(false)
   const [isLoadingTeamPlayers, setIsLoadingTeamPlayers] = useState(false)
   const [assigningId, setAssigningId] = useState<number | string | null>(null)
+  // Track if we've already fetched the available players list
+  const availableFetchedRef = useRef(false)
 
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+
+  // Debounce the search input so filtering only runs 250ms after typing stops
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(() => setDebouncedSearch(search), 250)
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
+  }, [search])
 
   // Load teams
   useEffect(() => {
@@ -153,8 +165,9 @@ export function TeamManagement({ onLogout, onViewPlayer }: TeamManagementProps) 
     load()
   }, [onLogout])
 
-  // Load available players (approved, unassigned)
-  const loadAvailablePlayers = useCallback(async () => {
+  // Load available players ONCE on mount (cached — not re-fetched on team switch)
+  const loadAvailablePlayers = useCallback(async (force = false) => {
+    if (availableFetchedRef.current && !force) return
     setIsLoadingAvailable(true)
     try {
       const res = await authFetch(buildApiUrl('/team-players/available'))
@@ -165,12 +178,18 @@ export function TeamManagement({ onLogout, onViewPlayer }: TeamManagementProps) 
         ? json
         : (json.data?.players || json.data || json.players || [])
       setAvailablePlayers(list)
+      availableFetchedRef.current = true
     } catch {
       setError('Network error loading available players.')
     } finally {
       setIsLoadingAvailable(false)
     }
   }, [onLogout])
+
+  // Fetch available players once when the component mounts
+  useEffect(() => {
+    loadAvailablePlayers()
+  }, [loadAvailablePlayers])
 
   // Load players already assigned to selected team
   const loadTeamPlayers = useCallback(async (teamId: number | string) => {
@@ -191,14 +210,13 @@ export function TeamManagement({ onLogout, onViewPlayer }: TeamManagementProps) 
     }
   }, [onLogout])
 
-  // When team is selected, load both lists
+  // When team is selected, only reload team squad (available list is already cached)
   const handleSelectTeam = useCallback((team: Team) => {
     setSelectedTeam(team)
     setSearch('')
     setError(null)
-    loadAvailablePlayers()
     loadTeamPlayers(team.id)
-  }, [loadAvailablePlayers, loadTeamPlayers])
+  }, [loadTeamPlayers])
 
   // Assign player to selected team
   const handleAssign = async (player: AvailablePlayer) => {
@@ -228,9 +246,12 @@ export function TeamManagement({ onLogout, onViewPlayer }: TeamManagementProps) 
     }
   }
 
-  // Filtered available players by search
+  // Filtered available players by debounced search (only players not already in teamPlayers)
+  const assignedIds = new Set(teamPlayers.map(p => String(p.id)))
   const filteredAvailable = availablePlayers.filter(p => {
-    const q = search.toLowerCase()
+    if (assignedIds.has(String(p.id))) return false
+    if (!debouncedSearch) return true
+    const q = debouncedSearch.toLowerCase()
     return (
       getFullName(p).toLowerCase().includes(q) ||
       (p.registration_code || '').toLowerCase().includes(q) ||

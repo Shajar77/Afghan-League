@@ -75,7 +75,21 @@ export function AdminDashboard({
   const isSuperAdmin = isSuperAdminUser(adminRole)
   const isPlayerManagement = isPlayerManagementUser(adminRole)
 
+  // Secret key to unlock hidden tabs (Fixtures & Team Management)
+  // App uses hash routing, so params live after the hash:
+  // e.g. /#admin-dashboard?tab=fixtures&key=APL2026
+  const MANAGER_SECRET_KEY = 'APL2026'
+  const hashQuery = window.location.hash.includes('?')
+    ? new URLSearchParams(window.location.hash.split('?')[1])
+    : new URLSearchParams(window.location.search)
+  const urlKey = hashQuery.get('key')
+  const urlTab = hashQuery.get('tab')
+  const hasManagerAccess = urlKey === MANAGER_SECRET_KEY
+
   const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'squad' | 'fixtures' | 'users'>(() => {
+    // If URL key is valid, auto-navigate to the requested hidden tab
+    if (hasManagerAccess && urlTab === 'fixtures') return 'fixtures'
+    if (hasManagerAccess && urlTab === 'squad') return 'squad'
     if (isSuperAdmin || isPlayerManagement) return 'dashboard'
     return 'teams'
   })
@@ -85,14 +99,14 @@ export function AdminDashboard({
   useEffect(() => {
     if (isPlayerManagement && activeTab !== 'dashboard') {
       setActiveTab('dashboard')
-    } else if (!isSuperAdmin && !isPlayerManagement && activeTab === 'dashboard') {
-      setActiveTab('teams')
     } else if (!isSuperAdmin && activeTab === 'users') {
       setActiveTab(isPlayerManagement ? 'dashboard' : 'teams')
-    } else if (activeTab === 'squad' || activeTab === 'fixtures') {
-      setActiveTab(isSuperAdmin || isPlayerManagement ? 'dashboard' : 'teams')
+    } else if (!isSuperAdmin && !hasManagerAccess && activeTab === 'squad') {
+      setActiveTab('teams')
+    } else if (!isSuperAdmin && !hasManagerAccess && activeTab === 'fixtures') {
+      setActiveTab('teams')
     }
-  }, [isSuperAdmin, isPlayerManagement, activeTab])
+  }, [isSuperAdmin, isPlayerManagement, hasManagerAccess, activeTab])
 
   // Data & Loading states
   const [registrations, setRegistrations] = useState<Registration[]>([])
@@ -750,9 +764,8 @@ export function AdminDashboard({
                 Teams &amp; Sponsors
               </button>
             )}
-            {/* Temporarily hidden: Team Management & Fixtures (restore when needed) */}
-            {/*
-            {!isPlayerManagement && (
+            {/* Team Management & Fixtures are hidden from nav — accessible via URL key only */}
+            {hasManagerAccess && !isPlayerManagement && (
               <button
                 type="button"
                 className={`apl-admin-nav-tab ${activeTab === 'squad' ? 'active' : ''}`}
@@ -761,7 +774,7 @@ export function AdminDashboard({
                 Team Management
               </button>
             )}
-            {!isPlayerManagement && (
+            {hasManagerAccess && !isPlayerManagement && (
               <button
                 type="button"
                 className={`apl-admin-nav-tab ${activeTab === 'fixtures' ? 'active' : ''}`}
@@ -770,7 +783,6 @@ export function AdminDashboard({
                 Fixtures
               </button>
             )}
-            */}
             {isSuperAdmin && (
               <button
                 type="button"
@@ -851,9 +863,8 @@ export function AdminDashboard({
               </button>
             </li>
           )}
-          {/* Temporarily hidden: Team Management & Fixtures (restore when needed) */}
-          {/*
-          {!isPlayerManagement && (
+          {/* Team Management & Fixtures are hidden from nav — accessible via URL key only */}
+          {hasManagerAccess && !isPlayerManagement && (
             <li className="mobile-nav-item">
               <button
                 type="button"
@@ -867,7 +878,7 @@ export function AdminDashboard({
               </button>
             </li>
           )}
-          {!isPlayerManagement && (
+          {hasManagerAccess && !isPlayerManagement && (
             <li className="mobile-nav-item">
               <button
                 type="button"
@@ -881,7 +892,6 @@ export function AdminDashboard({
               </button>
             </li>
           )}
-          */}
           {isSuperAdmin && (
             <li className="mobile-nav-item">
               <button

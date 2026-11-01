@@ -297,13 +297,6 @@ export function TeamManagement({ onLogout, onViewPlayer }: TeamManagementProps) 
                   style={{ '--team-color': accentColor } as React.CSSProperties}
                   onClick={() => handleSelectTeam(team)}
                 >
-                  {team.logo_url ? (
-                    <img src={team.logo_url} alt={team.name} className="apl-tm-pill-logo" />
-                  ) : (
-                    <div className="apl-tm-pill-initials" style={{ background: `${accentColor}22`, color: accentColor }}>
-                      {(team.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
                   <span className="apl-tm-pill-name">{team.name}</span>
                   {isActive && <ChevronRight size={14} style={{ opacity: 0.7 }} />}
                 </button>

@@ -1,228 +1,178 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { X } from 'lucide-react'
-import londonSpiritLogo from '../../assets/london-spirit-white.svg'
-import birminghamPhoenixLogo from '../../assets/birmingham-phoenix.svg'
-import manchesterSuperGiantsLogo from '../../assets/manchester-super-giants.svg'
-import sunrisersLeedsLogo from '../../assets/sunrisers-leeds.svg'
-import welshFireLogo from '../../assets/welsh-fire-white.svg'
-import southernBraveLogo from '../../assets/southern-brave-alt.svg'
+import { buildApiUrl, authFetch, getApiToken } from '../../config/api'
 import './TeamsPage.css'
 
-interface TeamDetail {
-  id: string
+// ── Temporary Auth Token (Read from .env so it is never committed to GitHub)
+const TEMP_DEV_TOKEN = import.meta.env.VITE_TEMP_PREVIEW_TOKEN || ''
+
+// Helper to make an authenticated request using either the temp token or current admin session
+async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const token = TEMP_DEV_TOKEN || getApiToken()
+  const headers = new Headers(options.headers || {})
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+  return authFetch(url, { ...options, headers })
+}
+
+// ── API Types ──────────────────────────────────────────────────
+interface ApiTeam {
+  id: number | string
   name: string
-  shortName: string
-  logo: string
-  color: string
-  invertLogo?: boolean
-  stadium: string
-  captain: string
-  coach: string
-  assistantCoach: string
-  founded: string
+  slug?: string
+  city?: string
+  logo_url?: string
+  primary_color?: string
+  captain?: string
+  head_coach?: string
+  assistant_coach?: string
+  home_venue?: string
+  founded?: string | number
 }
 
-interface Player {
+interface ApiPlayer {
+  id: number | string
+  full_name?: string
+  first_name?: string
+  last_name?: string
+  nationality?: string
+  playing_role?: string
+  category?: string
+  photo_url?: string
+  registration_code?: string
+  is_captain?: boolean | 0 | 1
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function getPlayerName(p: ApiPlayer): string {
+  if (p.full_name) return p.full_name
+  const parts = [p.first_name, p.last_name].filter(Boolean)
+  return parts.length > 0 ? parts.join(' ') : 'Unknown Player'
+}
+
+function isCaptain(p: ApiPlayer): boolean {
+  return p.is_captain === true || p.is_captain === 1
+}
+
+// ── Team Logo Component ────────────────────────────────────────
+function TeamLogoImg({
+  name,
+  logoUrl,
+  className,
+}: {
   name: string
-  role: string
-  nationality: string
-  isCaptain?: boolean
+  logoUrl?: string
+  className?: string
+}) {
+  const [err, setErr] = useState(false)
+  const initials = name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+  const color = '#0a1240'
+
+  if (logoUrl && !err) {
+    return (
+      <img
+        src={logoUrl}
+        alt={`${name} Logo`}
+        className={className}
+        loading="lazy"
+        decoding="async"
+        onError={() => setErr(true)}
+      />
+    )
+  }
+  return (
+    <div
+      style={{
+        width: 72,
+        height: 72,
+        borderRadius: '50%',
+        background: `${color}18`,
+        border: `2px solid ${color}44`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+        fontWeight: 800,
+        fontSize: 26,
+        color,
+      }}
+    >
+      {initials}
+    </div>
+  )
 }
 
-const teamsList: TeamDetail[] = [
-  {
-    id: 'team-kk',
-    name: 'Kabul Knights',
-    shortName: 'KK',
-    logo: londonSpiritLogo,
-    color: '#0000F7',
-    invertLogo: true,
-    stadium: 'Kabul International Stadium, Kabul',
-    captain: 'Rashid Khan',
-    coach: 'Andy Flower',
-    assistantCoach: 'Raees Ahmadzai',
-    founded: '2018',
-  },
-  {
-    id: 'team-knk',
-    name: 'Kandahar Kings',
-    shortName: 'KNK',
-    logo: birminghamPhoenixLogo,
-    color: '#FF4B32',
-    stadium: 'Kandahar Cricket Stadium, Kandahar',
-    captain: 'Mujeeb Ur Rahman',
-    coach: 'Stephen Fleming',
-    assistantCoach: 'Kabir Khan',
-    founded: '2018',
-  },
-  {
-    id: 'team-bl',
-    name: 'Balkh Legends',
-    shortName: 'BL',
-    logo: manchesterSuperGiantsLogo,
-    color: '#A01728',
-    stadium: 'Mazari Sharif Stadium, Balkh',
-    captain: 'Mohammad Nabi',
-    coach: 'Herschelle Gibbs',
-    assistantCoach: 'Dawlat Ahmadzai',
-    founded: '2018',
-  },
-  {
-    id: 'team-pp',
-    name: 'Paktia Panthers',
-    shortName: 'PP',
-    logo: sunrisersLeedsLogo,
-    color: '#FAA718',
-    stadium: 'Zurmatt Stadium, Paktia',
-    captain: 'Rahmanullah Gurbaz',
-    coach: 'Phil Simmons',
-    assistantCoach: 'Hasti Gul Abid',
-    founded: '2018',
-  },
-  {
-    id: 'team-as',
-    name: 'Amo Sharks',
-    shortName: 'AS',
-    logo: welshFireLogo,
-    color: '#f70014',
-    invertLogo: true,
-    stadium: 'Ghazi Amanullah Stadium, Jalalabad',
-    captain: 'Azmatullah Omarzai',
-    coach: 'Lance Klusener',
-    assistantCoach: 'Nawroz Mangal',
-    founded: '2018',
-  },
-  {
-    id: 'team-bd',
-    name: 'Band-e-Amir Dragons',
-    shortName: 'BD',
-    logo: southernBraveLogo,
-    color: '#E10B15',
-    stadium: 'Band-e-Amir Cricket Stadium, Bamyan',
-    captain: 'Fazalhaq Farooqi',
-    coach: 'Tom Moody',
-    assistantCoach: 'Khaliqdad Noori',
-    founded: '2018',
-  },
-]
-
-const squadData: Record<string, Player[]> = {
-  'team-kk': [
-    { name: 'Rashid Khan', role: 'Bowling All-rounder', nationality: 'Afghanistan', isCaptain: true },
-    { name: 'Hazratullah Zazai', role: 'Opening Batsman', nationality: 'Afghanistan' },
-    { name: 'Andy Balbirnie', role: 'Batsman', nationality: 'Ireland' },
-    { name: 'Brandon King', role: 'Batsman', nationality: 'West Indies' },
-    { name: 'Harry Tector', role: 'Batsman', nationality: 'Ireland' },
-    { name: 'Qais Ahmad', role: 'Leg Spinner', nationality: 'Afghanistan' },
-    { name: 'Naveen-ul-Haq', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Luke Wood', role: 'Fast Bowler', nationality: 'England' },
-    { name: 'Litton Das', role: 'Wicketkeeper-Batsman', nationality: 'Bangladesh' },
-    { name: 'Karim Janat', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Waqar Salamkheil', role: 'Spinner', nationality: 'Afghanistan' },
-    { name: 'Zahir Khan', role: 'Wrist Spinner', nationality: 'Afghanistan' },
-    { name: 'Richard Gleeson', role: 'Fast Bowler', nationality: 'England' },
-    { name: 'Usman Shinwari', role: 'Fast Bowler', nationality: 'Pakistan' },
-    { name: 'Paul Stirling', role: 'Opening Batsman', nationality: 'Ireland' },
-  ],
-  'team-knk': [
-    { name: 'Mujeeb Ur Rahman', role: 'Off Spinner', nationality: 'Afghanistan', isCaptain: true },
-    { name: 'Najibullah Zadran', role: 'Batsman', nationality: 'Afghanistan' },
-    { name: 'Alex Hales', role: 'Opening Batsman', nationality: 'England' },
-    { name: 'Colin Munro', role: 'Batsman', nationality: 'New Zealand' },
-    { name: 'Tom Kohler-Cadmore', role: 'Wicketkeeper-Batsman', nationality: 'England' },
-    { name: 'Karim Janat', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Mohammad Saleem', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Richard Gleeson', role: 'Fast Bowler', nationality: 'England' },
-    { name: 'Ish Sodhi', role: 'Leg Spinner', nationality: 'New Zealand' },
-    { name: 'Gulbadin Naib', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Fareed Ahmad', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Ben Laughlin', role: 'Fast Bowler', nationality: 'Australia' },
-    { name: 'Evin Lewis', role: 'Opening Batsman', nationality: 'West Indies' },
-    { name: 'Shakib Al Hasan', role: 'All-rounder', nationality: 'Bangladesh' },
-    { name: 'Riaz Hassan', role: 'Batsman', nationality: 'Afghanistan' },
-  ],
-  'team-bl': [
-    { name: 'Mohammad Nabi', role: 'All-rounder', nationality: 'Afghanistan', isCaptain: true },
-    { name: 'Darwish Rasooli', role: 'Batsman', nationality: 'Afghanistan' },
-    { name: 'Chris Gayle', role: 'Opening Batsman', nationality: 'West Indies' },
-    { name: 'Dawid Malan', role: 'Batsman', nationality: 'England' },
-    { name: 'Ravi Bopara', role: 'All-rounder', nationality: 'England' },
-    { name: 'Sharafuddin Ashraf', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Gulbadin Naib', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Usman Shinwari', role: 'Fast Bowler', nationality: 'Pakistan' },
-    { name: 'Ben Laughlin', role: 'Fast Bowler', nationality: 'Australia' },
-    { name: 'Qais Ahmad', role: 'Leg Spinner', nationality: 'Afghanistan' },
-    { name: 'Litton Das', role: 'Wicketkeeper-Batsman', nationality: 'Bangladesh' },
-    { name: 'Hazratullah Zazai', role: 'Opening Batsman', nationality: 'Afghanistan' },
-    { name: 'Ziaur Rahman', role: 'Spinner', nationality: 'Afghanistan' },
-    { name: 'Sheldon Cottrell', role: 'Fast Bowler', nationality: 'West Indies' },
-    { name: 'Roelof van der Merwe', role: 'All-rounder', nationality: 'Netherlands' },
-  ],
-  'team-pp': [
-    { name: 'Rahmanullah Gurbaz', role: 'Wicketkeeper-Batsman', nationality: 'Afghanistan', isCaptain: true },
-    { name: 'Ibrahim Zadran', role: 'Opening Batsman', nationality: 'Afghanistan' },
-    { name: 'Thisara Perera', role: 'All-rounder', nationality: 'Sri Lanka' },
-    { name: 'Luke Wright', role: 'Batsman', nationality: 'England' },
-    { name: 'Sikandar Raza', role: 'All-rounder', nationality: 'Zimbabwe' },
-    { name: 'Fareed Ahmad', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Zahir Khan', role: 'Wrist Spinner', nationality: 'Afghanistan' },
-    { name: 'Ziaur Rahman', role: 'Spinner', nationality: 'Afghanistan' },
-    { name: 'Sheldon Cottrell', role: 'Fast Bowler', nationality: 'West Indies' },
-    { name: 'Naveen-ul-Haq', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Mohammad Nabi', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Luke Wood', role: 'Fast Bowler', nationality: 'England' },
-    { name: 'Bilal Sami', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Colin Munro', role: 'Batsman', nationality: 'New Zealand' },
-    { name: 'Brandon King', role: 'Batsman', nationality: 'West Indies' },
-  ],
-  'team-as': [
-    { name: 'Azmatullah Omarzai', role: 'Bowling All-rounder', nationality: 'Afghanistan', isCaptain: true },
-    { name: 'Rahmat Shah', role: 'Batsman', nationality: 'Afghanistan' },
-    { name: 'Paul Stirling', role: 'Opening Batsman', nationality: 'Ireland' },
-    { name: 'Shakib Al Hasan', role: 'All-rounder', nationality: 'Bangladesh' },
-    { name: 'Yusuf Pathan', role: 'Batsman', nationality: 'India' },
-    { name: 'Ikram Alikhil', role: 'Wicketkeeper', nationality: 'Afghanistan' },
-    { name: 'Abdul Rahman', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Bilal Sami', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Wafadar Momand', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Ibrahim Zadran', role: 'Opening Batsman', nationality: 'Afghanistan' },
-    { name: 'Qais Ahmad', role: 'Leg Spinner', nationality: 'Afghanistan' },
-    { name: 'Andy Balbirnie', role: 'Batsman', nationality: 'Ireland' },
-    { name: 'Tom Kohler-Cadmore', role: 'Wicketkeeper-Batsman', nationality: 'England' },
-    { name: 'Sikandar Raza', role: 'All-rounder', nationality: 'Zimbabwe' },
-    { name: 'Nijat Masood', role: 'Fast Bowler', nationality: 'Afghanistan' },
-  ],
-  'team-bd': [
-    { name: 'Fazalhaq Farooqi', role: 'Left-arm Fast Bowler', nationality: 'Afghanistan', isCaptain: true },
-    { name: 'Riaz Hassan', role: 'Batsman', nationality: 'Afghanistan' },
-    { name: 'Evin Lewis', role: 'Opening Batsman', nationality: 'West Indies' },
-    { name: 'Asghar Afghan', role: 'Batsman', nationality: 'Afghanistan' },
-    { name: 'Roelof van der Merwe', role: 'All-rounder', nationality: 'Netherlands' },
-    { name: 'Nijat Masood', role: 'Fast Bowler', nationality: 'Afghanistan' },
-    { name: 'Waqar Salamkheil', role: 'Spinner', nationality: 'Afghanistan' },
-    { name: 'Karim Sadiq', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Hamid Hassan', role: 'Bowler', nationality: 'Afghanistan' },
-    { name: 'Hazratullah Zazai', role: 'Opening Batsman', nationality: 'Afghanistan' },
-    { name: 'Alex Hales', role: 'Opening Batsman', nationality: 'England' },
-    { name: 'Ravi Bopara', role: 'All-rounder', nationality: 'England' },
-    { name: 'Gulbadin Naib', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Sharafuddin Ashraf', role: 'All-rounder', nationality: 'Afghanistan' },
-    { name: 'Fareed Ahmad', role: 'Fast Bowler', nationality: 'Afghanistan' },
-  ],
-}
-
+// ── Main Component ─────────────────────────────────────────────
 export function TeamsPage() {
-  const [selectedTeam, setSelectedTeam] = useState<TeamDetail | null>(null)
+  const [teams, setTeams] = useState<ApiTeam[]>([])
+  const [isLoadingTeams, setIsLoadingTeams] = useState(true)
+  const [teamsError, setTeamsError] = useState<string | null>(null)
 
-  const handleOpenModal = (team: TeamDetail) => {
+  const [selectedTeam, setSelectedTeam] = useState<ApiTeam | null>(null)
+  const [squad, setSquad] = useState<ApiPlayer[]>([])
+  const [isLoadingSquad, setIsLoadingSquad] = useState(false)
+
+  // Fetch teams list
+  const loadTeams = useCallback(async () => {
+    setIsLoadingTeams(true)
+    setTeamsError(null)
+    try {
+      const res = await authenticatedFetch(buildApiUrl('/teams'))
+      if (!res.ok) throw new Error('Failed to load teams.')
+      const json = await res.json()
+      const list: ApiTeam[] = Array.isArray(json)
+        ? json
+        : json.data?.teams || json.data || json.teams || []
+      setTeams(list)
+    } catch {
+      setTeamsError('Unable to load teams.')
+    } finally {
+      setIsLoadingTeams(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadTeams()
+  }, [loadTeams])
+
+  // Fetch squad for a specific team
+  const loadSquad = useCallback(async (teamId: number | string) => {
+    setIsLoadingSquad(true)
+    setSquad([])
+    try {
+      const res = await authenticatedFetch(buildApiUrl(`/team-players/team/${teamId}`))
+      if (!res.ok) throw new Error('Failed to load squad.')
+      const json = await res.json()
+      const list: ApiPlayer[] = Array.isArray(json)
+        ? json
+        : json.data?.players || json.data || json.players || []
+      setSquad(list)
+    } catch {
+      setSquad([])
+    } finally {
+      setIsLoadingSquad(false)
+    }
+  }, [])
+
+  const handleOpenModal = (team: ApiTeam) => {
     setSelectedTeam(team)
+    loadSquad(team.id)
     document.body.classList.add('modal-open-blur')
   }
 
   const handleCloseModal = () => {
     setSelectedTeam(null)
+    setSquad([])
     document.body.classList.remove('modal-open-blur')
   }
+
+  const accentColor = (team: ApiTeam) => team.primary_color || '#0a1240'
 
   return (
     <div className="teams-page-container">
@@ -230,7 +180,6 @@ export function TeamsPage() {
       <section className="teams-hero">
         <div className="teams-hero-bg-grid" />
         <div className="teams-hero-glow" />
-
         <div className="teams-hero-top-row">
           <div className="teams-hero-title-wrap">
             <span className="teams-live-badge">APL 2026 SEASON</span>
@@ -242,138 +191,224 @@ export function TeamsPage() {
       {/* ── TEAMS GRID SECTION ── */}
       <section className="teams-grid-section">
         <div className="teams-grid-inner">
-          <div className="teams-cards-grid">
-            {teamsList.map((team) => (
-              <div key={team.id} className="team-profile-card">
-                {/* Left Side: Logo & Names */}
-                <div className="team-card-left" style={{ borderLeft: `4px solid ${team.color}` }}>
-                  <div className="team-logo-wrap">
-                    <img 
-                      src={team.logo} 
-                      alt={`${team.name} Logo`} 
-                      className={`team-logo-img-page ${team.invertLogo ? 'logo-invert-dark' : ''}`}
-                      loading="lazy"
-                      decoding="async"
-                    />
+
+          {/* Loading state */}
+          {isLoadingTeams && (
+            <div className="fixtures-state-box">
+              <div className="fixtures-spinner" />
+              <p>Loading teams…</p>
+            </div>
+          )}
+
+          {/* Error state */}
+          {!isLoadingTeams && teamsError && (
+            <div className="fixtures-state-box">
+              <p className="fixtures-error-msg">{teamsError}</p>
+              <button type="button" className="fixtures-retry-btn" onClick={loadTeams}>
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isLoadingTeams && !teamsError && teams.length === 0 && (
+            <div className="fixtures-state-box">
+              <p className="fixtures-empty-msg">No teams found.</p>
+            </div>
+          )}
+
+          {/* Teams cards grid */}
+          {!isLoadingTeams && !teamsError && teams.length > 0 && (
+            <div className="teams-cards-grid">
+              {teams.map((team) => (
+                <div key={team.id} className="team-profile-card">
+                  {/* Left Side: Logo */}
+                  <div
+                    className="team-card-left"
+                    style={{ borderLeft: `4px solid ${accentColor(team)}` }}
+                  >
+                    <div className="team-logo-wrap">
+                      <TeamLogoImg
+                        name={team.name}
+                        logoUrl={team.logo_url}
+                        className="team-logo-img-page"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Center Divider Line */}
+                  <div className="team-card-divider" />
+
+                  {/* Right Side: Details & View Squad Button */}
+                  <div className="team-card-right">
+                    <div className="team-name-wrap">
+                      <h3 className="team-full-name">{team.name}</h3>
+                    </div>
+
+                    <div className="team-card-body">
+                      {team.city && (
+                        <div className="team-info-row">
+                          <span className="info-row-label">City</span>
+                          <span className="info-row-value">{team.city}</span>
+                        </div>
+                      )}
+                      {team.home_venue && (
+                        <div className="team-info-row">
+                          <span className="info-row-label">Home Venue</span>
+                          <span className="info-row-value venue-val">{team.home_venue}</span>
+                        </div>
+                      )}
+                      {team.captain && (
+                        <div className="team-info-row">
+                          <span className="info-row-label">Captain</span>
+                          <span className="info-row-value">{team.captain}</span>
+                        </div>
+                      )}
+                      {team.head_coach && (
+                        <div className="team-info-row">
+                          <span className="info-row-label">Head Coach</span>
+                          <span className="info-row-value">{team.head_coach}</span>
+                        </div>
+                      )}
+                      {team.founded && (
+                        <div className="team-info-row">
+                          <span className="info-row-label">Founded</span>
+                          <span className="info-row-value">{team.founded}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="team-card-footer">
+                      <button
+                        className="team-action-btn"
+                        onClick={() => handleOpenModal(team)}
+                        style={{
+                          '--team-theme-color': accentColor(team),
+                          '--team-hover-text': '#ffffff',
+                        } as React.CSSProperties}
+                      >
+                        View Squad
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {/* Center Divider Line */}
-                <div className="team-card-divider" />
-
-                {/* Right Side: Details & View Squad Button */}
-                <div className="team-card-right">
-                  <div className="team-name-wrap">
-                    <h3 className="team-full-name">{team.name}</h3>
-                  </div>
-
-                  <div className="team-card-body">
-                    <div className="team-info-row">
-                      <span className="info-row-label">Captain</span>
-                      <span className="info-row-value">{team.captain}</span>
-                    </div>
-                    <div className="team-info-row">
-                      <span className="info-row-label">Head Coach</span>
-                      <span className="info-row-value">{team.coach}</span>
-                    </div>
-                    <div className="team-info-row">
-                      <span className="info-row-label">Home Venue</span>
-                      <span className="info-row-value venue-val">{team.stadium}</span>
-                    </div>
-                    <div className="team-info-row">
-                      <span className="info-row-label">Founded</span>
-                      <span className="info-row-value">{team.founded}</span>
-                    </div>
-                  </div>
-
-                  <div className="team-card-footer">
-                    <button 
-                      className="team-action-btn" 
-                      onClick={() => handleOpenModal(team)}
-                      style={{ 
-                        '--team-theme-color': team.color,
-                        '--team-hover-text': team.color === '#FFFFFF' ? '#0a1240' : '#ffffff'
-                      } as React.CSSProperties}
-                    >
-                      View Squad
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
       {/* ── SQUAD MODAL DIALOG ── */}
       {selectedTeam && (
         <div className="squad-modal-overlay" onClick={handleCloseModal}>
-          <div 
-            className="squad-modal-card" 
+          <div
+            className="squad-modal-card"
             onClick={(e) => e.stopPropagation()}
-            style={{ 
+            style={{
               backgroundColor: '#FFFFFF',
-              borderTop: `5px solid ${selectedTeam.color}`
+              borderTop: `5px solid ${accentColor(selectedTeam)}`,
             }}
           >
             {/* Modal Header */}
             <div className="squad-modal-header">
               <div className="squad-header-logo-wrap">
-                <img 
-                  src={selectedTeam.logo} 
-                  alt={selectedTeam.name} 
-                  className={`squad-header-logo-img ${selectedTeam.invertLogo ? 'logo-invert-dark' : ''}`}
+                <TeamLogoImg
+                  name={selectedTeam.name}
+                  logoUrl={selectedTeam.logo_url}
+                  className="squad-header-logo-img"
                 />
               </div>
               <div className="squad-header-titles">
-                <span className="squad-badge" style={{ color: selectedTeam.color }}>APL SQUAD PROFILE</span>
+                <span className="squad-badge" style={{ color: accentColor(selectedTeam) }}>
+                  APL SQUAD PROFILE
+                </span>
                 <h2 className="squad-team-name">{selectedTeam.name}</h2>
               </div>
-              <button className="squad-modal-close-btn" onClick={handleCloseModal} aria-label="Close modal">
+              <button
+                className="squad-modal-close-btn"
+                onClick={handleCloseModal}
+                aria-label="Close modal"
+              >
                 <X size={20} />
               </button>
             </div>
 
             {/* Modal Scrollable Body */}
             <div className="squad-modal-body">
-              <h4 className="squad-section-title" style={{ color: selectedTeam.color, borderLeftColor: selectedTeam.color }}>
-                ACTIVE ROSTER ({squadData[selectedTeam.id]?.length || 0} PLAYERS)
-              </h4>
-              <div className="squad-players-grid">
-                {(squadData[selectedTeam.id] || []).map((player, idx) => (
-                  <div key={idx} className="squad-player-item">
-                    <div className="player-number-col" style={{ color: selectedTeam.color }}>
-                      {String(idx + 1).padStart(2, '0')}
-                    </div>
-                    <div className="player-divider-col" />
-                    <div className="player-info-col">
-                      <span className="player-name">
-                        {player.name}
-                        {player.isCaptain && <span className="captain-text-suffix"> (C)</span>}
-                        <span className="player-role-inline"> — {player.role}</span>
-                      </span>
-                    </div>
-                    <div className="player-country-col">
-                      <span className="country-name-badge">{player.nationality}</span>
-                    </div>
+              {isLoadingSquad ? (
+                <div className="fixtures-state-box" style={{ minHeight: 120 }}>
+                  <div className="fixtures-spinner" />
+                  <p>Loading squad…</p>
+                </div>
+              ) : squad.length === 0 ? (
+                <div className="fixtures-state-box" style={{ minHeight: 120 }}>
+                  <p className="fixtures-empty-msg">No players assigned to this team yet.</p>
+                </div>
+              ) : (
+                <>
+                  <h4
+                    className="squad-section-title"
+                    style={{
+                      color: accentColor(selectedTeam),
+                      borderLeftColor: accentColor(selectedTeam),
+                    }}
+                  >
+                    ACTIVE ROSTER ({squad.length} PLAYERS)
+                  </h4>
+                  <div className="squad-players-grid">
+                    {squad.map((player, idx) => (
+                      <div key={player.id ?? idx} className="squad-player-item">
+                        <div
+                          className="player-number-col"
+                          style={{ color: accentColor(selectedTeam) }}
+                        >
+                          {String(idx + 1).padStart(2, '0')}
+                        </div>
+                        <div className="player-divider-col" />
+                        <div className="player-info-col">
+                          <span className="player-name">
+                            {getPlayerName(player)}
+                            {isCaptain(player) && (
+                              <span className="captain-text-suffix"> (C)</span>
+                            )}
+                            {player.playing_role && (
+                              <span className="player-role-inline">
+                                {' '}— {player.playing_role}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        {player.nationality && (
+                          <div className="player-country-col">
+                            <span className="country-name-badge">{player.nationality}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </>
+              )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="squad-modal-footer">
-              <div className="squad-coach-row">
-                <div className="squad-coach-bar">
-                  <span className="footer-label">Head Coach:</span>
-                  <span className="footer-value">{selectedTeam.coach}</span>
-                </div>
-                <div className="squad-coach-bar">
-                  <span className="footer-label">Assistant Coach:</span>
-                  <span className="footer-value">{selectedTeam.assistantCoach}</span>
+            {/* Modal Footer — coach info if available */}
+            {(selectedTeam.head_coach || selectedTeam.assistant_coach) && (
+              <div className="squad-modal-footer">
+                <div className="squad-coach-row">
+                  {selectedTeam.head_coach && (
+                    <div className="squad-coach-bar">
+                      <span className="footer-label">Head Coach:</span>
+                      <span className="footer-value">{selectedTeam.head_coach}</span>
+                    </div>
+                  )}
+                  {selectedTeam.assistant_coach && (
+                    <div className="squad-coach-bar">
+                      <span className="footer-label">Assistant Coach:</span>
+                      <span className="footer-value">{selectedTeam.assistant_coach}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

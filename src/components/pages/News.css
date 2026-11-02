@@ -919,5 +919,56 @@ body.news-modal-open {
   }
 }
 
+/* ── Image placeholder (no cover image) ─────────────────────── */
+.news-card-img-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background: linear-gradient(135deg, #1a2a6c 0%, #0575E6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.news-card-img-placeholder::after {
+  content: 'APL';
+  font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+  font-size: 2rem;
+  font-weight: 900;
+  color: rgba(248, 200, 0, 0.4);
+  letter-spacing: 0.1em;
+}
 
+/* ── Category badge on card ───────────────────────────────────── */
+.news-card-category {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #021B79;
+  color: #F8C800;
+  border-radius: 4px;
+  padding: 0.18rem 0.55rem;
+  margin-bottom: 0.35rem;
+}
 
+/* ── Skeleton loading cards ───────────────────────────────────── */
+@keyframes news-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.news-card--skeleton {
+  pointer-events: none;
+}
+.news-skeleton-img {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 800px 100%;
+  animation: news-shimmer 1.5s infinite;
+  min-height: 200px;
+}
+.news-skeleton-line {
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 800px 100%;
+  animation: news-shimmer 1.5s infinite;
+}

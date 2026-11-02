@@ -1,615 +1,547 @@
-import { useState } from 'react'
-import londonSpiritLogo from '../../assets/london-spirit-white.svg'
-import birminghamPhoenixLogo from '../../assets/birmingham-phoenix.svg'
-import manchesterSuperGiantsLogo from '../../assets/manchester-super-giants.svg'
-import sunrisersLeedsLogo from '../../assets/sunrisers-leeds.svg'
-import welshFireLogo from '../../assets/welsh-fire-white.svg'
-import southernBraveLogo from '../../assets/southern-brave-alt.svg'
-import skySportsLogo from '../../assets/sky-sports.svg'
-import bbcLogo from '../../assets/bbc.svg'
+import { useState, useEffect, useCallback } from 'react'
+import { buildApiUrl } from '../../config/api'
 import './FixturesPage.css'
 
-interface TeamMeta {
+// ── Types ──────────────────────────────────────────────────────
+interface ApiFixture {
+  id: number | string
+  team_first: number | string
+  team_second: number | string
+  team_first_name?: string
+  team_second_name?: string
+  team_first_logo?: string
+  team_second_logo?: string
+  team_first_color?: string
+  team_second_color?: string
+  match_date: string
+  city_name?: string
+  venue_name?: string
+  match_status?: 'scheduled' | 'completed' | 'drawn' | 'abandoned'
+  winner_team?: number | string | null
+  team_first_points_earned?: number | null
+  team_second_points_earned?: number | null
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function parseMatchDate(dateStr: string) {
+  if (!dateStr) return { dayName: 'TBD', dayNum: '--', month: 'TBD', year: '' }
+  try {
+    const parts = dateStr.split('T')[0].split('-')
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10)
+      const monthIdx = parseInt(parts[1], 10) - 1
+      const day = parseInt(parts[2], 10)
+      const d = new Date(year, monthIdx, day)
+      return {
+        dayName: d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase(),
+        dayNum: String(day).padStart(2, '0'),
+        month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+        year: String(year),
+      }
+    }
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return { dayName: 'TBD', dayNum: '--', month: 'TBD', year: '' }
+    return {
+      dayName: d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase(),
+      dayNum: String(d.getDate()).padStart(2, '0'),
+      month: d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
+      year: String(d.getFullYear()),
+    }
+  } catch {
+    return { dayName: 'TBD', dayNum: '--', month: 'TBD', year: '' }
+  }
+}
+
+function getStatusLabel(fixture: ApiFixture): 'UPCOMING' | 'COMPLETED' | 'DRAWN' | 'ABANDONED' {
+  const s = fixture.match_status
+  if (!s || s === 'scheduled') return 'UPCOMING'
+  if (s === 'completed') return 'COMPLETED'
+  if (s === 'drawn') return 'DRAWN'
+  if (s === 'abandoned') return 'ABANDONED'
+  return 'UPCOMING'
+}
+
+// ── Team Logo Component ────────────────────────────────────────
+function TeamLogo({
+  name,
+  logoUrl,
+  color,
+  size = 52,
+}: {
   name: string
-  shortName: string
-  logo: string
-  color: string
-  invertLogo?: boolean
+  logoUrl?: string
+  color?: string
+  size?: number
+}) {
+  const [err, setErr] = useState(false)
+  const initials = name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+  const bg = color || '#0a1240'
+
+  if (logoUrl && !err) {
+    return (
+      <img
+        src={logoUrl}
+        alt={name}
+        className="fixture-team-logo"
+        onError={() => setErr(true)}
+        style={{ width: size, height: size }}
+      />
+    )
+  }
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: `${bg}22`,
+        border: `2px solid ${bg}55`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+        fontWeight: 800,
+        fontSize: size * 0.36,
+        color: bg,
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </div>
+  )
 }
 
-const teamsMeta: Record<string, TeamMeta> = {
-  'Kabul Knights': { name: 'Kabul Knights', shortName: 'KK', logo: londonSpiritLogo, color: '#2c32aa', invertLogo: true },
-  'Kandahar Kings': { name: 'Kandahar Kings', shortName: 'KNK', logo: birminghamPhoenixLogo, color: '#805ad5' },
-  'Balkh Legends': { name: 'Balkh Legends', shortName: 'BL', logo: manchesterSuperGiantsLogo, color: '#F8C800' },
-  'Paktia Panthers': { name: 'Paktia Panthers', shortName: 'PP', logo: sunrisersLeedsLogo, color: '#e53e3e' },
-  'Amo Sharks': { name: 'Amo Sharks', shortName: 'AS', logo: welshFireLogo, color: '#dd6b20', invertLogo: true },
-  'Band-e-Amir Dragons': { name: 'Band-e-Amir Dragons', shortName: 'BD', logo: southernBraveLogo, color: '#017a37' },
-}
-
-interface MatchFixture {
-  id: string
-  dayName: string
-  dayNum: string
-  month: string
-  isDoubleHeader?: boolean
-  badge?: string
-  team1: string
-  team2: string
-  time: string
-  venue: string
-  stage: string
-  score1?: string
-  score2?: string
-  status: 'UPCOMING' | 'LIVE' | 'COMPLETED'
-  ticketsAvailable: boolean
-  broadcasters: string[]
-}
-
-const mockFixtures: MatchFixture[] = [
-  {
-    id: 'f_pre1',
-    dayName: 'SATURDAY',
-    dayNum: '10',
-    month: 'OCTOBER',
-    team1: 'Kabul Knights',
-    team2: 'Kandahar Kings',
-    time: '18:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'COMPLETED',
-    score1: '162/6',
-    score2: '160/9',
-    ticketsAvailable: false,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f_pre2',
-    dayName: 'SUNDAY',
-    dayNum: '11',
-    month: 'OCTOBER',
-    team1: 'Balkh Legends',
-    team2: 'Paktia Panthers',
-    time: '19:00 IST',
-    venue: 'Ghazi Amanullah Stadium, Jalalabad',
-    stage: 'Group Stage',
-    status: 'COMPLETED',
-    score1: '189/3',
-    score2: '190/5',
-    ticketsAvailable: false,
-    broadcasters: ['RTA Sports'],
-  },
-  {
-    id: 'f_pre3',
-    dayName: 'MONDAY',
-    dayNum: '12',
-    month: 'OCTOBER',
-    team1: 'Band-e-Amir Dragons',
-    team2: 'Amo Sharks',
-    time: '19:00 IST',
-    venue: 'Kandahar Cricket Stadium, Kandahar',
-    stage: 'Group Stage',
-    status: 'COMPLETED',
-    score1: '145/8',
-    score2: '148/4',
-    ticketsAvailable: false,
-    broadcasters: ['RTA Sports', 'SuperSport'],
-  },
-  {
-    id: 'f_pre4',
-    dayName: 'TUESDAY',
-    dayNum: '13',
-    month: 'OCTOBER',
-    team1: 'Kandahar Kings',
-    team2: 'Balkh Legends',
-    time: '18:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'COMPLETED',
-    score1: '202/5',
-    score2: '198/7',
-    ticketsAvailable: false,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f_pre5',
-    dayName: 'WEDNESDAY',
-    dayNum: '14',
-    month: 'OCTOBER',
-    team1: 'Paktia Panthers',
-    team2: 'Amo Sharks',
-    time: '19:00 IST',
-    venue: 'Ghazi Amanullah Stadium, Jalalabad',
-    stage: 'Group Stage',
-    status: 'COMPLETED',
-    score1: '170/6',
-    score2: '172/2',
-    ticketsAvailable: false,
-    broadcasters: ['RTA Sports', 'BBC Sport'],
-  },
-  {
-    id: 'f1',
-    dayName: 'THURSDAY',
-    dayNum: '15',
-    month: 'OCTOBER',
-    team1: 'Kabul Knights',
-    team2: 'Balkh Legends',
-    time: '18:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'COMPLETED',
-    score1: '178/4',
-    score2: '175/8',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f2',
-    dayName: 'FRIDAY',
-    dayNum: '16',
-    month: 'OCTOBER',
-    team1: 'Kandahar Kings',
-    team2: 'Paktia Panthers',
-    time: '19:00 IST',
-    venue: 'Ghazi Amanullah Stadium, Jalalabad',
-    stage: 'Group Stage',
-    status: 'LIVE',
-    score1: '235/2',
-    score2: '0/0',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'BBC Sport'],
-  },
-  {
-    id: 'f3',
-    dayName: 'SATURDAY',
-    dayNum: '17',
-    month: 'OCTOBER',
-    isDoubleHeader: true,
-    team1: 'Amo Sharks',
-    team2: 'Band-e-Amir Dragons',
-    time: '14:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports'],
-  },
-  {
-    id: 'f4',
-    dayName: 'SATURDAY',
-    dayNum: '17',
-    month: 'OCTOBER',
-    team1: 'Balkh Legends',
-    team2: 'Kandahar Kings',
-    time: '19:00 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f5',
-    dayName: 'SUNDAY',
-    dayNum: '18',
-    month: 'OCTOBER',
-    team1: 'Paktia Panthers',
-    team2: 'Kabul Knights',
-    time: '18:30 IST',
-    venue: 'Kandahar Cricket Stadium, Kandahar',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports'],
-  },
-  {
-    id: 'f5b',
-    dayName: 'MONDAY',
-    dayNum: '19',
-    month: 'OCTOBER',
-    team1: 'Amo Sharks',
-    team2: 'Kandahar Kings',
-    time: '19:00 IST',
-    venue: 'Kandahar Cricket Stadium, Kandahar',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f6',
-    dayName: 'TUESDAY',
-    dayNum: '20',
-    month: 'OCTOBER',
-    team1: 'Band-e-Amir Dragons',
-    team2: 'Amo Sharks',
-    time: '19:00 IST',
-    venue: 'Ghazi Amanullah Stadium, Jalalabad',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: false,
-    broadcasters: ['RTA Sports', 'SuperSport'],
-  },
-  {
-    id: 'f7',
-    dayName: 'WEDNESDAY',
-    dayNum: '21',
-    month: 'OCTOBER',
-    isDoubleHeader: true,
-    team1: 'Kabul Knights',
-    team2: 'Amo Sharks',
-    time: '14:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports'],
-  },
-  {
-    id: 'f8',
-    dayName: 'WEDNESDAY',
-    dayNum: '21',
-    month: 'OCTOBER',
-    team1: 'Balkh Legends',
-    team2: 'Paktia Panthers',
-    time: '19:00 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f8b',
-    dayName: 'THURSDAY',
-    dayNum: '22',
-    month: 'OCTOBER',
-    team1: 'Band-e-Amir Dragons',
-    team2: 'Balkh Legends',
-    time: '19:00 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports', 'BBC Sport'],
-  },
-  {
-    id: 'f8c',
-    dayName: 'FRIDAY',
-    dayNum: '23',
-    month: 'OCTOBER',
-    team1: 'Paktia Panthers',
-    team2: 'Amo Sharks',
-    time: '18:30 IST',
-    venue: 'Ghazi Amanullah Stadium, Jalalabad',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports'],
-  },
-  {
-    id: 'f8d',
-    dayName: 'SATURDAY',
-    dayNum: '24',
-    month: 'OCTOBER',
-    isDoubleHeader: true,
-    team1: 'Kabul Knights',
-    team2: 'Kandahar Kings',
-    time: '14:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'BBC Sport'],
-  },
-  {
-    id: 'f8e',
-    dayName: 'SATURDAY',
-    dayNum: '24',
-    month: 'OCTOBER',
-    team1: 'Balkh Legends',
-    team2: 'Band-e-Amir Dragons',
-    time: '19:00 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f9',
-    dayName: 'SUNDAY',
-    dayNum: '25',
-    month: 'OCTOBER',
-    badge: 'ELIMINATOR',
-    team1: 'Kabul Knights',
-    team2: 'Kandahar Kings',
-    time: '18:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Playoffs',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports', 'BBC Sport'],
-  },
-  {
-    id: 'f10',
-    dayName: 'TUESDAY',
-    dayNum: '27',
-    month: 'OCTOBER',
-    badge: 'QUALIFIER',
-    team1: 'Balkh Legends',
-    team2: 'Band-e-Amir Dragons',
-    time: '19:00 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Playoffs',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f8f',
-    dayName: 'MONDAY',
-    dayNum: '26',
-    month: 'OCTOBER',
-    team1: 'Paktia Panthers',
-    team2: 'Band-e-Amir Dragons',
-    time: '19:00 IST',
-    venue: 'Kandahar Cricket Stadium, Kandahar',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports'],
-  },
-  {
-    id: 'f8g',
-    dayName: 'WEDNESDAY',
-    dayNum: '28',
-    month: 'OCTOBER',
-    team1: 'Amo Sharks',
-    team2: 'Balkh Legends',
-    time: '19:00 IST',
-    venue: 'Ghazi Amanullah Stadium, Jalalabad',
-    stage: 'Group Stage',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'BBC Sport'],
-  },
-  {
-    id: 'f10b',
-    dayName: 'THURSDAY',
-    dayNum: '29',
-    month: 'OCTOBER',
-    badge: 'QUALIFIER 2',
-    team1: 'Paktia Panthers',
-    team2: 'Band-e-Amir Dragons',
-    time: '18:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Playoffs',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports', 'BBC Sport'],
-  },
-  {
-    id: 'f11',
-    dayName: 'FRIDAY',
-    dayNum: '30',
-    month: 'OCTOBER',
-    badge: 'GRAND FINAL',
-    team1: 'Balkh Legends',
-    team2: 'Kabul Knights',
-    time: '19:30 IST',
-    venue: 'Kabul International Stadium, Kabul',
-    stage: 'Final',
-    status: 'UPCOMING',
-    ticketsAvailable: true,
-    broadcasters: ['RTA Sports', 'Sky Sports', 'SuperSport', 'BBC Sport'],
-  },
-]
-
+// ── Main Component ─────────────────────────────────────────────
 export function FixturesPage() {
-  const [activeModalMatch, setActiveModalMatch] = useState<MatchFixture | null>(null)
-  // Group fixtures by dayNum to support multiple matches per day box
+  const [fixtures, setFixtures] = useState<ApiFixture[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [activeModal, setActiveModal] = useState<ApiFixture | null>(null)
+
+  const loadFixtures = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(buildApiUrl('/fixtures'))
+      if (!res.ok) throw new Error('Failed to load fixtures.')
+      const json = await res.json()
+      let list: ApiFixture[] = []
+      if (Array.isArray(json)) list = json
+      else if (Array.isArray(json.data?.fixtures)) list = json.data.fixtures
+      else if (Array.isArray(json.data)) list = json.data
+      else if (Array.isArray(json.fixtures)) list = json.fixtures
+      setFixtures(list)
+    } catch {
+      setError('Unable to load fixtures. Please try again later.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadFixtures()
+  }, [loadFixtures])
+
+  // Sort all fixtures by date ascending
+  const sorted = [...fixtures].sort((a, b) =>
+    new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
+  )
+
+  // Group by date key
   interface GroupedDay {
+    dateKey: string
     dayName: string
     dayNum: string
     month: string
-    matches: MatchFixture[]
+    year: string
+    matches: ApiFixture[]
   }
 
-  const filteredFixtures = mockFixtures;
-
-  const groupedFixtures: GroupedDay[] = []
-  filteredFixtures.forEach(match => {
-    const existing = groupedFixtures.find(d => d.dayNum === match.dayNum)
+  const grouped: GroupedDay[] = []
+  sorted.forEach((fx) => {
+    const dateKey = (fx.match_date || '').split('T')[0]
+    const existing = grouped.find((g) => g.dateKey === dateKey)
     if (existing) {
-      existing.matches.push(match)
+      existing.matches.push(fx)
     } else {
-      groupedFixtures.push({
-        dayName: match.dayName,
-        dayNum: match.dayNum,
-        month: match.month,
-        matches: [match]
-      })
+      const parsed = parseMatchDate(fx.match_date)
+      grouped.push({ dateKey, ...parsed, matches: [fx] })
     }
   })
 
   return (
     <div className="fixtures-page-container">
 
-      {/* ── TOP HERO HEADER BANNER ── */}
+      {/* ── HERO  (title left · filter tabs right) ────────── */}
       <section className="fixtures-hero">
         <div className="fixtures-hero-bg-grid" />
         <div className="fixtures-hero-glow" />
-
         <div className="fixtures-hero-top-row">
+          {/* Left: badge + title */}
           <div className="fixtures-hero-title-wrap">
             <span className="fixtures-live-badge">APL 2026 SEASON</span>
             <h1 className="fixtures-main-title">FIXTURES<span className="dot-accent">.</span></h1>
           </div>
+
+
         </div>
       </section>
 
-      {/* ── FIXTURES MATCH LIST ── */}
+      {/* ── FIXTURES LIST ─────────────────────────────────── */}
       <section className="fixtures-list-section">
-
         <div className="fixtures-list-inner">
-          {/* ── DESKTOP GRID HEADERS ── */}
-          <div className="fixtures-grid-header">
-            <div className="gh-col gh-date">DATE</div>
-            <div className="gh-teams-wrap">
-              <div className="gh-col gh-teams">TEAMS &amp; VENUE</div>
-              <div className="gh-col gh-score">SCORE</div>
+
+          {isLoading && (
+            <div className="fixtures-state-box">
+              <div className="fixtures-spinner" />
+              <p>Loading fixtures…</p>
             </div>
-            <div className="gh-col gh-streaming">STREAMING PARTNERS</div>
-          </div>
+          )}
 
-          {groupedFixtures.map((day) => {
-            return (
-              <div key={day.dayNum} className="fixture-card">
-                {/* LEFT: Shared Date Column */}
-                <div className="fixture-date-col">
-                  <span className="fixture-day-name">{day.dayName}</span>
-                  <span className="fixture-day-num">{day.dayNum}</span>
+          {!isLoading && error && (
+            <div className="fixtures-state-box">
+              <p className="fixtures-error-msg">{error}</p>
+              <button type="button" className="fixtures-retry-btn" onClick={loadFixtures}>
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {!isLoading && !error && grouped.length === 0 && (
+            <div className="fixtures-state-box">
+              <p className="fixtures-empty-msg">No fixtures have been scheduled yet.</p>
+            </div>
+          )}
+
+          {!isLoading && !error && grouped.length > 0 && (
+            <>
+              {/* Desktop column headers — matches original design */}
+              <div className="fixtures-grid-header">
+                <div className="gh-col gh-date">DATE</div>
+                <div className="gh-teams-wrap">
+                  <div className="gh-col gh-teams">TEAMS &amp; VENUE</div>
+                  <div className="gh-col gh-score">SCORE</div>
                 </div>
+                <div className="gh-col gh-streaming">STATUS</div>
+              </div>
 
-                {/* RIGHT CONTENT WRAPPER */}
-                <div className="fixture-right-content-wrapper">
-                  {/* RIGHT: Stacked Matches in this day box */}
-                  <div className="fixture-matches-container">
-                    {day.matches.map((match) => {
-                      const t1: TeamMeta = teamsMeta[match.team1] || { name: match.team1, shortName: 'TBD', logo: '', color: '#3b4eb8', invertLogo: false }
-                      const t2: TeamMeta = teamsMeta[match.team2] || { name: match.team2, shortName: 'TBD', logo: '', color: '#3b4eb8', invertLogo: false }
+              {grouped.map((day) => (
+                <div key={day.dateKey} className="fixture-card">
 
-                      return (
-                        <div 
-                          key={match.id} 
-                          className="fixture-match-row"
-                          onClick={() => setActiveModalMatch(match)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          {/* Side Ribbon Badge */}
-                          {match.badge && (
-                            <div className="fixture-side-ribbon">
-                              <span>{match.badge}</span>
-                            </div>
-                          )}
-
-                          {/* LEFT-CENTER: Side-by-side team logos */}
-                          <div className="fixture-logos-col">
-                            <img
-                              src={t1.logo}
-                              alt={t1.name}
-                              className={`fixture-team-logo ${t1.invertLogo ? 'logo-invert-dark' : ''}`}
-                            />
-                            <span className="fixture-mobile-vs">VS</span>
-                            <img
-                              src={t2.logo}
-                              alt={t2.name}
-                              className={`fixture-team-logo ${t2.invertLogo ? 'logo-invert-dark' : ''}`}
-                            />
-                          </div>
-
-                          {/* CENTER: Match Info & Teams Stacked */}
-                          <div className="fixture-main-info">
-                            {/* Meta info header */}
-                            <div className="fixture-meta-pill">
-                              <span className="meta-stage-tag">{match.stage}</span>
-                              <span className="meta-dot">•</span>
-                              <span className="meta-time">{match.time}</span>
-                              <span className="meta-dot">•</span>
-                              <span className="meta-venue">{match.venue}</span>
-                            </div>
-
-                            {/* Stacked team names with colorful VS */}
-                            <div className="fixture-teams-stacked">
-                              <div className="team-row-item">{t1.name}</div>
-                              <div className="team-row-item vs-row">
-                                <span className="vs-label">VS </span>
-                                <span className="team-name-val">{t2.name}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* RIGHT-CENTER: Score Column */}
-                          <div className="fixture-score-col">
-                            {match.status === 'COMPLETED' || match.status === 'LIVE' ? (
-                              <div style={{ textAlign: 'center' }}>
-                                <span className="score-tbp-val" style={{ color: match.status === 'LIVE' ? '#ef4444' : '#faa718', fontWeight: 'bold' }}>
-                                  {match.score1} v {match.score2}
-                                </span>
-                                {match.status === 'LIVE' && <span style={{ display: 'block', fontSize: '0.7rem', color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.1em' }}>● LIVE</span>}
-                              </div>
-                            ) : (
-                              <span className="score-tbp-val">TO BE PLAYED</span>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
+                  {/* LEFT: shared date column for all matches on this day */}
+                  <div className="fixture-date-col">
+                    <span className="fixture-day-name">{day.dayName}</span>
+                    <span className="fixture-day-num">{day.dayNum}</span>
+                    <span className="fixture-month">{day.month}</span>
                   </div>
 
-                  {/* RIGHT: Shared Broadcast coverage (one per card box) */}
-                  <div className="fixture-actions-col">
-                    <div className="fixture-watch-on">
-                      <span className="watch-label">Watch on:</span>
-                      <div className="watch-logos-stacked">
-                        {day.matches.flatMap(m => m.broadcasters).includes('Sky Sports') && (
-                          <img src={skySportsLogo} alt="Sky Sports" className="watch-broadcaster-logo" />
-                        )}
-                        {(day.matches.flatMap(m => m.broadcasters).includes('BBC Sport') || day.matches.flatMap(m => m.broadcasters).includes('BBC')) && (
-                          <img src={bbcLogo} alt="BBC" className="watch-broadcaster-logo" />
-                        )}
-                        {!day.matches.flatMap(m => m.broadcasters).some(b => b.includes('Sky') || b.includes('BBC')) && (
-                          <span style={{ fontSize: '0.8rem', color: '#a0aec0' }}>{day.matches[0].broadcasters.join(', ')}</span>
-                        )}
-                      </div>
+                  {/* RIGHT: stacked match rows */}
+                  <div className="fixture-right-content-wrapper">
+                    <div className="fixture-matches-container">
+                      {day.matches.map((fx) => {
+                        const team1Name = fx.team_first_name || `Team ${fx.team_first}`
+                        const team2Name = fx.team_second_name || `Team ${fx.team_second}`
+                        const status = getStatusLabel(fx)
+                        const isCompleted =
+                          status === 'COMPLETED' || status === 'DRAWN' || status === 'ABANDONED'
+                        const winnerIsTeam1 =
+                          isCompleted &&
+                          fx.winner_team &&
+                          String(fx.winner_team) === String(fx.team_first)
+                        const winnerIsTeam2 =
+                          isCompleted &&
+                          fx.winner_team &&
+                          String(fx.winner_team) === String(fx.team_second)
+
+                        return (
+                          <div
+                            key={fx.id}
+                            className="fixture-match-row"
+                            onClick={() => setActiveModal(fx)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            {/* Logos column — two logos side by side */}
+                            <div className="fixture-logos-col">
+                              <TeamLogo
+                                name={team1Name}
+                                logoUrl={fx.team_first_logo}
+                                color={fx.team_first_color}
+                                size={62}
+                              />
+                              <span className="fixture-mobile-vs">VS</span>
+                              <TeamLogo
+                                name={team2Name}
+                                logoUrl={fx.team_second_logo}
+                                color={fx.team_second_color}
+                                size={62}
+                              />
+                            </div>
+
+                            {/* Center: meta pill + stacked team names */}
+                            <div className="fixture-main-info">
+                              {/* Meta row: venue • city */}
+                              <div className="fixture-meta-pill">
+                                {fx.venue_name && (
+                                  <>
+                                    <span className="meta-stage-tag">{fx.venue_name}</span>
+                                    {fx.city_name && <span className="meta-dot">•</span>}
+                                  </>
+                                )}
+                                {fx.city_name && (
+                                  <span className="meta-venue">{fx.city_name}</span>
+                                )}
+                              </div>
+
+                              {/* Team names — desktop only (hidden on mobile via CSS) */}
+                              <div className="fixture-teams-stacked">
+                                <div className={`team-row-item${winnerIsTeam1 ? ' winner-team' : ''}`}>
+                                  {team1Name}
+                                  {winnerIsTeam1 && <span className="winner-badge"> 🏆</span>}
+                                </div>
+                                <div className="team-row-item vs-row">
+                                  <span className="vs-label">VS </span>
+                                  <span className={`team-name-val${winnerIsTeam2 ? ' winner-team' : ''}`}>
+                                    {team2Name}
+                                    {winnerIsTeam2 && <span className="winner-badge"> 🏆</span>}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Score / result column */}
+                            <div className="fixture-score-col">
+                              {isCompleted ? (
+                                <>
+                                  {fx.team_first_points_earned != null &&
+                                    fx.team_second_points_earned != null ? (
+                                    <span
+                                      className="score-live-val"
+                                      style={{ color: '#f8c800' }}
+                                    >
+                                      {fx.team_first_points_earned}
+                                      {' – '}
+                                      {fx.team_second_points_earned}
+                                    </span>
+                                  ) : null}
+                                  <span className="upcoming-status-text">
+                                    {status === 'DRAWN'
+                                      ? 'DRAW'
+                                      : status === 'ABANDONED'
+                                        ? 'ABANDONED'
+                                        : 'FINAL'}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="score-tbp-val">TO BE PLAYED</span>
+                              )}
+                            </div>
+
+                            {/* Status / streaming column */}
+                            <div className="fixture-actions-col">
+                              {status === 'UPCOMING' ? (
+                                <span className="score-tbp-val">UPCOMING</span>
+                              ) : (
+                                <span className={`fixture-status-pill fixture-status-pill--${status.toLowerCase()}`}>
+                                  {status === 'DRAWN'
+                                    ? 'Draw'
+                                    : status === 'ABANDONED'
+                                      ? 'Abandoned'
+                                      : 'Completed'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              ))}
+            </>
+          )}
         </div>
       </section>
 
-      {/* MATCH CENTRE MODAL POPUP */}
-      {activeModalMatch && (
-        <div className="match-modal-backdrop" onClick={() => setActiveModalMatch(null)}>
-          <div className="match-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <span className="modal-stage-badge">{activeModalMatch.stage}</span>
-              <h3 className="modal-title">{activeModalMatch.team1} vs {activeModalMatch.team2}</h3>
-              <button className="modal-close-btn" onClick={() => setActiveModalMatch(null)}>✕</button>
-            </div>
+      {/* ── MATCH DETAIL MODAL ────────────────────────────── */}
+      {activeModal && (() => {
+        const fx = activeModal
+        const team1Name = fx.team_first_name || `Team ${fx.team_first}`
+        const team2Name = fx.team_second_name || `Team ${fx.team_second}`
+        const parsed = parseMatchDate(fx.match_date)
+        const status = getStatusLabel(fx)
+        const isCompleted = status !== 'UPCOMING'
+        const winnerIsTeam1 =
+          isCompleted && fx.winner_team && String(fx.winner_team) === String(fx.team_first)
+        const winnerIsTeam2 =
+          isCompleted && fx.winner_team && String(fx.winner_team) === String(fx.team_second)
 
-            <div className="modal-body">
-              <div className="modal-info-row">
-                <strong>Date &amp; Time:</strong> {activeModalMatch.dayName} {activeModalMatch.dayNum} {activeModalMatch.month} at {activeModalMatch.time}
-              </div>
-              <div className="modal-info-row">
-                <strong>Venue:</strong> {activeModalMatch.venue}
-              </div>
-              <div className="modal-info-row">
-                <strong>Official Broadcast Partners:</strong> {activeModalMatch.broadcasters.join(', ')}
+        return (
+          <div className="match-modal-backdrop" onClick={() => setActiveModal(null)}>
+            <div className="match-modal-card" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <span className="modal-stage-badge">
+                  {status === 'UPCOMING'
+                    ? 'Scheduled'
+                    : status === 'DRAWN'
+                      ? 'Draw'
+                      : status === 'ABANDONED'
+                        ? 'Abandoned'
+                        : 'Completed'}
+                </span>
+                <h3 className="modal-title">
+                  {team1Name} vs {team2Name}
+                </h3>
+                <button className="modal-close-btn" onClick={() => setActiveModal(null)}>
+                  ✕
+                </button>
               </div>
 
-              <div className="modal-squad-preview">
-                <h4>Match Day Preview</h4>
-                <p>
-                  Both teams enter this {activeModalMatch.stage} encounter at full strength.
-                  Expect an electric atmosphere at {activeModalMatch.venue.split(',')[0]} as foreign international stars link up with top domestic talent.
-                </p>
-              </div>
+              <div className="modal-body">
+                {/* Teams display */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '1.5rem',
+                    margin: '1rem 0 1.5rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <TeamLogo
+                      name={team1Name}
+                      logoUrl={fx.team_first_logo}
+                      color={fx.team_first_color}
+                      size={56}
+                    />
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        color: winnerIsTeam1 ? '#f8c800' : '#fff',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {team1Name} {winnerIsTeam1 ? '🏆' : ''}
+                    </span>
+                    {isCompleted && fx.team_first_points_earned != null && (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '1.8rem',
+                          fontWeight: 900,
+                          color: winnerIsTeam1 ? '#f8c800' : '#aaa',
+                        }}
+                      >
+                        {fx.team_first_points_earned}
+                      </span>
+                    )}
+                  </div>
 
-              <div className="modal-actions-row">
-                <a href="#contact-us" className="modal-btn-gold" onClick={() => setActiveModalMatch(null)}>
-                  Ticket & Hospitality Inquiries
-                </a>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: '1.5rem',
+                      fontWeight: 900,
+                      color: 'rgba(255,255,255,0.3)',
+                    }}
+                  >
+                    VS
+                  </span>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <TeamLogo
+                      name={team2Name}
+                      logoUrl={fx.team_second_logo}
+                      color={fx.team_second_color}
+                      size={56}
+                    />
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        color: winnerIsTeam2 ? '#f8c800' : '#fff',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {team2Name} {winnerIsTeam2 ? '🏆' : ''}
+                    </span>
+                    {isCompleted && fx.team_second_points_earned != null && (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-display)',
+                          fontSize: '1.8rem',
+                          fontWeight: 900,
+                          color: winnerIsTeam2 ? '#f8c800' : '#aaa',
+                        }}
+                      >
+                        {fx.team_second_points_earned}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="modal-info-row">
+                  <strong>Date:</strong> {parsed.dayName} {parsed.dayNum} {parsed.month}{' '}
+                  {parsed.year}
+                </div>
+                {fx.venue_name && (
+                  <div className="modal-info-row">
+                    <strong>Venue:</strong> {fx.venue_name}
+                  </div>
+                )}
+                {fx.city_name && (
+                  <div className="modal-info-row">
+                    <strong>City:</strong> {fx.city_name}
+                  </div>
+                )}
+                <div className="modal-info-row">
+                  <strong>Status:</strong>{' '}
+                  <span
+                    className={`fixture-status-pill fixture-status-pill--${status.toLowerCase()}`}
+                    style={{ marginLeft: '0.5rem' }}
+                  >
+                    {status}
+                  </span>
+                </div>
+
+                {!isCompleted && (
+                  <div className="modal-actions-row">
+                    <a
+                      href="#contact-us"
+                      className="modal-btn-gold"
+                      onClick={() => setActiveModal(null)}
+                    >
+                      Ticket &amp; Hospitality Inquiries
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      )}
-
+        )
+      })()}
     </div>
   )
 }

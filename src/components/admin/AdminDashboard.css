@@ -5,9 +5,12 @@
 .apl-admin-dashboard-layout {
   min-height: 100vh;
   min-height: 100dvh;
-  background: #0575E6;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #021B79, #0575E6);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #021B79, #0575E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #0575E6;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #021B79, #0575E6);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   color: #0f172a;
   font-family: var(--font-body, "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
   position: relative;
@@ -67,7 +70,8 @@
   text-transform: uppercase;
   text-decoration: none;
   padding: 0 1.1rem;
-  height: 42px;
+  height: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   background: none;
@@ -168,9 +172,12 @@
 }
 
 .apl-btn-back-home {
-  background: #ECE9E6;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #FFFFFF, #ECE9E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #ECE9E6;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   color: #0f172a;
   font-family: var(--font-body), sans-serif;
   font-weight: 700;
@@ -292,9 +299,12 @@
   overflow: hidden;
   position: relative;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
-  background: #ECE9E6;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #FFFFFF, #ECE9E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #ECE9E6;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 /* ── LEFT COLUMN ── */
@@ -521,10 +531,21 @@
   white-space: nowrap;
 }
 
-.kikin-bar-fill.w-80 { width: 88%; }
-.kikin-bar-fill.w-76 { width: 78%; }
-.kikin-bar-fill.w-45 { width: 48%; }
-.kikin-bar-fill.w-55 { width: 58%; }
+.kikin-bar-fill.w-80 {
+  width: 88%;
+}
+
+.kikin-bar-fill.w-76 {
+  width: 78%;
+}
+
+.kikin-bar-fill.w-45 {
+  width: 48%;
+}
+
+.kikin-bar-fill.w-55 {
+  width: 58%;
+}
 
 .kikin-bar-name {
   text-transform: uppercase;
@@ -848,10 +869,21 @@
   border-radius: 50%;
 }
 
-.dot.teal   { background: #0d9488; }
-.dot.purple { background: #8b5cf6; }
-.dot.yellow { background: #eab308; }
-.dot.orange { background: #ea580c; }
+.dot.teal {
+  background: #0d9488;
+}
+
+.dot.purple {
+  background: #8b5cf6;
+}
+
+.dot.yellow {
+  background: #eab308;
+}
+
+.dot.orange {
+  background: #ea580c;
+}
 
 .legend-label {
   color: #475569;
@@ -1174,8 +1206,13 @@
   color: #475569;
 }
 
-.b-dot.dark-green  { background: #059669; }
-.b-dot.soft-purple { background: #6366f1; }
+.b-dot.dark-green {
+  background: #059669;
+}
+
+.b-dot.soft-purple {
+  background: #6366f1;
+}
 
 .balance-giant-number {
   font-size: 5rem;
@@ -1263,6 +1300,7 @@
     align-items: flex-end;
   }
 }
+
 .apl-export-buttons-group {
   display: flex;
   flex-direction: column;
@@ -1339,6 +1377,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -1373,7 +1412,8 @@
 
 /* View Mode Switcher */
 .apl-admin-view-toggle {
-  display: none; /* Shown on tablet/desktop */
+  display: none;
+  /* Shown on tablet/desktop */
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 0px;
@@ -1459,17 +1499,25 @@
 }
 
 @keyframes adminSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ──────────────────────────────────────────────────────────
    6. FILTER PANEL (Clean White Card)
    ────────────────────────────────────────────────────────── */
 .apl-admin-filter-panel {
-  background: #ECE9E6;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #FFFFFF, #ECE9E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #ECE9E6;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0px;
   padding: 1.25rem;
@@ -1625,9 +1673,12 @@
    7. TABLE CARD & ROWS (Clean White Card)
    ────────────────────────────────────────────────────────── */
 .apl-admin-table-card {
-  background: #ECE9E6;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #FFFFFF, #ECE9E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #ECE9E6;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0px;
   overflow: hidden;
@@ -1896,6 +1947,7 @@
     background-color: rgba(248, 200, 0, 0.35);
     outline: 2px solid rgba(248, 200, 0, 0.6);
   }
+
   100% {
     background-color: transparent;
     outline: 2px solid transparent;
@@ -1933,12 +1985,10 @@
 .apl-avatar-shimmer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(212, 160, 23, 0.12) 50%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(212, 160, 23, 0.12) 50%,
+      rgba(255, 255, 255, 0.03) 100%);
   background-size: 200% 100%;
   animation: apl-avatar-pulse 1.6s infinite ease-in-out;
   pointer-events: none;
@@ -1949,6 +1999,7 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -2047,6 +2098,7 @@
   .apl-player-full-name {
     font-size: 0.95rem;
   }
+
   .apl-player-contact-sub {
     font-size: 0.74rem;
   }
@@ -2150,20 +2202,45 @@
   border-radius: 50%;
 }
 
-.status-approved { color: #10b981; }
-.status-approved .apl-status-dot-pulse { background: #10b981; }
+.status-approved {
+  color: #10b981;
+}
 
-.status-pending { color: #f59e0b; }
-.status-pending .apl-status-dot-pulse { background: #f59e0b; }
+.status-approved .apl-status-dot-pulse {
+  background: #10b981;
+}
 
-.status-review { color: #3b82f6; }
-.status-review .apl-status-dot-pulse { background: #3b82f6; }
+.status-pending {
+  color: #f59e0b;
+}
 
-.status-rejected { color: #ef4444; }
-.status-rejected .apl-status-dot-pulse { background: #ef4444; }
+.status-pending .apl-status-dot-pulse {
+  background: #f59e0b;
+}
 
-.status-unknown { color: #94a3b8; }
-.status-unknown .apl-status-dot-pulse { background: #94a3b8; }
+.status-review {
+  color: #3b82f6;
+}
+
+.status-review .apl-status-dot-pulse {
+  background: #3b82f6;
+}
+
+.status-rejected {
+  color: #ef4444;
+}
+
+.status-rejected .apl-status-dot-pulse {
+  background: #ef4444;
+}
+
+.status-unknown {
+  color: #94a3b8;
+}
+
+.status-unknown .apl-status-dot-pulse {
+  background: #94a3b8;
+}
 
 /* Inspect Action Button */
 .apl-btn-table-action {
@@ -2171,7 +2248,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.35rem;
-  min-height: 44px; /* Ensure 44px touch target */
+  min-height: 44px;
+  /* Ensure 44px touch target */
   padding: 0.4rem 0.25rem;
   background: transparent;
   border: none;
@@ -2208,9 +2286,12 @@
 
 /* Mobile Cards */
 .apl-player-card {
-  background: #ECE9E6;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #FFFFFF, #ECE9E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #ECE9E6;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #FFFFFF, #ECE9E6);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   border: 1px solid #e2e8f0;
   border-radius: 20px;
   padding: 1.25rem;
@@ -2386,8 +2467,13 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -2509,9 +2595,11 @@
   .apl-admin-stats-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+
   .apl-admin-user-text {
     display: inline-block;
   }
+
   .apl-admin-status-indicator {
     display: inline-flex;
   }
@@ -2521,20 +2609,25 @@
   .apl-admin-navbar-inner {
     padding: 0.85rem 2rem;
   }
+
   .apl-admin-main-container {
     padding: 2rem 2rem 5rem;
   }
+
   .apl-admin-stats-grid {
     grid-template-columns: repeat(6, 1fr);
   }
+
   .apl-admin-section-header {
     flex-direction: row;
     align-items: flex-end;
     justify-content: space-between;
   }
+
   .apl-admin-view-toggle {
     display: inline-flex;
   }
+
   .apl-filter-row {
     flex-direction: row;
     align-items: center;
@@ -2542,25 +2635,31 @@
     gap: 0.5rem;
     overflow-x: auto;
   }
+
   .apl-search-box {
     flex: 1 1 180px;
     min-width: 140px;
   }
+
   .apl-select-wrap {
     flex: 0 1 auto;
     min-width: 130px;
   }
+
   .apl-date-range-box {
     flex: 0 0 auto;
     min-width: 200px;
   }
+
   .apl-filter-reset-btn {
     flex-shrink: 0;
   }
+
   .apl-pagination-bar {
     flex-direction: row;
     justify-content: space-between;
   }
+
   .apl-admin-cards-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -2599,9 +2698,11 @@
   .apl-admin-dashboard-layout .desktop-only-nav {
     display: flex !important;
   }
+
   .apl-admin-dashboard-layout .mobile-only-nav {
     display: none !important;
   }
+
   .apl-admin-dashboard-layout .apl-admin-top-inner {
     display: grid !important;
     grid-template-columns: 1fr auto 1fr !important;
@@ -2609,13 +2710,16 @@
     padding: 0 1.25rem !important;
     gap: 0.75rem !important;
   }
+
   .apl-admin-dashboard-layout .apl-admin-brand-left {
     justify-self: start !important;
     flex: none !important;
   }
+
   .apl-admin-dashboard-layout .apl-admin-top-logo {
     height: 40px;
   }
+
   .apl-admin-dashboard-layout .apl-admin-nav-tabs {
     justify-self: center !important;
     display: flex !important;
@@ -2624,6 +2728,7 @@
     gap: 0.35rem;
     flex: none !important;
   }
+
   .apl-admin-dashboard-layout .apl-admin-brand-right {
     justify-self: end !important;
     display: flex !important;
@@ -2631,11 +2736,13 @@
     justify-content: flex-end !important;
     flex: none !important;
   }
+
   .apl-admin-dashboard-layout .apl-admin-nav-tab {
     padding: 0 0.75rem;
     font-size: 0.74rem;
     letter-spacing: 0.02em;
   }
+
   .apl-admin-dashboard-layout .apl-btn-red-logout {
     padding: 0 0.85rem;
     font-size: 0.75rem;
@@ -2650,17 +2757,21 @@
     padding: 0 2rem !important;
     gap: 1.25rem !important;
   }
+
   .apl-admin-dashboard-layout .apl-admin-top-logo {
     height: 48px;
   }
+
   .apl-admin-dashboard-layout .apl-admin-nav-tabs {
     gap: 0.75rem;
   }
+
   .apl-admin-dashboard-layout .apl-admin-nav-tab {
     padding: 0 1.1rem;
     font-size: 0.78rem;
     letter-spacing: 0.04em;
   }
+
   .apl-admin-dashboard-layout .apl-btn-red-logout {
     padding: 0 1.25rem;
     font-size: 0.8rem;
@@ -2696,9 +2807,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #0575E6;  /* fallback for old browsers */
-  background: -webkit-linear-gradient(to right, #021B79, #0575E6);  /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(to right, #021B79, #0575E6); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #0575E6;
+  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #021B79, #0575E6);
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #021B79, #0575E6);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
   z-index: 999;
   display: flex;
   flex-direction: column;

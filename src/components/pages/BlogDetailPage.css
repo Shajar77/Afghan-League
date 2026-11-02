@@ -399,3 +399,100 @@
   color: #ffffff;
   font-weight: 700;
 }
+
+
+/* ── HTML body (from TipTap rich text editor) ── */
+.blog-detail-html-body {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+}
+.blog-detail-html-body h1 {
+  font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 1.5rem 0 0.6rem;
+  line-height: 1.2;
+}
+.blog-detail-html-body h2 {
+  font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 1.25rem 0 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid rgba(248,200,0,0.35);
+}
+.blog-detail-html-body h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.95);
+  margin: 1rem 0 0.4rem;
+}
+.blog-detail-html-body p {
+  margin: 0 0 1rem;
+}
+.blog-detail-html-body strong { font-weight: 700; color: #ffffff; }
+.blog-detail-html-body em { font-style: italic; }
+.blog-detail-html-body u { text-decoration: underline; }
+.blog-detail-html-body s { text-decoration: line-through; }
+.blog-detail-html-body [style*="color"] strong,
+.blog-detail-html-body [style*="color"] em,
+.blog-detail-html-body [style*="color"] u,
+.blog-detail-html-body [style*="color"] s,
+.blog-detail-html-body [style*="color"] span {
+  color: inherit;
+}
+.blog-detail-html-body ul,
+.blog-detail-html-body ol {
+  padding-left: 1.6rem;
+  margin: 0.5rem 0 1rem;
+}
+.blog-detail-html-body li { margin-bottom: 0.4rem; }
+.blog-detail-html-body ul li { list-style: disc; }
+.blog-detail-html-body ol li { list-style: decimal; }
+.blog-detail-html-body blockquote {
+  border-left: 4px solid var(--brand-gold, #F8C800);
+  margin: 1.25rem 0;
+  padding: 0.75rem 1.25rem;
+  background: rgba(248,200,0,0.07);
+  border-radius: 0 8px 8px 0;
+  color: rgba(255,255,255,0.85);
+  font-style: italic;
+  font-size: 1.05rem;
+}
+.blog-detail-html-body a {
+  color: #F8C800;
+  text-decoration: underline;
+}
+.blog-detail-html-body a:hover { color: #ffdb3b; }
+.blog-detail-html-body code {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  font-size: 0.88em;
+  font-family: 'Menlo', monospace;
+  color: #F8C800;
+}
+
+/* ── Placeholder for articles without a cover image ── */
+.blog-detail-img-placeholder {
+  width: 100%;
+  min-height: 320px;
+  background: linear-gradient(135deg, #021B79 0%, #0575E6 100%);
+  position: relative;
+}
+.blog-detail-img-placeholder::after {
+  content: 'APL';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(248,200,0,0.2);
+  letter-spacing: 0.15em;
+}

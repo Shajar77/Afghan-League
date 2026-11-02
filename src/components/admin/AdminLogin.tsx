@@ -92,11 +92,17 @@ export function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
         const data = json.data || json
         const token = data.access_token || data.token || ''
         const userRole = (data.user?.role || data.role || data.roles?.[0] || '').toLowerCase()
+        const username = (data.user?.username || data.user?.name || data.username || email.trim()).toLowerCase()
         if (token) {
           localStorage.setItem('apl_admin_token', token)
           localStorage.setItem('apl_admin_email', email.trim())
           if (userRole) {
             localStorage.setItem('apl_admin_role', userRole)
+          } else if (email.trim().toLowerCase() === 'publisher' || email.trim().toLowerCase().includes('publisher')) {
+            localStorage.setItem('apl_admin_role', 'publisher')
+          }
+          if (username) {
+            localStorage.setItem('apl_admin_username', username)
           }
           if (data.refresh_token) {
             localStorage.setItem('apl_admin_refresh_token', data.refresh_token)

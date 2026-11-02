@@ -43,6 +43,59 @@
   margin: 0 auto 2rem;
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .fixtures-hero-top-row {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+}
+
+/* Filter tabs sitting inside the hero, right-aligned */
+.fixtures-hero-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  /* On mobile: full width so tabs wrap naturally */
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .fixtures-hero-filters {
+    width: auto;
+    flex-wrap: nowrap;
+    /* Push to right by letting the title take available space */
+    flex-shrink: 0;
+    /* Align tabs to the bottom of the heading */
+    padding-bottom: 0.35rem;
+  }
+}
+
+/* Override filter-tab-btn colours inside the hero (on dark navy bg) */
+.fixtures-hero-filters .filter-tab-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.fixtures-hero-filters .filter-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.fixtures-hero-filters .filter-tab-btn.active {
+  background: #dcf20f;
+  border-color: #dcf20f;
+  color: #000000;
+  box-shadow: 0 0 16px rgba(220, 242, 15, 0.45);
 }
 
 .fixtures-live-badge {
@@ -1004,6 +1057,7 @@
   background: #182357; /* Dark navy */
   border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 0.65rem 1.25rem;
+  min-height: 44px; /* Mobile-first touch target */
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1088,3 +1142,281 @@
   }
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   LIVE-API FIXTURES PAGE — NEW UTILITY CLASSES
+   Mobile-first: base = mobile, scale up with min-width queries
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── FILTER BAR (replaces old filter-tab-btn) ─────────────── */
+
+.fixtures-filter-bar {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  width: 100%;
+}
+
+/* Inner tab group */
+.fixtures-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Individual filter tab button — mobile-first, 44px touch target */
+.fixtures-filter-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  border: 1.5px solid rgba(220, 242, 15, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: #cbd5e1;
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+.fixtures-filter-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(220, 242, 15, 0.6);
+  color: #f1f5f9;
+}
+
+.fixtures-filter-tab.active {
+  background: #dcf20f;
+  border-color: #dcf20f;
+  color: #000;
+  box-shadow: 0 0 14px rgba(220, 242, 15, 0.4);
+}
+
+@media (min-width: 600px) {
+  .fixtures-filter-tabs {
+    flex-wrap: nowrap;
+    width: auto;
+  }
+
+  .fixtures-filter-tab {
+    font-size: 0.88rem;
+    padding: 0.45rem 1.25rem;
+  }
+}
+
+/* ── DATE COLUMN EXTRAS ───────────────────────────────────── */
+
+/* Month label below the day number */
+.fixture-month-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-top: 1px;
+  line-height: 1.2;
+}
+
+/* Year label — shown when year differs from current */
+.fixture-year-label {
+  display: block;
+  font-size: 0.58rem;
+  color: #64748b;
+  letter-spacing: 0.06em;
+  margin-top: 1px;
+  line-height: 1.1;
+}
+
+/* ── STATUS CHIP (inline inside score column) ─────────────── */
+
+.fixture-status-chip {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.fixture-status-chip--scheduled,
+.fixture-status-chip--upcoming {
+  background: rgba(99, 179, 237, 0.15);
+  color: #63b3ed;
+  border: 1px solid rgba(99, 179, 237, 0.35);
+}
+
+.fixture-status-chip--completed {
+  background: rgba(72, 187, 120, 0.15);
+  color: #48bb78;
+  border: 1px solid rgba(72, 187, 120, 0.35);
+}
+
+.fixture-status-chip--drawn {
+  background: rgba(203, 213, 224, 0.15);
+  color: #a0aec0;
+  border: 1px solid rgba(203, 213, 224, 0.3);
+}
+
+.fixture-status-chip--abandoned {
+  background: rgba(252, 129, 74, 0.15);
+  color: #fc814a;
+  border: 1px solid rgba(252, 129, 74, 0.35);
+}
+
+.fixture-status-chip--live {
+  background: rgba(245, 101, 101, 0.18);
+  color: #f56565;
+  border: 1px solid rgba(245, 101, 101, 0.4);
+  animation: chip-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes chip-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+/* ── STATUS PILL (actions column & modal) ─────────────────── */
+
+.fixture-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.fixture-status-pill--scheduled,
+.fixture-status-pill--upcoming {
+  background: rgba(99, 179, 237, 0.14);
+  color: #63b3ed;
+  border: 1.5px solid rgba(99, 179, 237, 0.4);
+}
+
+.fixture-status-pill--completed {
+  background: rgba(72, 187, 120, 0.14);
+  color: #48bb78;
+  border: 1.5px solid rgba(72, 187, 120, 0.4);
+}
+
+.fixture-status-pill--drawn {
+  background: rgba(203, 213, 224, 0.14);
+  color: #a0aec0;
+  border: 1.5px solid rgba(203, 213, 224, 0.3);
+}
+
+.fixture-status-pill--abandoned {
+  background: rgba(252, 129, 74, 0.14);
+  color: #fc814a;
+  border: 1.5px solid rgba(252, 129, 74, 0.4);
+}
+
+.fixture-status-pill--live {
+  background: rgba(245, 101, 101, 0.18);
+  color: #f56565;
+  border: 1.5px solid rgba(245, 101, 101, 0.45);
+}
+
+/* ── STATE BOXES: loading / error / empty ─────────────────── */
+
+/* Centered container for all three states */
+.fixtures-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem 1rem;
+  min-height: 200px;
+  text-align: center;
+}
+
+/* CSS spinning loader ring */
+.fixtures-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(220, 242, 15, 0.2);
+  border-top-color: #dcf20f;
+  border-radius: 50%;
+  animation: spin-ring 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin-ring {
+  to { transform: rotate(360deg); }
+}
+
+/* Error message text */
+.fixtures-error-msg {
+  color: #fc8181;
+  font-size: 0.95rem;
+  font-weight: 500;
+  max-width: 380px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Retry button — 44px touch target */
+.fixtures-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.5rem 1.5rem;
+  border: 1.5px solid #dcf20f;
+  border-radius: 6px;
+  background: transparent;
+  color: #dcf20f;
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.fixtures-retry-btn:hover {
+  background: #dcf20f;
+  color: #000;
+}
+
+/* Empty state message */
+.fixtures-empty-msg {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 340px;
+  margin: 0;
+}
+
+/* ── WINNER HIGHLIGHT ─────────────────────────────────────── */
+
+/* Applied to team name element when that team won */
+.winner-team {
+  color: #dcf20f;
+  font-weight: 700;
+}
+
+/* Trophy emoji wrapper — keeps it inline and sized */
+.winner-badge {
+  display: inline-block;
+  font-size: 0.85em;
+  margin-left: 0.3rem;
+  line-height: 1;
+  vertical-align: middle;
+}

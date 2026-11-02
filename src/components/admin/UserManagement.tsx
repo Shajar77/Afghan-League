@@ -28,6 +28,7 @@ interface AdminUser {
 
 const ROLE_OPTIONS = [
   { value: 'super_admin', label: 'Super Administrator' },
+  { value: 'publisher', label: 'Publisher (News & Blogs Only)' },
   { value: 'content_editor', label: 'Content Editor' },
   { value: 'media_manager', label: 'Media Manager' },
   { value: 'league_ops', label: 'Player Management' },
@@ -136,12 +137,20 @@ export function UserManagement({ onLogout }: UserManagementProps) {
 
   const getRoleBadgeClass = (roleVal: string) => {
     switch (roleVal) {
-      case 'super_admin': return 'role-badge-super'
-      case 'content_editor': return 'role-badge-content'
-      case 'media_manager': return 'role-badge-media'
-      case 'league_ops': return 'role-badge-ops'
-      case 'registration_viewer': return 'role-badge-viewer'
-      default: return 'role-badge-default'
+      case 'super_admin':
+      case 'admin':
+        return 'role-badge-super'
+      case 'publisher':
+      case 'content_editor':
+        return 'role-badge-content'
+      case 'media_manager':
+        return 'role-badge-media'
+      case 'league_ops':
+        return 'role-badge-ops'
+      case 'registration_viewer':
+        return 'role-badge-viewer'
+      default:
+        return 'role-badge-default'
     }
   }
 

@@ -385,7 +385,7 @@ export function getAdminRole(): string {
  */
 export function isSuperAdminUser(role?: string): boolean {
   const r = (role !== undefined && role !== '' ? role : getAdminRole()).toLowerCase().trim()
-  return r === 'super_admin' || r === 'superadmin' || r === 'super'
+  return r === 'super_admin' || r === 'superadmin' || r === 'super' || r === 'admin' || r === 'administrator'
 }
 
 /**
@@ -403,4 +403,174 @@ export function isPlayerManagementUser(role?: string): boolean {
   const r = (role !== undefined && role !== '' ? role : getAdminRole()).toLowerCase().trim()
   return r === 'league_ops' || r === 'player_management' || r === 'player_mgmt' || r === 'registration_viewer'
 }
+
+/**
+ * Check if the active logged-in user or given identifier belongs to a publisher account.
+ * Matches:
+ * - username or email equals "publisher" or contains "publisher" (e.g. publisher@..., publisher)
+ * - role equals "publisher", "news_publisher", "content_editor", "media_manager", or "editor"
+ * - any user who is authenticated but not super_admin/admin and not player_management
+ * Inspects passed string, localStorage (apl_admin_role, apl_admin_email, apl_admin_username), and JWT payload.
+ */
+export function isPublisherUser(emailOrRole?: string): boolean {
+  try {
+    const input = (emailOrRole || '').toLowerCase().trim()
+
+    // Explicitly reject admin accounts from publisher detection
+    if (
+      input === 'admin' ||
+      input === 'super_admin' ||
+      input === 'superadmin' ||
+      input === 'super' ||
+      input === 'administrator' ||
+      input.startsWith('admin@')
+    ) {
+      return false
+    }
+
+    if (
+      input === 'publisher' ||
+      input.startsWith('publisher@') ||
+      input.includes('publisher') ||
+      input === 'content_editor' ||
+      input === 'media_manager' ||
+      input.includes('editor') ||
+      input.includes('media')
+    ) {
+      return true
+    }
+
+    const storedRole = (localStorage.getItem('apl_admin_role') || '').toLowerCase().trim()
+    if (
+      storedRole === 'admin' ||
+      storedRole === 'super_admin' ||
+      storedRole === 'superadmin' ||
+      storedRole === 'super' ||
+      storedRole === 'administrator'
+    ) {
+      return false
+    }
+
+    if (
+      storedRole === 'publisher' ||
+      storedRole.includes('publisher') ||
+      storedRole === 'content_editor' ||
+      storedRole === 'media_manager' ||
+      storedRole.includes('editor') ||
+      storedRole.includes('media')
+    ) {
+      return true
+    }
+
+    const storedEmail = (localStorage.getItem('apl_admin_email') || '').toLowerCase().trim()
+    if (
+      storedEmail.startsWith('admin@') ||
+      storedEmail === 'admin' ||
+      storedEmail === 'super_admin'
+    ) {
+      return false
+    }
+
+    if (
+      storedEmail === 'publisher' ||
+      storedEmail.startsWith('publisher@') ||
+      storedEmail.includes('publisher') ||
+      storedEmail.includes('editor')
+    ) {
+      return true
+    }
+
+    const storedUsername = (localStorage.getItem('apl_admin_username') || '').toLowerCase().trim()
+    if (
+      storedUsername === 'admin' ||
+      storedUsername === 'super_admin' ||
+      storedUsername === 'superadmin'
+    ) {
+      return false
+    }
+
+    if (
+      storedUsername === 'publisher' ||
+      storedUsername.includes('publisher') ||
+      storedUsername.includes('editor')
+    ) {
+      return true
+    }
+
+    const token = localStorage.getItem('apl_admin_token') || ''
+    if (token) {
+      const parts = token.split('.')
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))
+        const role = (payload.role || payload.roles?.[0] || payload.user?.role || '').toLowerCase().trim()
+
+        if (
+          role === 'admin' ||
+          role === 'super_admin' ||
+          role === 'superadmin' ||
+          role === 'super' ||
+          role === 'administrator'
+        ) {
+          return false
+        }
+
+        if (
+          role === 'publisher' ||
+          role.includes('publisher') ||
+          role === 'content_editor' ||
+          role === 'media_manager' ||
+          role.includes('editor') ||
+          role.includes('media')
+        ) {
+          return true
+        }
+
+        const email = (payload.email || payload.user?.email || '').toLowerCase().trim()
+        if (
+          email.startsWith('admin@') ||
+          email === 'admin' ||
+          email === 'super_admin'
+        ) {
+          return false
+        }
+
+        if (
+          email === 'publisher' ||
+          email.startsWith('publisher@') ||
+          email.includes('publisher') ||
+          email.includes('editor')
+        ) {
+          return true
+        }
+
+        const username = (
+          payload.username ||
+          payload.user?.username ||
+          payload.sub ||
+          payload.name ||
+          payload.user?.name ||
+          ''
+        ).toLowerCase().trim()
+
+        if (username === 'admin' || username === 'super_admin' || username === 'superadmin') {
+          return false
+        }
+
+        if (username === 'publisher' || username.includes('publisher') || username.includes('editor')) {
+          return true
+        }
+      }
+
+      // If token exists and user is neither super_admin/admin nor player_management,
+      // they are a publisher / content editor.
+      const activeRole = getAdminRole().toLowerCase().trim()
+      if (activeRole && !isSuperAdminUser(activeRole) && !isPlayerManagementUser(activeRole)) {
+        return true
+      }
+    }
+  } catch { /* ignore parsing errors */ }
+
+  return false
+}
+
 

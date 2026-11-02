@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react'
 import aplLogo from '../../assets/Asset 2@2x.png'
-import { articles } from '../../constants/newsData'
+import { useNewsArticles } from '../../hooks/useNewsArticles'
 import { AnimatedCounter } from '../common/AnimatedCounter'
 import './News.css'
 
-const featuredArticles = articles.filter(a => a.featured)
-const gridArticles = articles
-
 export function News() {
+  const { allArticles, featuredArticles, isLoading } = useNewsArticles()
   const [activeSlide, setActiveSlide] = useState(0)
 
   useEffect(() => {
+    if (featuredArticles.length < 2) return
     const timer = setInterval(() => {
       setActiveSlide(prev => (prev + 1) % featuredArticles.length)
     }, 6000)
     return () => clearInterval(timer)
-  }, [])
+  }, [featuredArticles.length])
 
   const handlePrevSlide = () => {
     setActiveSlide(prev => (prev - 1 + featuredArticles.length) % featuredArticles.length)
@@ -56,7 +55,7 @@ export function News() {
           <div className="news-hero-stats">
             <div className="news-stat-item">
               <span className="news-stat-number">
-                <AnimatedCounter target={articles.length} />
+                <AnimatedCounter target={isLoading ? 0 : allArticles.length} />
               </span>
               <span className="news-stat-label">ARTICLES</span>
             </div>
@@ -81,70 +80,75 @@ export function News() {
       </section>
 
       {/* FEATURED ARTICLES SLIDER */}
-      <section className="news-featured-section">
-        <div className="news-featured-slider-wrapper">
-          <div className="news-featured-slider-grid">
-            {featuredArticles.map((article, index) => (
-              <div
-                key={article.id}
-                className={`news-featured-card ${index === activeSlide ? 'active' : 'inactive'}`}
-              >
-                <div className="news-featured-img-wrap" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>
-                  <img src={article.img} alt={article.title} className="news-featured-img" loading="lazy" decoding="async" />
-                  <div className="news-featured-img-overlay" />
-                </div>
-                <div className="news-featured-content">
-                  <span className="news-category-tag">{article.category}</span>
-                  <h2 className="news-featured-title" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>{article.title}</h2>
-                  <p className="news-featured-excerpt">{article.excerpt}</p>
-                  <div className="news-featured-meta">
-                    <div className="news-apl-brand-tag">
-                      <img src={aplLogo} alt="APL" className="news-brand-logo" />
-                    </div>
-                    <div className="news-meta-right">
-                      <span className="news-meta-date">{article.date}</span>
-                      <span className="news-meta-sep">·</span>
-                      <span className="news-meta-read">{article.readTime}</span>
-                    </div>
+      {!isLoading && featuredArticles.length > 0 && (
+        <section className="news-featured-section">
+          <div className="news-featured-slider-wrapper">
+            <div className="news-featured-slider-grid">
+              {featuredArticles.map((article, index) => (
+                <div
+                  key={article.id}
+                  className={`news-featured-card ${index === activeSlide ? 'active' : 'inactive'}`}
+                >
+                  <div className="news-featured-img-wrap" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>
+                    {article.img ? (
+                      <img src={article.img} alt={article.title} className="news-featured-img" loading="lazy" decoding="async" />
+                    ) : (
+                      <div className="news-featured-img news-card-img-placeholder" />
+                    )}
+                    <div className="news-featured-img-overlay" />
                   </div>
-                  <a href={`#blog/${article.id}`} className="news-read-btn" onClick={(e) => { e.preventDefault(); window.location.hash = `#blog/${article.id}`; }}>
-                    READ FULL STORY
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </a>
+                  <div className="news-featured-content">
+                    <span className="news-category-tag">{article.category}</span>
+                    <h2 className="news-featured-title" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>{article.title}</h2>
+                    <p className="news-featured-excerpt">{article.excerpt}</p>
+                    <div className="news-featured-meta">
+                      <div className="news-apl-brand-tag">
+                        <img src={aplLogo} alt="APL" className="news-brand-logo" />
+                      </div>
+                      <div className="news-meta-right">
+                        <span className="news-meta-date">{article.date}</span>
+                        <span className="news-meta-sep">·</span>
+                        <span className="news-meta-read">{article.readTime}</span>
+                      </div>
+                    </div>
+                    <a href={`#blog/${article.id}`} className="news-read-btn" onClick={(e) => { e.preventDefault(); window.location.hash = `#blog/${article.id}`; }}>
+                      READ FULL STORY
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </a>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Slider Controls Row (Mobile inline, Desktop absolute) */}
-          <div className="news-slider-controls-row">
-            <button className="news-slider-arrow prev" onClick={handlePrevSlide} aria-label="Previous Slide">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-
-            <div className="news-slider-dots">
-              {featuredArticles.map((_, index) => (
-                <button
-                  key={index}
-                  className={`news-slider-dot ${index === activeSlide ? 'active' : ''}`}
-                  onClick={() => setActiveSlide(index)}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
               ))}
             </div>
 
-            <button className="news-slider-arrow next" onClick={handleNextSlide} aria-label="Next Slide">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
+            {featuredArticles.length > 1 && (
+              <div className="news-slider-controls-row">
+                <button className="news-slider-arrow prev" onClick={handlePrevSlide} aria-label="Previous Slide">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                <div className="news-slider-dots">
+                  {featuredArticles.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`news-slider-dot ${index === activeSlide ? 'active' : ''}`}
+                      onClick={() => setActiveSlide(index)}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+                <button className="news-slider-arrow next" onClick={handleNextSlide} aria-label="Next Slide">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* NEWS GRID */}
       <section className="news-grid-section">
@@ -153,30 +157,53 @@ export function News() {
           <div className="news-grid-header-line" />
         </div>
 
-        <div className="news-grid">
-          {gridArticles.map(article => (
-            <article key={article.id} className="news-card">
-              <div className="news-card-img-wrap" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>
-                <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" decoding="async" />
-                <div className="news-card-img-overlay" />
-              </div>
-              <div className="news-card-body">
-                <h3 className="news-card-title" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>{article.title}</h3>
-                <p className="news-card-excerpt">{article.excerpt}</p>
-                <div className="news-card-footer">
-                  <span className="news-card-date">{article.date}</span>
-                  <span className="news-card-read">{article.readTime}</span>
+        {isLoading ? (
+          <div className="news-grid">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="news-card news-card--skeleton">
+                <div className="news-card-img-wrap news-skeleton-img" />
+                <div className="news-card-body">
+                  <div className="news-skeleton-line" style={{ width: '55%', height: '0.75rem' }} />
+                  <div className="news-skeleton-line" style={{ width: '90%', height: '1.1rem', marginTop: '0.5rem' }} />
+                  <div className="news-skeleton-line" style={{ width: '70%', height: '0.8rem', marginTop: '0.4rem' }} />
+                  <div className="news-skeleton-line" style={{ width: '40%', height: '0.75rem', marginTop: '0.75rem' }} />
                 </div>
-                <button className="news-grid-read-btn" onClick={() => window.location.hash = `#blog/${article.id}`}>
-                  Read Full Story
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </button>
               </div>
-            </article>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="news-grid">
+            {allArticles.map(article => (
+              <article key={article.id} className="news-card">
+                <div className="news-card-img-wrap" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>
+                  {article.img ? (
+                    <img src={article.img} alt={article.title} className="news-card-img" loading="lazy" decoding="async" />
+                  ) : (
+                    <div className="news-card-img news-card-img-placeholder" />
+                  )}
+                  <div className="news-card-img-overlay" />
+                </div>
+                <div className="news-card-body">
+                  {article.category && (
+                    <span className="news-card-category">{article.category}</span>
+                  )}
+                  <h3 className="news-card-title" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>{article.title}</h3>
+                  <p className="news-card-excerpt">{article.excerpt}</p>
+                  <div className="news-card-footer">
+                    <span className="news-card-date">{article.date}</span>
+                    <span className="news-card-read">{article.readTime}</span>
+                  </div>
+                  <button className="news-grid-read-btn" onClick={() => window.location.hash = `#blog/${article.id}`}>
+                    Read Full Story
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   )

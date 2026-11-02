@@ -5,6 +5,8 @@ import { FEATURES } from './constants/features'
 import { HomeNewsSection } from './components/home/HomeNewsSection'
 import { articles } from './constants/newsData'
 import type { Article } from './constants/newsData'
+import { prToArticle } from './hooks/useNewsArticles'
+import { buildApiUrl } from './config/api'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { useAppStore } from './store/useAppStore'
 import type { PageName } from './store/useAppStore'
@@ -137,14 +139,33 @@ function App() {
 
       if (hash.startsWith('#blog/')) {
         const blogId = hash.replace('#blog/', '')
-        const article = articles.find(a => a.id === blogId)
-        if (article) {
-          setBlogDetailArticle(article)
+        // 1. Try static articles first
+        const staticArticle = articles.find(a => a.id === blogId)
+        if (staticArticle) {
+          setBlogDetailArticle(staticArticle)
           setCurrentPage('blog-detail')
           handleScrollToTop()
-        } else {
-          setCurrentPage('home')
+          return
         }
+        // 2. Try backend PR article (id format: pr-123)
+        if (blogId.startsWith('pr-')) {
+          const prId = blogId.replace('pr-', '')
+          fetch(buildApiUrl(`/prinfo/${prId}`))
+            .then(r => r.ok ? r.json() : null)
+            .then(json => {
+              if (json) {
+                const pr = json.data || json
+                setBlogDetailArticle(prToArticle(pr))
+                setCurrentPage('blog-detail')
+                handleScrollToTop()
+              } else {
+                setCurrentPage('news')
+              }
+            })
+            .catch(() => setCurrentPage('news'))
+          return
+        }
+        setCurrentPage('home')
         return
       }
 

@@ -5,7 +5,8 @@ import {
   setAdminStatusCountsCache,
   getAdminRole,
   isSuperAdminUser,
-  isPlayerManagementUser
+  isPlayerManagementUser,
+  isPublisherUser
 } from './adminUtils'
 import { AdminStatsSection, type AdminStats } from './AdminStatsSection'
 import { AdminFiltersBar } from './AdminFiltersBar'
@@ -14,6 +15,7 @@ import { UserManagement } from './UserManagement'
 import { TeamSponsorManagement } from './TeamSponsorManagement'
 import { TeamManagement } from './TeamManagement'
 import { FixturesManagement } from './FixturesManagement'
+import { NewsManagement } from './NewsManagement'
 import {
   AlertCircle,
   LogOut,
@@ -63,7 +65,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({
-  adminEmail: _adminEmail,
+  adminEmail,
   adminToken,
   onLogout,
   onViewPlayer,
@@ -72,8 +74,9 @@ export function AdminDashboard({
 }: AdminDashboardProps) {
   // Determine current admin role
   const adminRole = getAdminRole()
-  const isSuperAdmin = isSuperAdminUser(adminRole)
-  const isPlayerManagement = isPlayerManagementUser(adminRole)
+  const isPublisher = isPublisherUser(adminEmail || adminRole)
+  const isSuperAdmin = !isPublisher && isSuperAdminUser(adminRole)
+  const isPlayerManagement = !isPublisher && isPlayerManagementUser(adminRole)
 
   // Secret key to unlock hidden tabs (Fixtures & Team Management)
   // App uses hash routing, so params live after the hash:
@@ -86,27 +89,43 @@ export function AdminDashboard({
   const urlTab = hashQuery.get('tab')
   const hasManagerAccess = urlKey === MANAGER_SECRET_KEY
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'squad' | 'fixtures' | 'users'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'teams' | 'squad' | 'fixtures' | 'users' | 'news'>(() => {
+    if (isPublisher || (!isSuperAdmin && !isPlayerManagement)) return 'news'
     // If URL key is valid, auto-navigate to the requested hidden tab
     if (hasManagerAccess && urlTab === 'fixtures') return 'fixtures'
     if (hasManagerAccess && urlTab === 'squad') return 'squad'
     if (isSuperAdmin || isPlayerManagement) return 'dashboard'
-    return 'teams'
+    return 'news'
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Safety guard: Ensure users are restricted to their allowed tabs
   useEffect(() => {
-    if (isPlayerManagement && activeTab !== 'dashboard') {
-      setActiveTab('dashboard')
-    } else if (!isSuperAdmin && activeTab === 'users') {
-      setActiveTab(isPlayerManagement ? 'dashboard' : 'teams')
-    } else if (!isSuperAdmin && !hasManagerAccess && activeTab === 'squad') {
-      setActiveTab('teams')
-    } else if (!isSuperAdmin && !hasManagerAccess && activeTab === 'fixtures') {
-      setActiveTab('teams')
+    if (isPublisher || (!isSuperAdmin && !isPlayerManagement)) {
+      if (activeTab !== 'news') {
+        setActiveTab('news')
+      }
+      return
     }
-  }, [isSuperAdmin, isPlayerManagement, hasManagerAccess, activeTab])
+    // Player Management users can only access the player registrations dashboard
+    if (isPlayerManagement && !isSuperAdmin) {
+      if (activeTab !== 'dashboard') {
+        setActiveTab('dashboard')
+      }
+      return
+    }
+    if (!isSuperAdmin && activeTab === 'users') {
+      setActiveTab('dashboard')
+    } else if (!isSuperAdmin && !hasManagerAccess && activeTab === 'squad') {
+      setActiveTab('dashboard')
+    } else if (!isSuperAdmin && !hasManagerAccess && activeTab === 'fixtures') {
+      setActiveTab('dashboard')
+    } else if (!isSuperAdmin && activeTab === 'teams') {
+      setActiveTab('dashboard')
+    } else if (!isSuperAdmin && activeTab === 'news') {
+      setActiveTab('dashboard')
+    }
+  }, [isPublisher, isSuperAdmin, isPlayerManagement, hasManagerAccess, activeTab])
 
   // Data & Loading states
   const [registrations, setRegistrations] = useState<Registration[]>([])
@@ -152,6 +171,10 @@ export function AdminDashboard({
   }, [search])
 
   const fetchRegistrations = useCallback(async () => {
+    if (isPublisher || (!isSuperAdmin && !isPlayerManagement)) {
+      setIsLoading(false)
+      return
+    }
     setIsLoading(true)
     setError(null)
 
@@ -215,6 +238,7 @@ export function AdminDashboard({
 
   // Fetch status counts from dedicated endpoint
   const fetchStatusCounts = useCallback(async () => {
+    if (isPublisher || (!isSuperAdmin && !isPlayerManagement)) return
     try {
       const res = await authFetch(buildApiUrl('/admin/players/status-counts'))
       if (!res.ok) return
@@ -251,6 +275,7 @@ export function AdminDashboard({
 
   // Fetch ALL players once on mount for charts/stats/dossier navigation (separate from paginated table fetch)
   const fetchAllPlayersForStats = useCallback(async () => {
+    if (isPublisher || (!isSuperAdmin && !isPlayerManagement)) return
     try {
       const res = await authFetch(buildApiUrl('/admin/players/search'), {
         method: 'POST',
@@ -746,51 +771,72 @@ export function AdminDashboard({
 
           {/* Top Navigation Tabs */}
           <div className="apl-admin-nav-tabs desktop-only-nav">
-            {(isSuperAdmin || isPlayerManagement) && (
+            {isPublisher || (!isSuperAdmin && !isPlayerManagement) ? (
               <button
                 type="button"
-                className={`apl-admin-nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
+                className={`apl-admin-nav-tab ${activeTab === 'news' ? 'active' : ''}`}
+                onClick={() => setActiveTab('news')}
               >
-                Player Registrations
+                News &amp; Blogs
               </button>
-            )}
-            {!isPlayerManagement && (
-              <button
-                type="button"
-                className={`apl-admin-nav-tab ${activeTab === 'teams' ? 'active' : ''}`}
-                onClick={() => setActiveTab('teams')}
-              >
-                Teams &amp; Sponsors
-              </button>
-            )}
-            {/* Team Management & Fixtures are hidden from nav — accessible via URL key only */}
-            {hasManagerAccess && !isPlayerManagement && (
-              <button
-                type="button"
-                className={`apl-admin-nav-tab ${activeTab === 'squad' ? 'active' : ''}`}
-                onClick={() => setActiveTab('squad')}
-              >
-                Team Management
-              </button>
-            )}
-            {hasManagerAccess && !isPlayerManagement && (
-              <button
-                type="button"
-                className={`apl-admin-nav-tab ${activeTab === 'fixtures' ? 'active' : ''}`}
-                onClick={() => setActiveTab('fixtures')}
-              >
-                Fixtures
-              </button>
-            )}
-            {isSuperAdmin && (
-              <button
-                type="button"
-                className={`apl-admin-nav-tab ${activeTab === 'users' ? 'active' : ''}`}
-                onClick={() => setActiveTab('users')}
-              >
-                User Management
-              </button>
+            ) : (
+              <>
+                {(isSuperAdmin || isPlayerManagement) && (
+                  <button
+                    type="button"
+                    className={`apl-admin-nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('dashboard')}
+                  >
+                    Player Registrations
+                  </button>
+                )}
+                {isSuperAdmin && (
+                  <button
+                    type="button"
+                    className={`apl-admin-nav-tab ${activeTab === 'teams' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('teams')}
+                  >
+                    Teams &amp; Sponsors
+                  </button>
+                )}
+                {isSuperAdmin && (
+                  <button
+                    type="button"
+                    className={`apl-admin-nav-tab ${activeTab === 'news' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('news')}
+                  >
+                    News &amp; Blogs
+                  </button>
+                )}
+                {/* Team Management & Fixtures are hidden from nav — accessible via URL key only */}
+                {hasManagerAccess && (
+                  <button
+                    type="button"
+                    className={`apl-admin-nav-tab ${activeTab === 'squad' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('squad')}
+                  >
+                    Team Management
+                  </button>
+                )}
+                {hasManagerAccess && (
+                  <button
+                    type="button"
+                    className={`apl-admin-nav-tab ${activeTab === 'fixtures' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('fixtures')}
+                  >
+                    Fixtures
+                  </button>
+                )}
+                {isSuperAdmin && (
+                  <button
+                    type="button"
+                    className={`apl-admin-nav-tab ${activeTab === 'users' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('users')}
+                  >
+                    User Management
+                  </button>
+                )}
+              </>
             )}
           </div>
 
@@ -835,76 +881,107 @@ export function AdminDashboard({
         </div>
 
         <ul className="mobile-nav-list">
-          {(isSuperAdmin || isPlayerManagement) && (
+          {isPublisher || (!isSuperAdmin && !isPlayerManagement) ? (
             <li className="mobile-nav-item">
               <button
                 type="button"
-                className={`mobile-nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
+                className={`mobile-nav-link ${activeTab === 'news' ? 'active' : ''}`}
                 onClick={() => {
-                  setActiveTab('dashboard')
+                  setActiveTab('news')
                   setMobileMenuOpen(false)
                 }}
               >
-                Player Registrations
+                News &amp; Blogs
               </button>
             </li>
-          )}
-          {!isPlayerManagement && (
-            <li className="mobile-nav-item">
-              <button
-                type="button"
-                className={`mobile-nav-link ${activeTab === 'teams' ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTab('teams')
-                  setMobileMenuOpen(false)
-                }}
-              >
-                Teams &amp; Sponsors
-              </button>
-            </li>
-          )}
-          {/* Team Management & Fixtures are hidden from nav — accessible via URL key only */}
-          {hasManagerAccess && !isPlayerManagement && (
-            <li className="mobile-nav-item">
-              <button
-                type="button"
-                className={`mobile-nav-link ${activeTab === 'squad' ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTab('squad')
-                  setMobileMenuOpen(false)
-                }}
-              >
-                Team Management
-              </button>
-            </li>
-          )}
-          {hasManagerAccess && !isPlayerManagement && (
-            <li className="mobile-nav-item">
-              <button
-                type="button"
-                className={`mobile-nav-link ${activeTab === 'fixtures' ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTab('fixtures')
-                  setMobileMenuOpen(false)
-                }}
-              >
-                Fixtures
-              </button>
-            </li>
-          )}
-          {isSuperAdmin && (
-            <li className="mobile-nav-item">
-              <button
-                type="button"
-                className={`mobile-nav-link ${activeTab === 'users' ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveTab('users')
-                  setMobileMenuOpen(false)
-                }}
-              >
-                User Management
-              </button>
-            </li>
+          ) : (
+            <>
+              {(isSuperAdmin || isPlayerManagement) && (
+                <li className="mobile-nav-item">
+                  <button
+                    type="button"
+                    className={`mobile-nav-link ${activeTab === 'dashboard' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveTab('dashboard')
+                      setMobileMenuOpen(false)
+                    }}
+                  >
+                    Player Registrations
+                  </button>
+                </li>
+              )}
+              {isSuperAdmin && (
+                <li className="mobile-nav-item">
+                  <button
+                    type="button"
+                    className={`mobile-nav-link ${activeTab === 'teams' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveTab('teams')
+                      setMobileMenuOpen(false)
+                    }}
+                  >
+                    Teams &amp; Sponsors
+                  </button>
+                </li>
+              )}
+              {isSuperAdmin && (
+                <li className="mobile-nav-item">
+                  <button
+                    type="button"
+                    className={`mobile-nav-link ${activeTab === 'news' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveTab('news')
+                      setMobileMenuOpen(false)
+                    }}
+                  >
+                    News &amp; Blogs
+                  </button>
+                </li>
+              )}
+              {/* Team Management & Fixtures are hidden from nav — accessible via URL key only */}
+              {hasManagerAccess && (
+                <li className="mobile-nav-item">
+                  <button
+                    type="button"
+                    className={`mobile-nav-link ${activeTab === 'squad' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveTab('squad')
+                      setMobileMenuOpen(false)
+                    }}
+                  >
+                    Team Management
+                  </button>
+                </li>
+              )}
+              {hasManagerAccess && (
+                <li className="mobile-nav-item">
+                  <button
+                    type="button"
+                    className={`mobile-nav-link ${activeTab === 'fixtures' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveTab('fixtures')
+                      setMobileMenuOpen(false)
+                    }}
+                  >
+                    Fixtures
+                  </button>
+                </li>
+              )}
+              {isSuperAdmin && (
+                <li className="mobile-nav-item">
+                  <button
+                    type="button"
+                    className={`mobile-nav-link ${activeTab === 'users' ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveTab('users')
+                      setMobileMenuOpen(false)
+                    }}
+                  >
+                    User Management
+                  </button>
+                </li>
+              )}
+            </>
           )}
           <li className="mobile-nav-item">
             <button
@@ -923,7 +1000,9 @@ export function AdminDashboard({
 
       {/* ── MAIN DASHBOARD CONTAINER ── */}
       <main className="apl-admin-main-container">
-        {activeTab === 'users' && isSuperAdmin ? (
+        {isPublisher || (!isSuperAdmin && !isPlayerManagement) || (activeTab === 'news' && isSuperAdmin) ? (
+          <NewsManagement onLogout={onLogout} />
+        ) : activeTab === 'users' && isSuperAdmin ? (
           <UserManagement onLogout={onLogout} />
         ) : activeTab === 'dashboard' && (isSuperAdmin || isPlayerManagement) ? (
           <>
@@ -991,18 +1070,20 @@ export function AdminDashboard({
               setItemsPerPage={(num) => { setItemsPerPage(num); setCurrentPage(1) }}
             />
           </>
-        ) : activeTab === 'squad' ? (
+        ) : activeTab === 'squad' && (isSuperAdmin || hasManagerAccess) ? (
           <TeamManagement
             onLogout={onLogout}
             onViewPlayer={(player) =>
               onViewPlayer(player as unknown as Registration, [], true)
             }
           />
-        ) : activeTab === 'fixtures' ? (
+        ) : activeTab === 'fixtures' && (isSuperAdmin || hasManagerAccess) ? (
           <FixturesManagement onLogout={onLogout} />
-        ) : (
+        ) : isSuperAdmin ? (
           <TeamSponsorManagement onLogout={onLogout} />
-        )}
+        ) : isPublisher ? (
+          <NewsManagement onLogout={onLogout} />
+        ) : null}
       </main>
     </div>
   )

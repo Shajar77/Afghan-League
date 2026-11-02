@@ -1,4 +1,5 @@
 import type { Article } from '../../constants/newsData'
+import { normalizeMediaUrl } from '../../config/api'
 import './BlogDetailPage.css'
 
 interface BlogDetailPageProps {
@@ -97,10 +98,14 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
         </div>
 
         {/* 1. Image on Top */}
-        <div className="blog-detail-img-wrap">
-          <img src={article.img} alt={article.title} className="blog-detail-img" />
-          <div className="blog-detail-img-overlay" />
-        </div>
+        {article.img ? (
+          <div className="blog-detail-img-wrap">
+            <img src={normalizeMediaUrl(article.img) || article.img} alt={article.title} className="blog-detail-img" />
+            <div className="blog-detail-img-overlay" />
+          </div>
+        ) : (
+          <div className="blog-detail-img-wrap blog-detail-img-placeholder" />
+        )}
 
         {/* 2. Text Below */}
         <div className="blog-detail-content-wrap">
@@ -119,12 +124,25 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
           <h1 className="blog-detail-title">{article.title}</h1>
           <div className="blog-detail-divider" />
 
-          {/* Paragraphs, Subheadings, Bullet Lists, and Quotes */}
+          {/* Content body */}
           <div className="blog-detail-body">
-            {article.fullText ? (
-              article.fullText.map((item, idx) => {
-                const text = item.trim()
-                if (!text) return null
+            {article.fullText && article.fullText.length > 0 ? (
+              (() => {
+                // Detect HTML (e.g. from TipTap rich text editor)
+                const fullContent = article.fullText.join('\n')
+                const isHtml = /<[a-z][\s\S]*>/i.test(fullContent)
+                if (isHtml) {
+                  return (
+                    <div
+                      className="blog-detail-html-body"
+                      dangerouslySetInnerHTML={{ __html: fullContent }}
+                    />
+                  )
+                }
+                // Legacy plain-text map for static articles
+                return article.fullText.map((item, idx) => {
+                  const text = item.trim()
+                  if (!text) return null
 
                 // 1. ENDS Badge
                 const cleanEnds = text.replace(/[\s–—-]+/g, '').toUpperCase()
@@ -280,6 +298,7 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
                   </p>
                 )
               })
+              })()
             ) : (
               <p className="blog-detail-paragraph">{article.excerpt}</p>
             )}

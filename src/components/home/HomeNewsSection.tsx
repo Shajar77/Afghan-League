@@ -47,9 +47,6 @@ export function HomeNewsSection() {
               </div>
 
               <div className="news-card-body">
-                {article.category && (
-                  <span className="news-card-category">{article.category}</span>
-                )}
                 <h3
                   className="news-card-title"
                   style={{ cursor: 'pointer' }}

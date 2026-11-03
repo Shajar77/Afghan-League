@@ -98,7 +98,6 @@ export function News() {
                     <div className="news-featured-img-overlay" />
                   </div>
                   <div className="news-featured-content">
-                    <span className="news-category-tag">{article.category}</span>
                     <h2 className="news-featured-title" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>{article.title}</h2>
                     <p className="news-featured-excerpt">{article.excerpt}</p>
                     <div className="news-featured-meta">
@@ -184,9 +183,6 @@ export function News() {
                   <div className="news-card-img-overlay" />
                 </div>
                 <div className="news-card-body">
-                  {article.category && (
-                    <span className="news-card-category">{article.category}</span>
-                  )}
                   <h3 className="news-card-title" style={{ cursor: 'pointer' }} onClick={() => window.location.hash = `#blog/${article.id}`}>{article.title}</h3>
                   <p className="news-card-excerpt">{article.excerpt}</p>
                   <div className="news-card-footer">

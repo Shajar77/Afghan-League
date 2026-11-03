@@ -113,18 +113,64 @@
 /* ── Editor Content Area ── */
 .rte-editor-area {
   flex: 1;
+  position: relative;
 }
 
-.rte-content {
+.rte-content,
+.ProseMirror {
   padding: 1rem 1.1rem;
   min-height: 260px;
-  max-height: 520px;
-  overflow-y: auto;
+  max-height: 420px !important;
+  overflow-y: scroll !important;
+  scrollbar-gutter: stable;
   outline: none;
   font-size: 0.92rem;
   color: #0f172a;
   line-height: 1.75;
   font-family: inherit;
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #021B79 #e2e8f0;
+}
+
+/* Force WebKit (Chrome, Safari, Edge) to never hide or fade the scrollbar on macOS */
+.rte-content::-webkit-scrollbar,
+.ProseMirror::-webkit-scrollbar {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  display: block !important;
+  background: #f1f5f9 !important;
+}
+
+.rte-content::-webkit-scrollbar-track,
+.ProseMirror::-webkit-scrollbar-track {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background: #f1f5f9 !important;
+  border-left: 1.5px solid #cbd5e1 !important;
+}
+
+.rte-content::-webkit-scrollbar-thumb,
+.ProseMirror::-webkit-scrollbar-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-color: #021B79 !important;
+  border-radius: 6px !important;
+  border: 2px solid #f1f5f9 !important;
+  min-height: 45px !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+.rte-content::-webkit-scrollbar-thumb:hover,
+.ProseMirror::-webkit-scrollbar-thumb:hover {
+  background-color: #0575E6 !important;
+}
+
+.rte-content::-webkit-scrollbar-corner,
+.ProseMirror::-webkit-scrollbar-corner {
+  background: #f1f5f9 !important;
 }
 
 /* Placeholder */

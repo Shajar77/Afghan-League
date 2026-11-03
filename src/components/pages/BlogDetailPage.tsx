@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Article } from '../../constants/newsData'
 import { normalizeMediaUrl } from '../../config/api'
 import './BlogDetailPage.css'
@@ -68,6 +69,8 @@ function renderInlineContent(rawText: string) {
 }
 
 export function BlogDetailPage({ article }: BlogDetailPageProps) {
+  const [imgError, setImgError] = useState(false)
+
   const handleBackClick = (e: React.MouseEvent) => {
     e.preventDefault()
     // Go back in history if possible, else default to #news
@@ -77,6 +80,9 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
       window.location.hash = '#news'
     }
   }
+
+  // Determine valid image source
+  const imageSource = article.img ? (normalizeMediaUrl(article.img) || article.img) : ''
 
   return (
     <div className="blog-detail-page">
@@ -98,9 +104,14 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
         </div>
 
         {/* 1. Image on Top */}
-        {article.img ? (
+        {imageSource && !imgError ? (
           <div className="blog-detail-img-wrap">
-            <img src={normalizeMediaUrl(article.img) || article.img} alt={article.title} className="blog-detail-img" />
+            <img
+              src={imageSource}
+              alt={article.title}
+              className="blog-detail-img"
+              onError={() => setImgError(true)}
+            />
             <div className="blog-detail-img-overlay" />
           </div>
         ) : (

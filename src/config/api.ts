@@ -173,7 +173,13 @@ export const normalizeMediaUrl = (path?: string | null): string => {
     trimmed.startsWith('http://') ||
     trimmed.startsWith('https://') ||
     trimmed.startsWith('data:image/') ||
-    trimmed.startsWith('blob:')
+    trimmed.startsWith('blob:') ||
+    trimmed.startsWith('/assets/') ||
+    trimmed.startsWith('assets/') ||
+    trimmed.startsWith('/@fs/') ||
+    trimmed.startsWith('/src/') ||
+    trimmed.startsWith('./') ||
+    trimmed.startsWith('../')
   ) {
     return trimmed
   }

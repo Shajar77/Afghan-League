@@ -86,7 +86,10 @@ export function RichTextEditor({ value, onChange, placeholder, hasError }: RichT
       onChange(html === '<p></p>' ? '' : html)
     },
     editorProps: {
-      attributes: { class: 'rte-content' },
+      attributes: {
+        class: 'rte-content',
+        style: 'max-height: 420px; overflow-y: scroll;',
+      },
     },
   })
 

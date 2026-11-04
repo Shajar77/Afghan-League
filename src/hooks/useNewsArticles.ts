@@ -76,9 +76,17 @@ async function fetchPRArticles(): Promise<Article[]> {
       ? json
       : (json.data?.records || json.data || json.records || json.prinfo || [])
     list.sort((a, b) => {
-      const da = new Date(a.prdate || a.created_at || '').getTime()
-      const db = new Date(b.prdate || b.created_at || '').getTime()
-      return db - da
+      const da = new Date(a.prdate || '').getTime() || 0
+      const db = new Date(b.prdate || '').getTime() || 0
+      if (db !== da) return db - da
+
+      const ca = new Date(a.created_at || (a as any).createdAt || '').getTime() || 0
+      const cb = new Date(b.created_at || (b as any).createdAt || '').getTime() || 0
+      if (cb !== ca) return cb - ca
+
+      const idA = Number(a.id) || 0
+      const idB = Number(b.id) || 0
+      return idB - idA
     })
     return list.map(prToArticle)
   } catch {

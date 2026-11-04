@@ -476,6 +476,118 @@
   color: #F8C800;
 }
 
+/* ── Tables inside blog HTML body (mobile-first) ── */
+.blog-detail-html-body .tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 1.5rem 0 2rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(2, 27, 121, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.blog-detail-html-body table {
+  width: 100%;
+  min-width: 460px;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(2, 27, 121, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  margin: 1.5rem 0 2rem;
+}
+
+@media (min-width: 768px) {
+  .blog-detail-html-body table {
+    min-width: 580px;
+    font-size: 0.95rem;
+  }
+}
+
+.blog-detail-html-body th {
+  background: rgba(248, 200, 0, 0.18) !important;
+  color: var(--brand-gold, #F8C800) !important;
+  font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid rgba(248, 200, 0, 0.35);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+.blog-detail-html-body th:last-child {
+  border-right: none;
+}
+.blog-detail-html-body th,
+.blog-detail-html-body th * {
+  color: var(--brand-gold, #F8C800) !important;
+}
+
+.blog-detail-html-body td {
+  padding: 0.85rem 1rem;
+  color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+  background-color: transparent !important;
+}
+.blog-detail-html-body td:last-child {
+  border-right: none;
+}
+
+/* Force all text inside table cells to readable bright white */
+.blog-detail-html-body td,
+.blog-detail-html-body td *,
+.blog-detail-html-body td p,
+.blog-detail-html-body td span,
+.blog-detail-html-body td div {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.blog-detail-html-body tr:last-child td {
+  border-bottom: none;
+}
+
+.blog-detail-html-body tr:hover td {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.blog-detail-html-body td strong,
+.blog-detail-html-body td b {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* Neutralize black/dark text and white backgrounds pasted from Word/Excel/Docs */
+.blog-detail-html-body [style*="color: rgb(0, 0, 0)"],
+.blog-detail-html-body [style*="color:rgb(0,0,0)"],
+.blog-detail-html-body [style*="color: #000000"],
+.blog-detail-html-body [style*="color:#000000"],
+.blog-detail-html-body [style*="color: #000"],
+.blog-detail-html-body [style*="color:#000"],
+.blog-detail-html-body [style*="color: black"],
+.blog-detail-html-body [style*="color:black"],
+.blog-detail-html-body [style*="color: windowtext"],
+.blog-detail-html-body [style*="color:windowtext"] {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.blog-detail-html-body [style*="background-color: rgb(255, 255, 255)"],
+.blog-detail-html-body [style*="background-color:rgb(255,255,255)"],
+.blog-detail-html-body [style*="background-color: #ffffff"],
+.blog-detail-html-body [style*="background-color:#ffffff"],
+.blog-detail-html-body [style*="background-color: #fff"],
+.blog-detail-html-body [style*="background-color:#fff"],
+.blog-detail-html-body [style*="background-color: white"],
+.blog-detail-html-body [style*="background-color:white"] {
+  background-color: transparent !important;
+}
+
 /* ── Placeholder for articles without a cover image ── */
 .blog-detail-img-placeholder {
   width: 100%;

@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react'
+import { Extension } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
@@ -6,8 +7,90 @@ import TextAlign from '@tiptap/extension-text-align'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Table, TableRow, TableHeader, TableCell } from '@tiptap/extension-table'
 import { useEffect, useCallback, useState, useRef } from 'react'
 import './RichTextEditor.css'
+
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    fontSize: {
+      setFontSize: (fontSize: string) => ReturnType
+      unsetFontSize: () => ReturnType
+    }
+  }
+}
+
+// ── Custom Font Size Extension ─────────────────────────────────
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    }
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) return {}
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              }
+            },
+          },
+        },
+      },
+    ]
+  },
+  addCommands() {
+    return {
+      setFontSize:
+        (fontSize: string) =>
+        ({ chain, state }) => {
+          const { selection } = state
+          if (selection.empty) {
+            const { $from } = selection
+            const start = $from.start()
+            const end = $from.end()
+            if (end > start) {
+              return chain()
+                .setTextSelection({ from: start, to: end })
+                .setMark('textStyle', { fontSize })
+                .setTextSelection(selection.from)
+                .focus()
+                .run()
+            }
+          }
+          return chain().setMark('textStyle', { fontSize }).focus().run()
+        },
+      unsetFontSize:
+        () =>
+        ({ chain, state }) => {
+          const { selection } = state
+          if (selection.empty) {
+            const { $from } = selection
+            const start = $from.start()
+            const end = $from.end()
+            if (end > start) {
+              return chain()
+                .setTextSelection({ from: start, to: end })
+                .setMark('textStyle', { fontSize: null })
+                .removeEmptyTextStyle()
+                .setTextSelection(selection.from)
+                .focus()
+                .run()
+            }
+          }
+          return chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().focus().run()
+        },
+    }
+  },
+})
 
 interface RichTextEditorProps {
   value: string
@@ -61,7 +144,10 @@ function Divider() {
 // ── Main Editor ────────────────────────────────────────────────
 export function RichTextEditor({ value, onChange, placeholder, hasError }: RichTextEditorProps) {
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showTableMenu, setShowTableMenu] = useState(false)
   const colorPickerRef = useRef<HTMLDivElement>(null)
+  const tableMenuRef = useRef<HTMLDivElement>(null)
+  const lastSelectionRef = useRef<{ from: number; to: number } | null>(null)
 
   const editor = useEditor({
     extensions: [
@@ -77,7 +163,17 @@ export function RichTextEditor({ value, onChange, placeholder, hasError }: RichT
       }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       TextStyle,
+      FontSize,
       Color,
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'rte-table',
+        },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       Placeholder.configure({ placeholder: placeholder || 'Write the full article content here...' }),
     ],
     content: value || '',
@@ -85,10 +181,24 @@ export function RichTextEditor({ value, onChange, placeholder, hasError }: RichT
       const html = editor.getHTML()
       onChange(html === '<p></p>' ? '' : html)
     },
+    onSelectionUpdate({ editor }) {
+      if (!editor.state.selection.empty) {
+        lastSelectionRef.current = {
+          from: editor.state.selection.from,
+          to: editor.state.selection.to,
+        }
+      }
+    },
     editorProps: {
       attributes: {
         class: 'rte-content',
         style: 'max-height: 420px; overflow-y: scroll;',
+      },
+      transformPastedHTML(html) {
+        // Strip default black/dark text colors and white backgrounds pasted from Office/Docs/web
+        return html
+          .replace(/color:\s*(?:#000(?:000)?|rgb\(0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0,\s*1\)|black|windowtext)\s*;?/gi, '')
+          .replace(/background-color:\s*(?:#fff(?:fff)?|rgb\(255,\s*255,\s*255\)|white)\s*;?/gi, '')
       },
     },
   })
@@ -113,6 +223,18 @@ export function RichTextEditor({ value, onChange, placeholder, hasError }: RichT
     document.addEventListener('mousedown', handleOutsideClick)
     return () => document.removeEventListener('mousedown', handleOutsideClick)
   }, [showColorPicker])
+
+  // Close table menu on outside click
+  useEffect(() => {
+    if (!showTableMenu) return
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (tableMenuRef.current && !tableMenuRef.current.contains(e.target as Node)) {
+        setShowTableMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [showTableMenu])
 
   const setLink = useCallback(() => {
     if (!editor) return
@@ -149,16 +271,78 @@ export function RichTextEditor({ value, onChange, placeholder, hasError }: RichT
               editor.isActive('heading', { level: 2 }) ? 'h2' :
               editor.isActive('heading', { level: 3 }) ? 'h3' : 'p'
             }
+            onFocus={() => {
+              if (!editor.state.selection.empty) {
+                lastSelectionRef.current = {
+                  from: editor.state.selection.from,
+                  to: editor.state.selection.to,
+                }
+              }
+            }}
             onChange={e => {
               const val = e.target.value
+              const lastSel = lastSelectionRef.current
+              const docSize = editor.state.doc.content.size
+
+              if (lastSel && lastSel.from <= docSize && lastSel.to <= docSize && lastSel.to > lastSel.from) {
+                editor.chain().setTextSelection(lastSel).run()
+              }
+
               if (val === 'p') editor.chain().focus().setParagraph().run()
               else editor.chain().focus().toggleHeading({ level: parseInt(val[1]) as 1|2|3 }).run()
+
+              lastSelectionRef.current = null
             }}
           >
             <option value="p">Paragraph</option>
             <option value="h1">Heading 1</option>
             <option value="h2">Heading 2</option>
             <option value="h3">Heading 3</option>
+          </select>
+        </div>
+
+        {/* Font size */}
+        <div className="rte-toolbar-group">
+          <select
+            className="rte-heading-select rte-fontsize-select"
+            value={(editor.getAttributes('textStyle').fontSize as string) || ''}
+            onFocus={() => {
+              if (!editor.state.selection.empty) {
+                lastSelectionRef.current = {
+                  from: editor.state.selection.from,
+                  to: editor.state.selection.to,
+                }
+              }
+            }}
+            onChange={e => {
+              const val = e.target.value
+              const lastSel = lastSelectionRef.current
+              const docSize = editor.state.doc.content.size
+
+              if (lastSel && lastSel.from <= docSize && lastSel.to <= docSize && lastSel.to > lastSel.from) {
+                editor.chain().setTextSelection(lastSel).run()
+              }
+
+              if (!val) {
+                editor.commands.unsetFontSize()
+              } else {
+                editor.commands.setFontSize(val)
+              }
+
+              lastSelectionRef.current = null
+            }}
+            title="Font Size"
+          >
+            <option value="">Size (Default)</option>
+            <option value="12px">12px</option>
+            <option value="14px">14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="20px">20px</option>
+            <option value="24px">24px</option>
+            <option value="28px">28px</option>
+            <option value="32px">32px</option>
+            <option value="40px">40px</option>
           </select>
         </div>
 
@@ -312,6 +496,115 @@ export function RichTextEditor({ value, onChange, placeholder, hasError }: RichT
                 <line x1="16" y1="19" x2="16" y2="22"/><line x1="19" y1="16" x2="22" y2="16"/>
               </svg>
             </ToolbarBtn>
+          )}
+        </div>
+
+        <Divider />
+
+        {/* Table Menu */}
+        <div className="rte-toolbar-group rte-table-menu-wrapper" ref={tableMenuRef}>
+          <ToolbarBtn
+            onClick={() => setShowTableMenu(v => !v)}
+            active={editor.isActive('table') || showTableMenu}
+            title="Table Options"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M3 15h18"/>
+              <path d="M9 3v18"/>
+              <path d="M15 3v18"/>
+            </svg>
+          </ToolbarBtn>
+
+          {showTableMenu && (
+            <div className="rte-table-popover" onMouseDown={e => e.stopPropagation()}>
+              <div className="rte-table-popover-title">Table Tools</div>
+              <button
+                type="button"
+                className="rte-table-action-btn"
+                onClick={() => {
+                  editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+                  setShowTableMenu(false)
+                }}
+              >
+                Insert 3×3 Table
+              </button>
+
+              {editor.isActive('table') && (
+                <>
+                  <div className="rte-table-popover-divider" />
+                  <div className="rte-table-popover-subtitle">Columns</div>
+                  <div className="rte-table-btn-row">
+                    <button
+                      type="button"
+                      className="rte-table-action-btn"
+                      onClick={() => editor.chain().focus().addColumnBefore().run()}
+                    >
+                      + Left
+                    </button>
+                    <button
+                      type="button"
+                      className="rte-table-action-btn"
+                      onClick={() => editor.chain().focus().addColumnAfter().run()}
+                    >
+                      + Right
+                    </button>
+                    <button
+                      type="button"
+                      className="rte-table-action-btn rte-table-action-danger"
+                      onClick={() => editor.chain().focus().deleteColumn().run()}
+                    >
+                      Del Col
+                    </button>
+                  </div>
+
+                  <div className="rte-table-popover-subtitle">Rows</div>
+                  <div className="rte-table-btn-row">
+                    <button
+                      type="button"
+                      className="rte-table-action-btn"
+                      onClick={() => editor.chain().focus().addRowBefore().run()}
+                    >
+                      + Above
+                    </button>
+                    <button
+                      type="button"
+                      className="rte-table-action-btn"
+                      onClick={() => editor.chain().focus().addRowAfter().run()}
+                    >
+                      + Below
+                    </button>
+                    <button
+                      type="button"
+                      className="rte-table-action-btn rte-table-action-danger"
+                      onClick={() => editor.chain().focus().deleteRow().run()}
+                    >
+                      Del Row
+                    </button>
+                  </div>
+
+                  <div className="rte-table-popover-divider" />
+                  <button
+                    type="button"
+                    className="rte-table-action-btn"
+                    onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+                  >
+                    Toggle Header Row
+                  </button>
+                  <button
+                    type="button"
+                    className="rte-table-action-btn rte-table-action-danger"
+                    onClick={() => {
+                      editor.chain().focus().deleteTable().run()
+                      setShowTableMenu(false)
+                    }}
+                  >
+                    🗑️ Delete Table
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
 

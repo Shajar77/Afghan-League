@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import './NewsManagement.css'
 import { RichTextEditor } from './RichTextEditor'
-import { stripHtml } from '../../hooks/useNewsArticles'
+import { stripHtml, invalidateNewsCache } from '../../hooks/useNewsArticles'
 
 interface PRRecord {
   id: number | string
@@ -146,9 +146,17 @@ export function NewsManagement({ onLogout }: NewsManagementProps) {
         ? json
         : (json.data?.records || json.data || json.records || json.prinfo || [])
       list.sort((a, b) => {
-        const da = new Date(a.prdate || a.created_at || '').getTime()
-        const db = new Date(b.prdate || b.created_at || '').getTime()
-        return db - da
+        const da = new Date(a.prdate || '').getTime() || 0
+        const db = new Date(b.prdate || '').getTime() || 0
+        if (db !== da) return db - da
+
+        const ca = new Date(a.created_at || (a as any).createdAt || '').getTime() || 0
+        const cb = new Date(b.created_at || (b as any).createdAt || '').getTime() || 0
+        if (cb !== ca) return cb - ca
+
+        const idA = Number(a.id) || 0
+        const idB = Number(b.id) || 0
+        return idB - idA
       })
       setArticles(list)
     } catch {
@@ -230,6 +238,7 @@ export function NewsManagement({ onLogout }: NewsManagementProps) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.message || err.error?.message || 'Save failed.')
       }
+      invalidateNewsCache()
       showToast(isEdit ? 'Article updated!' : 'Article published!', 'success')
       setView('list')
       setEditingArticle(null)
@@ -249,6 +258,7 @@ export function NewsManagement({ onLogout }: NewsManagementProps) {
       const res = await authFetch(buildApiUrl(`/prinfo/${id}`), { method: 'DELETE' })
       if (res.status === 401 && onLogout) { onLogout(); return }
       if (!res.ok) throw new Error('Delete failed.')
+      invalidateNewsCache()
       setArticles(prev => prev.filter(a => a.id !== id))
       showToast('Article deleted.', 'success')
     } catch {

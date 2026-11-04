@@ -38,8 +38,40 @@ interface AppState {
   setSide3Muted: (muted: boolean) => void
 }
 
+export const HASH_PAGE_MAP: Record<string, PageName> = {
+  '#about': 'about',
+  '#news': 'news',
+  '#teams': 'teams',
+  '#gallery': 'gallery',
+  '#fixtures': 'fixtures',
+  '#points-table': 'points-table',
+  '#partnerships': 'partnerships',
+  '#contact-us': 'contact',
+  '#contact': 'contact',
+  '#register-player': 'register-player',
+  '#register': 'register-player',
+  '#register-status': 'register-status',
+  '#status': 'register-status',
+  '#player-video': 'player-video',
+  '#video-upload': 'player-video',
+  '#introduction-video': 'player-video',
+  '#video': 'player-video',
+  '#admin': 'admin-login',
+  '#admin-login': 'admin-login',
+  '#admin-dashboard': 'admin-dashboard',
+  '#privacy-policy': 'privacy-policy',
+}
+
+export function getInitialPage(): PageName {
+  if (typeof window === 'undefined') return 'home'
+  const rawHash = window.location.hash
+  const hash = rawHash ? rawHash.split('?')[0].split('&')[0] : ''
+  if (hash.startsWith('#blog/')) return 'blog-detail'
+  return HASH_PAGE_MAP[hash] || 'home'
+}
+
 export const useAppStore = create<AppState>((set) => ({
-  currentPage: 'home',
+  currentPage: getInitialPage(),
   mobileMenuOpen: false,
   launchMuted: true,
   side1Muted: true,

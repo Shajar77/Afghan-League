@@ -8,8 +8,7 @@ import type { Article } from './constants/newsData'
 import { prToArticle } from './hooks/useNewsArticles'
 import { buildApiUrl } from './config/api'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
-import { useAppStore } from './store/useAppStore'
-import type { PageName } from './store/useAppStore'
+import { useAppStore, HASH_PAGE_MAP } from './store/useAppStore'
 import Lenis from 'lenis'
 import { scrollToTop } from './utils/lenis'
 
@@ -43,30 +42,6 @@ const PlayerVideoPage = lazy(() => import('./components/pages/PlayerVideoPage').
 const AdminPortal = lazy(() => import('./components/admin/AdminPortal').then(m => ({ default: m.AdminPortal })))
 const PrivacyPolicyPage = lazy(() => import('./components/pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })))
 
-const HASH_PAGE_MAP: Record<string, PageName> = {
-  '#about': 'about',
-  '#news': 'news',
-  '#teams': 'teams',
-  '#gallery': 'gallery',
-  '#fixtures': 'fixtures',
-  '#points-table': 'points-table',
-  '#partnerships': 'partnerships',
-  '#contact-us': 'contact',
-  '#contact': 'contact',
-  '#register-player': 'register-player',
-  '#register': 'register-player',
-  '#register-status': 'register-status',
-  '#status': 'register-status',
-  '#player-video': 'player-video',
-  '#video-upload': 'player-video',
-  '#introduction-video': 'player-video',
-  '#video': 'player-video',
-  '#admin': 'admin-login',
-  '#admin-login': 'admin-login',
-  '#admin-dashboard': 'admin-dashboard',
-  '#privacy-policy': 'privacy-policy',
-}
-
 function PageLoadingSpinner() {
   return (
     <div style={{
@@ -94,7 +69,16 @@ function PageLoadingSpinner() {
 
 function App() {
   const { currentPage, setCurrentPage } = useAppStore()
-  const [blogDetailArticle, setBlogDetailArticle] = useState<Article | null>(null)
+  const [blogDetailArticle, setBlogDetailArticle] = useState<Article | null>(() => {
+    if (typeof window === 'undefined') return null
+    const rawHash = window.location.hash
+    const hash = rawHash ? rawHash.split('?')[0].split('&')[0] : ''
+    if (hash.startsWith('#blog/')) {
+      const blogId = hash.replace('#blog/', '')
+      return articles.find(a => a.id === blogId) || null
+    }
+    return null
+  })
 
   const handleScrollToTop = useCallback(() => {
     scrollToTop(true)
@@ -117,7 +101,7 @@ function App() {
     }
     rafId = requestAnimationFrame(raf)
 
-    ;(window as unknown as { __lenis?: Lenis }).__lenis = lenis
+      ; (window as unknown as { __lenis?: Lenis }).__lenis = lenis
 
     return () => {
       cancelAnimationFrame(rafId)
@@ -150,13 +134,16 @@ function App() {
         // 2. Try backend PR article (id format: pr-123)
         if (blogId.startsWith('pr-')) {
           const prId = blogId.replace('pr-', '')
+          setCurrentPage('blog-detail')
+          setBlogDetailArticle(null)
+          handleScrollToTop()
+
           fetch(buildApiUrl(`/prinfo/${prId}`))
             .then(r => r.ok ? r.json() : null)
             .then(json => {
               if (json) {
                 const pr = json.data || json
                 setBlogDetailArticle(prToArticle(pr))
-                setCurrentPage('blog-detail')
                 handleScrollToTop()
               } else {
                 setCurrentPage('news')
@@ -242,8 +229,12 @@ function App() {
           <Suspense fallback={<PageLoadingSpinner />}>
             {currentPage === 'news' ? (
               <News />
-            ) : currentPage === 'blog-detail' && blogDetailArticle ? (
-              <BlogDetailPage article={blogDetailArticle} />
+            ) : currentPage === 'blog-detail' ? (
+              blogDetailArticle ? (
+                <BlogDetailPage article={blogDetailArticle} />
+              ) : (
+                <PageLoadingSpinner />
+              )
             ) : currentPage === 'teams' ? (
               <TeamsPage />
             ) : currentPage === 'gallery' ? (

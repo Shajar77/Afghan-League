@@ -143,10 +143,18 @@ export function BlogDetailPage({ article }: BlogDetailPageProps) {
                 const fullContent = article.fullText.join('\n')
                 const isHtml = /<[a-z][\s\S]*>/i.test(fullContent)
                 if (isHtml) {
+                  // Ensure any <table> is wrapped in a responsive scroll container with mobile hint
+                  const processedContent = fullContent.replace(
+                    /(<div[^>]*class=["'][^"']*(?:blog-detail-table-wrap|tableWrapper)[^"']*["'][^>]*>[\s\S]*?<\/div>)|(<table[\s\S]*?<\/table>)/gi,
+                    (_match, alreadyWrapped, rawTable) => {
+                      if (alreadyWrapped) return alreadyWrapped
+                      return `<div class="blog-detail-table-wrap"><div class="blog-detail-table-hint"><span>⇄ Swipe to view full table</span></div>${rawTable}</div>`
+                    }
+                  )
                   return (
                     <div
                       className="blog-detail-html-body"
-                      dangerouslySetInnerHTML={{ __html: fullContent }}
+                      dangerouslySetInnerHTML={{ __html: processedContent }}
                     />
                   )
                 }

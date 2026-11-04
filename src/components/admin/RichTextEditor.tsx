@@ -167,6 +167,7 @@ export function RichTextEditor({ value, onChange, placeholder, hasError }: RichT
       Color,
       Table.configure({
         resizable: true,
+        renderWrapper: true,
         HTMLAttributes: {
           class: 'rte-table',
         },

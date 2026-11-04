@@ -50,6 +50,7 @@
   flex-direction: column;
   gap: 2rem;
   width: 100%;
+  min-width: 0;
 }
 
 .blog-detail-back-wrap {
@@ -107,6 +108,9 @@
 .blog-detail-content-wrap {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .blog-detail-meta {
@@ -158,6 +162,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .blog-detail-paragraph {
@@ -403,6 +410,9 @@
 
 /* ── HTML body (from TipTap rich text editor) ── */
 .blog-detail-html-body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   font-size: 1rem;
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.9);
@@ -477,50 +487,103 @@
 }
 
 /* ── Tables inside blog HTML body (mobile-first) ── */
+.blog-detail-table-wrap,
 .blog-detail-html-body .tableWrapper {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  margin: 1.5rem 0 2rem;
+  margin: 1.25rem 0 1.75rem;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(2, 27, 121, 0.45);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-
-.blog-detail-html-body table {
-  width: 100%;
-  min-width: 460px;
-  border-collapse: collapse;
-  font-size: 0.88rem;
-  text-align: left;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(2, 27, 121, 0.45);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  margin: 1.5rem 0 2rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-gold, #F8C800) rgba(2, 27, 121, 0.6);
 }
 
 @media (min-width: 768px) {
+  .blog-detail-table-wrap,
+  .blog-detail-html-body .tableWrapper {
+    margin: 1.75rem 0 2.25rem;
+    border-radius: 10px;
+  }
+}
+
+.blog-detail-table-wrap::-webkit-scrollbar,
+.blog-detail-html-body .tableWrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.blog-detail-table-wrap::-webkit-scrollbar-track,
+.blog-detail-html-body .tableWrapper::-webkit-scrollbar-track {
+  background: rgba(2, 27, 121, 0.6);
+  border-radius: 4px;
+}
+.blog-detail-table-wrap::-webkit-scrollbar-thumb,
+.blog-detail-html-body .tableWrapper::-webkit-scrollbar-thumb {
+  background: var(--brand-gold, #F8C800);
+  border-radius: 4px;
+}
+
+/* Mobile swipe hint */
+.blog-detail-table-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-gold, #F8C800);
+  background: rgba(248, 200, 0, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+@media (min-width: 768px) {
+  .blog-detail-table-hint {
+    display: none;
+  }
+}
+
+.blog-detail-table-wrap table,
+.blog-detail-html-body .tableWrapper table,
+.blog-detail-html-body table {
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  text-align: left;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .blog-detail-table-wrap table,
+  .blog-detail-html-body .tableWrapper table,
   .blog-detail-html-body table {
-    min-width: 580px;
+    width: 100% !important;
     font-size: 0.95rem;
   }
 }
 
-.blog-detail-html-body th {
+.blog-detail-html-body th,
+.blog-detail-table th {
   background: rgba(248, 200, 0, 0.18) !important;
   color: var(--brand-gold, #F8C800) !important;
   font-family: var(--font-display, 'Big Shoulders Display', sans-serif);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 0.9rem;
   border-bottom: 2px solid rgba(248, 200, 0, 0.35);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
 }
-.blog-detail-html-body th:last-child {
+.blog-detail-html-body th:last-child,
+.blog-detail-table th:last-child {
   border-right: none;
 }
 .blog-detail-html-body th,
@@ -528,16 +591,29 @@
   color: var(--brand-gold, #F8C800) !important;
 }
 
-.blog-detail-html-body td {
-  padding: 0.85rem 1rem;
+.blog-detail-html-body td,
+.blog-detail-table td {
+  padding: 0.7rem 0.9rem;
   color: rgba(255, 255, 255, 0.95) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
   background-color: transparent !important;
 }
-.blog-detail-html-body td:last-child {
+.blog-detail-html-body td:last-child,
+.blog-detail-table td:last-child {
   border-right: none;
+}
+
+@media (min-width: 768px) {
+  .blog-detail-html-body th,
+  .blog-detail-table th {
+    padding: 0.85rem 1.2rem;
+  }
+  .blog-detail-html-body td,
+  .blog-detail-table td {
+    padding: 0.85rem 1.2rem;
+  }
 }
 
 /* Force all text inside table cells to readable bright white */

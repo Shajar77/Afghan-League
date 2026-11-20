@@ -22,7 +22,7 @@ const configPresets = {
   },
   variant: {
     SHOW_ABOUT: true,
-    SHOW_TEAMS: false,
+    SHOW_TEAMS: true,
     SHOW_FIXTURES: false,
     SHOW_POINTS_TABLE: false,
     SHOW_MOMENTS: true,

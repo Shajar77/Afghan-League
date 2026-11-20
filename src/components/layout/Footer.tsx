@@ -221,12 +221,11 @@ export function Footer() {
             <div className="footer-col links-col franchises-col">
               <h4 className="footer-col-title">Franchises</h4>
               <ul className="footer-links-list">
-                <li><a href="#teams">Kabul Knights</a></li>
-                <li><a href="#teams">Kandahar Kings</a></li>
-                <li><a href="#teams">Balkh Legends</a></li>
-                <li><a href="#teams">Paktia Panthers</a></li>
-                <li><a href="#teams">Amo Sharks</a></li>
-                <li><a href="#teams">Band-e-Amir Dragons</a></li>
+                <li><a href="#teams">Axcel United Kabul</a></li>
+                <li><a href="#teams">Balkh Zwanan</a></li>
+                <li><a href="#teams">Kandahar Warriors</a></li>
+                <li><a href="#teams">Nangarhar</a></li>
+                <li><a href="#teams">Paktia</a></li>
               </ul>
             </div>
           )}

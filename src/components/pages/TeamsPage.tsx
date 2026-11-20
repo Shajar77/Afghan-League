@@ -1,19 +1,57 @@
 import { useState, useEffect, useCallback } from 'react'
 import { X } from 'lucide-react'
-import { buildApiUrl, authFetch, getApiToken, normalizeMediaUrl } from '../../config/api'
+import { buildApiUrl, authFetch, getApiToken, isJwtExpiringSoon, normalizeMediaUrl } from '../../config/api'
 import './TeamsPage.css'
 
 // ── Temporary Auth Token (Read from .env so it is never committed to GitHub)
 const TEMP_DEV_TOKEN = import.meta.env.VITE_TEMP_PREVIEW_TOKEN || ''
 
-// Helper to make an authenticated request using either the temp token or current admin session
+// Helper to make an authenticated request using active admin session or valid temp token
 async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = TEMP_DEV_TOKEN || getApiToken()
+  const adminToken = getApiToken()
+  const validAdminToken = adminToken && !isJwtExpiringSoon(adminToken) ? adminToken : ''
+  const validTempToken = TEMP_DEV_TOKEN && !isJwtExpiringSoon(TEMP_DEV_TOKEN) ? TEMP_DEV_TOKEN : ''
+  const token = validAdminToken || validTempToken
+
   const headers = new Headers(options.headers || {})
   if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`)
   }
   return authFetch(url, { ...options, headers })
+}
+
+// ── Official Team Theme Brand Colors ────────────────────────────
+export const TEAM_BRAND_COLORS: Record<string, string> = {
+  akcel: '#DB1F27',
+  axcel: '#DB1F27',
+  kabul: '#DB1F27',
+  balkh: '#FC5F04',
+  kandahar: '#D9AD46',
+  kandhar: '#D9AD46',
+  nangarhar: '#FF001F',
+  nanghar: '#FF001F',
+  paktia: '#89FB1F',
+}
+
+export function getTeamAccentColor(team?: ApiTeam | null): string {
+  if (!team) return '#DB1F27'
+  const text = `${team.name || ''} ${team.slug || ''} ${team.city || ''}`.toLowerCase()
+  if (text.includes('akcel') || text.includes('axcel') || text.includes('kabul')) {
+    return '#DB1F27'
+  }
+  if (text.includes('balkh')) {
+    return '#FC5F04'
+  }
+  if (text.includes('kandahar') || text.includes('kandhar')) {
+    return '#D9AD46'
+  }
+  if (text.includes('nangarhar') || text.includes('nanghar')) {
+    return '#FF001F'
+  }
+  if (text.includes('paktia')) {
+    return '#89FB1F'
+  }
+  return team.primary_color || '#DB1F27'
 }
 
 // ── API Types ──────────────────────────────────────────────────
@@ -119,10 +157,12 @@ function PlayerAvatar({
 function TeamLogoImg({
   name,
   logoUrl,
+  accentColor,
   className,
 }: {
   name: string
   logoUrl?: string
+  accentColor?: string
   className?: string
 }) {
   const [err, setErr] = useState(false)
@@ -133,7 +173,7 @@ function TeamLogoImg({
     .join('')
     .slice(0, 2)
     .toUpperCase()
-  const color = '#0a1240'
+  const color = accentColor || getTeamAccentColor({ name } as ApiTeam)
 
   if (normalizedUrl && !err) {
     return (
@@ -233,7 +273,7 @@ export function TeamsPage() {
     document.body.classList.remove('modal-open-blur')
   }
 
-  const accentColor = (team: ApiTeam) => team.primary_color || '#0a1240'
+  const accentColor = (team?: ApiTeam | null) => getTeamAccentColor(team)
 
   return (
     <div className="teams-page-container">
@@ -281,79 +321,74 @@ export function TeamsPage() {
           {/* Teams cards grid */}
           {!isLoadingTeams && !teamsError && teams.length > 0 && (
             <div className="teams-cards-grid">
-              {teams.map((team) => (
-                <div key={team.id} className="team-profile-card">
-                  {/* Left Side: Logo */}
-                  <div
-                    className="team-card-left"
-                    style={{ borderLeft: `4px solid ${accentColor(team)}` }}
-                  >
-                    <div className="team-logo-wrap">
-                      <TeamLogoImg
-                        name={team.name}
-                        logoUrl={team.logo_url}
-                        className="team-logo-img-page"
-                      />
+              {teams.map((team) => {
+                const teamColor = accentColor(team)
+                const isBright = teamColor.toLowerCase() === '#89fb1f'
+                return (
+                  <div key={team.id} className="team-profile-card">
+                    {/* Left Side: Logo */}
+                    <div
+                      className="team-card-left"
+                      style={{ borderLeft: `4px solid ${teamColor}` }}
+                    >
+                      <div className="team-logo-wrap">
+                        <TeamLogoImg
+                          name={team.name}
+                          logoUrl={team.logo_url}
+                          accentColor={teamColor}
+                          className="team-logo-img-page"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Center Divider Line */}
+                    <div className="team-card-divider" />
+
+                    {/* Right Side: Details & View Squad Button */}
+                    <div className="team-card-right">
+                      <div className="team-name-wrap">
+                        <h3 className="team-full-name">{team.name}</h3>
+                      </div>
+
+                      {(team.captain || team.head_coach || team.founded) && (
+                        <div className="team-card-body">
+                          {team.captain && (
+                            <div className="team-info-row">
+                              <span className="info-row-label">Captain</span>
+                              <span className="info-row-value">{team.captain}</span>
+                            </div>
+                          )}
+                          {team.head_coach && (
+                            <div className="team-info-row">
+                              <span className="info-row-label">Head Coach</span>
+                              <span className="info-row-value">{team.head_coach}</span>
+                            </div>
+                          )}
+                          {team.founded && (
+                            <div className="team-info-row">
+                              <span className="info-row-label">Founded</span>
+                              <span className="info-row-value">{team.founded}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="team-card-footer">
+                        <button
+                          className="team-action-btn"
+                          onClick={() => handleOpenModal(team)}
+                          style={{
+                            '--team-theme-color': teamColor,
+                            '--team-hover-text': isBright ? '#0a1240' : '#ffffff',
+                          } as React.CSSProperties}
+                        >
+                          View Squad
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Center Divider Line */}
-                  <div className="team-card-divider" />
-
-                  {/* Right Side: Details & View Squad Button */}
-                  <div className="team-card-right">
-                    <div className="team-name-wrap">
-                      <h3 className="team-full-name">{team.name}</h3>
-                    </div>
-
-                    <div className="team-card-body">
-                      {team.city && (
-                        <div className="team-info-row">
-                          <span className="info-row-label">City</span>
-                          <span className="info-row-value">{team.city}</span>
-                        </div>
-                      )}
-                      {team.home_venue && (
-                        <div className="team-info-row">
-                          <span className="info-row-label">Home Venue</span>
-                          <span className="info-row-value venue-val">{team.home_venue}</span>
-                        </div>
-                      )}
-                      {team.captain && (
-                        <div className="team-info-row">
-                          <span className="info-row-label">Captain</span>
-                          <span className="info-row-value">{team.captain}</span>
-                        </div>
-                      )}
-                      {team.head_coach && (
-                        <div className="team-info-row">
-                          <span className="info-row-label">Head Coach</span>
-                          <span className="info-row-value">{team.head_coach}</span>
-                        </div>
-                      )}
-                      {team.founded && (
-                        <div className="team-info-row">
-                          <span className="info-row-label">Founded</span>
-                          <span className="info-row-value">{team.founded}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="team-card-footer">
-                      <button
-                        className="team-action-btn"
-                        onClick={() => handleOpenModal(team)}
-                        style={{
-                          '--team-theme-color': accentColor(team),
-                          '--team-hover-text': '#ffffff',
-                        } as React.CSSProperties}
-                      >
-                        View Squad
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -376,6 +411,7 @@ export function TeamsPage() {
                 <TeamLogoImg
                   name={selectedTeam.name}
                   logoUrl={selectedTeam.logo_url}
+                  accentColor={accentColor(selectedTeam)}
                   className="squad-header-logo-img"
                 />
               </div>

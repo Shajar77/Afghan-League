@@ -4,6 +4,7 @@ const configPresets = {
   main: {
     SHOW_ABOUT: true,
     SHOW_TEAMS: true,
+    SHOW_HOME_TEAMS: false,
     SHOW_FIXTURES: true,
     SHOW_POINTS_TABLE: true,
     SHOW_MOMENTS: true,
@@ -23,6 +24,7 @@ const configPresets = {
   variant: {
     SHOW_ABOUT: true,
     SHOW_TEAMS: true,
+    SHOW_HOME_TEAMS: false,
     SHOW_FIXTURES: false,
     SHOW_POINTS_TABLE: false,
     SHOW_MOMENTS: true,

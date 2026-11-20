@@ -1,24 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { X } from 'lucide-react'
-import { buildApiUrl, authFetch, getApiToken, isJwtExpiringSoon, normalizeMediaUrl } from '../../config/api'
+import { buildApiUrl, normalizeMediaUrl } from '../../config/api'
 import './TeamsPage.css'
-
-// ── Temporary Auth Token (Read from .env so it is never committed to GitHub)
-const TEMP_DEV_TOKEN = import.meta.env.VITE_TEMP_PREVIEW_TOKEN || ''
-
-// Helper to make an authenticated request using active admin session or valid temp token
-async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  const adminToken = getApiToken()
-  const validAdminToken = adminToken && !isJwtExpiringSoon(adminToken) ? adminToken : ''
-  const validTempToken = TEMP_DEV_TOKEN && !isJwtExpiringSoon(TEMP_DEV_TOKEN) ? TEMP_DEV_TOKEN : ''
-  const token = validAdminToken || validTempToken
-
-  const headers = new Headers(options.headers || {})
-  if (token && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${token}`)
-  }
-  return authFetch(url, { ...options, headers })
-}
 
 // ── Official Team Theme Brand Colors ────────────────────────────
 export const TEAM_BRAND_COLORS: Record<string, string> = {
@@ -235,7 +218,7 @@ export function TeamsPage() {
     setIsLoadingTeams(true)
     setTeamsError(null)
     try {
-      const res = await authenticatedFetch(buildApiUrl('/teams'))
+      const res = await fetch(buildApiUrl('/teams'))
       if (!res.ok) throw new Error('Failed to load teams.')
       const json = await res.json()
       const list: ApiTeam[] = Array.isArray(json)
@@ -258,7 +241,7 @@ export function TeamsPage() {
     setIsLoadingSquad(true)
     setSquad([])
     try {
-      const res = await authenticatedFetch(buildApiUrl(`/team-players/team/${teamId}`))
+      const res = await fetch(buildApiUrl(`/team-players/team/${teamId}`))
       if (!res.ok) throw new Error('Failed to load squad.')
       const json = await res.json()
       const list: ApiPlayer[] = Array.isArray(json)

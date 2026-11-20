@@ -189,7 +189,7 @@ function App() {
           <StatsBarSection />
 
           <main className="app-main">
-            {FEATURES.SHOW_TEAMS && <TeamsGridSection />}
+            {FEATURES.SHOW_HOME_TEAMS && <TeamsGridSection />}
 
             {FEATURES.SHOW_NEWS && <HomeNewsSection />}
 

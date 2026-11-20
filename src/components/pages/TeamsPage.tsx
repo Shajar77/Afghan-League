@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { X } from 'lucide-react'
-import { buildApiUrl, authFetch, getApiToken } from '../../config/api'
+import { buildApiUrl, authFetch, getApiToken, normalizeMediaUrl } from '../../config/api'
 import './TeamsPage.css'
 
 // ── Temporary Auth Token (Read from .env so it is never committed to GitHub)
@@ -40,6 +40,9 @@ interface ApiPlayer {
   playing_role?: string
   category?: string
   photo_url?: string
+  photo?: string
+  headshot_url?: string
+  profile_photo_url?: string
   registration_code?: string
   is_captain?: boolean | 0 | 1
 }
@@ -51,8 +54,65 @@ function getPlayerName(p: ApiPlayer): string {
   return parts.length > 0 ? parts.join(' ') : 'Unknown Player'
 }
 
+function getPlayerPhoto(p: ApiPlayer): string {
+  const raw =
+    p.photo_url ||
+    p.photo ||
+    p.headshot_url ||
+    p.profile_photo_url ||
+    (p as any).headshot_image_url ||
+    (p as any).image_url ||
+    (p as any).avatar ||
+    ''
+  return normalizeMediaUrl(raw)
+}
+
 function isCaptain(p: ApiPlayer): boolean {
   return p.is_captain === true || p.is_captain === 1
+}
+
+function PlayerAvatar({
+  name,
+  photoUrl,
+  accentColor = '#0a1240',
+}: {
+  name: string
+  photoUrl?: string
+  accentColor?: string
+}) {
+  const [err, setErr] = useState(false)
+  const initials = (name || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || '')
+    .join('') || 'PL'
+
+  return (
+    <div className="squad-player-avatar-wrap">
+      {photoUrl && !err ? (
+        <img
+          src={photoUrl}
+          alt={name}
+          className="squad-player-avatar-img"
+          loading="lazy"
+          decoding="async"
+          onError={() => setErr(true)}
+        />
+      ) : (
+        <div
+          className="squad-player-avatar-fallback"
+          style={{
+            background: `${accentColor}14`,
+            color: accentColor,
+            borderColor: `${accentColor}30`,
+          }}
+        >
+          {initials}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ── Team Logo Component ────────────────────────────────────────
@@ -66,6 +126,7 @@ function TeamLogoImg({
   className?: string
 }) {
   const [err, setErr] = useState(false)
+  const normalizedUrl = normalizeMediaUrl(logoUrl)
   const initials = name
     .split(' ')
     .map((w) => w[0])
@@ -74,10 +135,10 @@ function TeamLogoImg({
     .toUpperCase()
   const color = '#0a1240'
 
-  if (logoUrl && !err) {
+  if (normalizedUrl && !err) {
     return (
       <img
-        src={logoUrl}
+        src={normalizedUrl}
         alt={`${name} Logo`}
         className={className}
         loading="lazy"
@@ -89,8 +150,8 @@ function TeamLogoImg({
   return (
     <div
       style={{
-        width: 72,
-        height: 72,
+        width: '100%',
+        height: '100%',
         borderRadius: '50%',
         background: `${color}18`,
         border: `2px solid ${color}44`,
@@ -99,7 +160,7 @@ function TeamLogoImg({
         justifyContent: 'center',
         fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
         fontWeight: 800,
-        fontSize: 26,
+        fontSize: '1.25rem',
         color,
       }}
     >
@@ -355,7 +416,10 @@ export function TeamsPage() {
                   >
                     ACTIVE ROSTER ({squad.length} PLAYERS)
                   </h4>
-                  <div className="squad-players-grid">
+                  <div
+                    className="squad-players-grid"
+                    style={{ '--roster-rows': Math.max(1, Math.ceil(squad.length / 2)) } as React.CSSProperties}
+                  >
                     {squad.map((player, idx) => (
                       <div key={player.id ?? idx} className="squad-player-item">
                         <div
@@ -365,16 +429,16 @@ export function TeamsPage() {
                           {String(idx + 1).padStart(2, '0')}
                         </div>
                         <div className="player-divider-col" />
+                        <PlayerAvatar
+                          name={getPlayerName(player)}
+                          photoUrl={getPlayerPhoto(player)}
+                          accentColor={accentColor(selectedTeam)}
+                        />
                         <div className="player-info-col">
                           <span className="player-name">
                             {getPlayerName(player)}
                             {isCaptain(player) && (
                               <span className="captain-text-suffix"> (C)</span>
-                            )}
-                            {player.playing_role && (
-                              <span className="player-role-inline">
-                                {' '}— {player.playing_role}
-                              </span>
                             )}
                           </span>
                         </div>

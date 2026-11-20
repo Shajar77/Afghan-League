@@ -167,6 +167,12 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.team-logo-img-page.is-loaded {
+  opacity: 1;
 }
 
 .team-logo-img-page.logo-invert-dark {
@@ -387,6 +393,12 @@ body.modal-open-blur {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.squad-header-logo-img.is-loaded {
+  opacity: 1;
 }
 
 .squad-header-logo-img.logo-invert-dark {
@@ -544,15 +556,25 @@ body.modal-open-blur {
 }
 
 .squad-player-avatar-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center top;
   border-radius: 50%;
   display: block;
+  opacity: 0;
+  transition: opacity 0.25s ease-in-out;
+}
+
+.squad-player-avatar-img.is-loaded {
+  opacity: 1;
 }
 
 .squad-player-avatar-fallback {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border-radius: 50%;

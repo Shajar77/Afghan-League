@@ -112,12 +112,13 @@ function isCaptain(p: ApiPlayer): boolean {
 function PlayerAvatar({
   name,
   photoUrl,
-  accentColor = '#0a1240',
+  accentColor = '#DB1F27',
 }: {
   name: string
   photoUrl?: string
   accentColor?: string
 }) {
+  const [loaded, setLoaded] = useState(false)
   const [err, setErr] = useState(false)
   const initials = (name || '')
     .split(' ')
@@ -128,26 +129,31 @@ function PlayerAvatar({
 
   return (
     <div className="squad-player-avatar-wrap">
-      {photoUrl && !err ? (
-        <img
-          src={photoUrl}
-          alt={name}
-          className="squad-player-avatar-img"
-          loading="lazy"
-          decoding="async"
-          onError={() => setErr(true)}
-        />
-      ) : (
+      {/* Fallback initials displayed immediately until image is 100% downloaded */}
+      {(!loaded || err || !photoUrl) && (
         <div
           className="squad-player-avatar-fallback"
           style={{
-            background: `${accentColor}14`,
+            background: `${accentColor}18`,
             color: accentColor,
-            borderColor: `${accentColor}30`,
+            borderColor: `${accentColor}40`,
           }}
         >
           {initials}
         </div>
+      )}
+
+      {/* Actual photo loads in background; only visible once fully loaded to prevent top-down scanline painting */}
+      {photoUrl && !err && (
+        <img
+          src={photoUrl}
+          alt={name}
+          className={`squad-player-avatar-img ${loaded ? 'is-loaded' : 'is-loading'}`}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setErr(true)}
+        />
       )}
     </div>
   )
@@ -165,6 +171,7 @@ function TeamLogoImg({
   accentColor?: string
   className?: string
 }) {
+  const [loaded, setLoaded] = useState(false)
   const [err, setErr] = useState(false)
   const normalizedUrl = normalizeMediaUrl(logoUrl)
   const initials = name
@@ -175,36 +182,40 @@ function TeamLogoImg({
     .toUpperCase()
   const color = accentColor || getTeamAccentColor({ name } as ApiTeam)
 
-  if (normalizedUrl && !err) {
-    return (
-      <img
-        src={normalizedUrl}
-        alt={`${name} Logo`}
-        className={className}
-        loading="lazy"
-        decoding="async"
-        onError={() => setErr(true)}
-      />
-    )
-  }
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        borderRadius: '50%',
-        background: `${color}18`,
-        border: `2px solid ${color}44`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
-        fontWeight: 800,
-        fontSize: '1.25rem',
-        color,
-      }}
-    >
-      {initials}
+    <div className="team-logo-avatar-wrap" style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {(!loaded || err || !normalizedUrl) && (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            background: `${color}18`,
+            border: `2px solid ${color}44`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: 'var(--font-display, "Big Shoulders Display", sans-serif)',
+            fontWeight: 800,
+            fontSize: '1.25rem',
+            color,
+          }}
+        >
+          {initials}
+        </div>
+      )}
+
+      {normalizedUrl && !err && (
+        <img
+          src={normalizedUrl}
+          alt={`${name} Logo`}
+          className={`${className || ''} ${loaded ? 'is-loaded' : 'is-loading'}`}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setErr(true)}
+        />
+      )}
     </div>
   )
 }
